@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Reversia",
+    "slug": "DiabetesApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Reversia-Logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/Reversia-Logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "hidden": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xtreemtech.reversia"
+    },
+    "android": {
+      "package": "com.xtreemtech.reversia",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Reversia-Logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "eae4d01c-163d-40d0-8b50-c2bf86dcf194"
+      }
+    },
+    "owner": "xtreemtech",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/eae4d01c-163d-40d0-8b50-c2bf86dcf194"
+    }
+  }
+}
