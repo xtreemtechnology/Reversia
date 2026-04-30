@@ -64,11 +64,11 @@ export default function LoginScreen({ navigation, route }) {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#825CFF" />
           </TouchableOpacity>
-       KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-      <   <View style={[styles.circle, styles.circleSmall, { left: '40%', top: '10%' }]} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <View style={[styles.circle, styles.circleSmall, { left: '40%', top: '10%' }]} />
           <View style={[styles.circle, styles.circleMedium, { left: '10%', bottom: -30 }]} />
           <View style={[styles.circle, styles.circleLarge, { right: -40, top: '10%' }]}>
              <Image 
@@ -81,7 +81,7 @@ export default function LoginScreen({ navigation, route }) {
       </View>
 
       <View style={styles.formContainer}>
-        <Text style={sstyles.inputWrapper, focusedInput === 'email' && styles.inputWrapperFocused]}>
+        <Text style={[styles.inputWrapper, focusedInput === 'email' && styles.inputWrapperFocused]}>
           <Ionicons name="mail-outline" size={20} color={focusedInput === 'email' ? "#825CFF" : "#9ca3af"} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
