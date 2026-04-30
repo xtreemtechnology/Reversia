@@ -29,4 +29,4 @@ jobs:
         run: npm ci
 
       - name: Build on EAS
-        run: npx eas-cli@latest build --platform ${{ matrix.platform }} --non-interactive
+        run: npx eas-cli@latest build --platform ${{ matrix.platform }} --non-interactive --no-wait
