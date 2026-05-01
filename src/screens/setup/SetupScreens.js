@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -675,7 +675,14 @@ export function Setup8({ go, setupData, setSetupData }) {
 }
 
 export function SetupGenerating({ go }) {
-  // showing the asset and a simple spinner animation
+  // auto-advance to the completion screen after a short delay
+  useEffect(() => {
+    const t = setTimeout(() => {
+      go && go('setupgenComplete');
+    }, 1600);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
