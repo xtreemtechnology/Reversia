@@ -584,9 +584,6 @@ export function DiabetesIntro({ go }) {
         <Text style={{ fontSize: 56 }}>🩺</Text>
         <Text style={styles.centerTitle}>Tell us about your health</Text>
         <Text style={styles.centerText}>This helps tailor glucose targets, reminders, and food recommendations.</Text>
-        <View style={{ width: '100%', marginTop: 18 }}>
-          <PurpleButton label="Let's Go" onPress={() => go('diab1')} />
-        </View>
       </View>
     </StepFrame>
   );
@@ -683,6 +680,7 @@ export function SetupGenerating({ go }) {
   } catch (e) {
     LottieView = null;
   }
+  const remoteLottie = { uri: 'https://assets10.lottiefiles.com/packages/lf20_touohxv0.json' };
 
   // auto-advance to the completion screen after a short delay
   useEffect(() => {
@@ -704,7 +702,16 @@ export function SetupGenerating({ go }) {
 
         {LottieView ? (
           <View style={{ width: 220, height: 220, marginTop: 18 }}>
-            <LottieView source={require('../../../assets/animations/setup-generating.json')} autoPlay loop />
+            {/** prefer local asset if present, otherwise use remote URI */}
+            {(() => {
+              try {
+                // try local asset first
+                const local = require('../../../assets/animations/setup-generating.json');
+                return <LottieView source={local} autoPlay loop />;
+              } catch (e) {
+                return <LottieView source={remoteLottie} autoPlay loop />;
+              }
+            })()}
           </View>
         ) : (
           <View style={{ marginTop: 20 }}>
