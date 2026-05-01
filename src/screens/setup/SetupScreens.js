@@ -675,10 +675,16 @@ export function Setup8({ go, setupData, setSetupData }) {
 }
 
 export function SetupGenerating({ go }) {
-  // auto-advance to the completion screen after a short delay
-  const pulse = useRef(new Animated.Value(0)).current;
-  const pulse2 = useRef(new Animated.Value(0)).current;
+  // try to use a Lottie animation if available at assets/animations/setup-generating.json
+  let LottieView = null;
+  try {
+    // eslint-disable-next-line global-require, import/no-extraneous-dependencies
+    LottieView = require('lottie-react-native').default;
+  } catch (e) {
+    LottieView = null;
+  }
 
+  // auto-advance to the completion screen after a short delay
   useEffect(() => {
     const t = setTimeout(() => {
       go && go('setupgenComplete');
@@ -686,38 +692,31 @@ export function SetupGenerating({ go }) {
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.parallel([
-        Animated.sequence([
-          Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 0, duration: 700, useNativeDriver: true }),
-        ]),
-        Animated.sequence([
-          Animated.delay(350),
-          Animated.timing(pulse2, { toValue: 1, duration: 700, useNativeDriver: true }),
-          Animated.timing(pulse2, { toValue: 0, duration: 700, useNativeDriver: true }),
-        ])
-      ])
-    ).start();
-  }, []);
-
-  const scale1 = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.15] });
-  const opacity1 = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
-  const scale2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.15] });
-  const opacity2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0.95] });
-
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
-        <Image source={require('../../../assets/Setup Generating.png')} style={{ width: 200, height: 200, resizeMode: 'contain' }} />
-
-        <View style={{ flexDirection: 'row', marginTop: 28, alignItems: 'center', gap: 12 }}>
-          <Animated.View style={[styles.pulseDot, { transform: [{ scale: scale1 }], opacity: opacity1 }]} />
-          <Animated.View style={[styles.pulseDot, { transform: [{ scale: scale2 }], opacity: opacity2 }]} />
-          <View style={{ width: 8 }} />
-          <Text style={[styles.centerText, { marginTop: 0 }]}>Generating your personalized plan...</Text>
+        {/* Decorative hero built with code instead of an image */}
+        <View style={styles.heroCircle}>
+          <View style={styles.heroInnerCircle}>
+            <Ionicons name="sparkles" size={46} color="#FFF" />
+          </View>
         </View>
+
+        {LottieView ? (
+          <View style={{ width: 220, height: 220, marginTop: 18 }}>
+            <LottieView source={require('../../../assets/animations/setup-generating.json')} autoPlay loop />
+          </View>
+        ) : (
+          <View style={{ marginTop: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={[styles.pulseDot, { marginRight: 10 }]} />
+              <View style={[styles.pulseDot, { marginRight: 10, backgroundColor: '#70d6ff' }]} />
+            </View>
+          </View>
+        )}
+
+        <Text style={[styles.centerTitle, { marginTop: 18 }]}>Generating your plan</Text>
+        <Text style={[styles.centerText, { marginTop: 8 }]}>Personalising meals, reminders and insights just for you.</Text>
       </View>
     </AnimatedScreen>
   );
@@ -727,10 +726,12 @@ export function SetupGeneratingComplete({ go }) {
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
-        <Image source={require('../../../assets/Setup Generating Complete.png')} style={{ width: 300, height: 300, resizeMode: 'contain' }} />
-        <Text style={styles.centerTitle}>All Set!</Text>
-        <Text style={styles.centerText}>Your account is ready. Start your Reversia journey now.</Text>
-        <View style={{ width: '100%', marginTop: 18 }}>
+        <View style={styles.completeBadge}>
+          <Ionicons name="checkmark" size={60} color="#FFF" />
+        </View>
+        <Text style={[styles.centerTitle, { marginTop: 22 }]}>All Set!</Text>
+        <Text style={[styles.centerText, { marginTop: 10 }]}>Your plan is ready — let’s begin your Reversia journey.</Text>
+        <View style={{ width: '100%', marginTop: 26 }}>
           <PurpleButton label="Start Journey" onPress={() => go('MainApp')} />
         </View>
       </View>
@@ -983,4 +984,33 @@ const styles = StyleSheet.create({
   rootCenter: { alignItems: 'center', justifyContent: 'center', flex: 1 },
   centerTitle: { fontSize: 22, fontWeight: '800', color: '#111827', marginTop: 12, textAlign: 'center' },
   centerText: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 8 },
+  heroCircle: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#F5F3FF',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  heroInnerCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#825CFF',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  completeBadge: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: '#70d6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+  },
 });
