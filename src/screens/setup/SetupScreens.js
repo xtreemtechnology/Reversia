@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -676,6 +676,9 @@ export function Setup8({ go, setupData, setSetupData }) {
 
 export function SetupGenerating({ go }) {
   // auto-advance to the completion screen after a short delay
+  const pulse = useRef(new Animated.Value(0)).current;
+  const pulse2 = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     const t = setTimeout(() => {
       go && go('setupgenComplete');
@@ -683,12 +686,38 @@ export function SetupGenerating({ go }) {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0, duration: 700, useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.delay(350),
+          Animated.timing(pulse2, { toValue: 1, duration: 700, useNativeDriver: true }),
+          Animated.timing(pulse2, { toValue: 0, duration: 700, useNativeDriver: true }),
+        ])
+      ])
+    ).start();
+  }, []);
+
+  const scale1 = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.15] });
+  const opacity1 = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+  const scale2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.15] });
+  const opacity2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0.95] });
+
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
-        <Image source={require('../../../assets/Setup Generating.png')} style={{ width: 260, height: 260, resizeMode: 'contain' }} />
-        <Text style={[styles.centerText, { marginTop: 20 }]}>Generating your personalized plan...</Text>
-        <ActivityIndicator size="large" color="#825CFF" style={{ marginTop: 18 }} />
+        <Image source={require('../../../assets/Setup Generating.png')} style={{ width: 200, height: 200, resizeMode: 'contain' }} />
+
+        <View style={{ flexDirection: 'row', marginTop: 28, alignItems: 'center', gap: 12 }}>
+          <Animated.View style={[styles.pulseDot, { transform: [{ scale: scale1 }], opacity: opacity1 }]} />
+          <Animated.View style={[styles.pulseDot, { transform: [{ scale: scale2 }], opacity: opacity2 }]} />
+          <View style={{ width: 8 }} />
+          <Text style={[styles.centerText, { marginTop: 0 }]}>Generating your personalized plan...</Text>
+        </View>
       </View>
     </AnimatedScreen>
   );
@@ -945,4 +974,13 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     outlineWidth: 0,
   },
+  pulseDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#825CFF',
+  },
+  rootCenter: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  centerTitle: { fontSize: 22, fontWeight: '800', color: '#111827', marginTop: 12, textAlign: 'center' },
+  centerText: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 8 },
 });
