@@ -95,12 +95,7 @@ export default function AccountSetupHeight({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.skipButton}
-          onPress={() => navigation.navigate('AccountSetupGoal')}
-        >
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
+        <View style={styles.skipButton} />
       </View>
 
       <View style={styles.content}>

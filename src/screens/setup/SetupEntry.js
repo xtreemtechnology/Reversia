@@ -137,7 +137,7 @@ function GeneratingCompleteRoute(props) {
 }
 
 // ─── MAIN ENTRY POINT ─────────────────────────────────────────────────────────
-export default function SetupEntry() {
+export default function SetupEntry({ navigation, route }) {
   const [setupData, setSetupData] = useState({ 
     region: '', 
     name: '', 
@@ -150,10 +150,10 @@ export default function SetupEntry() {
   });
 
   const contextValue = useMemo(() => ({ setupData, setSetupData }), [setupData]);
-
+  const initialNested = route?.params?.screen || 'setupIntro';
   return (
     <SetupContext.Provider value={contextValue}>
-      <Stack.Navigator initialRouteName="setupIntro" screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+      <Stack.Navigator initialRouteName={initialNested} screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         <Stack.Screen name="setupIntro" component={SetupIntro} />
         <Stack.Screen name="setupCountry" component={CountryRoute} />
         <Stack.Screen name="setupName" component={NameRoute} />
@@ -172,6 +172,8 @@ export default function SetupEntry() {
     </SetupContext.Provider>
   );
 }
+
+
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({

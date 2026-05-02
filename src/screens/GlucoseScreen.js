@@ -1,5 +1,5 @@
 // src/screens/GlucoseScreen.js
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ScrollView,
   View,
@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { NavigationBar } from "../components/ScreenWithNav";
+import { useUserLogs } from '../hooks/useUserLogs';
 
 const { width } = Dimensions.get("window");
 
@@ -47,27 +47,7 @@ const getGlucoseStatus = (value) => {
   return               { label: "Too High",    color: "#DC2626", bg: "#FEF2F2", tip: "Please consult your doctor if this persists." };
 };
 
-// ─── Mock History Data ─────────────────────────────────────────────────────────
-const HISTORY = [
-  { id: 1, date: "Today",     time: "7:15 AM",  value: 112, meal: "Fasting" },
-  { id: 2, date: "Today",     time: "1:30 PM",  value: 148, meal: "After Lunch" },
-  { id: 3, date: "Yesterday", time: "7:00 AM",  value: 98,  meal: "Fasting" },
-  { id: 4, date: "Yesterday", time: "7:30 PM",  value: 172, meal: "After Dinner" },
-  { id: 5, date: "Apr 18",    time: "7:10 AM",  value: 105, meal: "Fasting" },
-  { id: 6, date: "Apr 18",    time: "1:00 PM",  value: 161, meal: "After Lunch" },
-  { id: 7, date: "Apr 17",    time: "7:05 AM",  value: 95,  meal: "Fasting" },
-  { id: 8, date: "Apr 17",    time: "8:00 PM",  value: 142, meal: "After Dinner" },
-];
-
-const WEEK = [
-  { day: "Mon", val: 104 },
-  { day: "Tue", val: 118 },
-  { day: "Wed", val: 139 },
-  { day: "Thu", val: 126 },
-  { day: "Fri", val: 148 },
-  { day: "Sat", val: 112 },
-  { day: "Sun", val: 98 },
-];
+// Data now comes from user's Firestore logs via hook
 
 const MEALS = ["Fasting", "Before Breakfast", "After Breakfast", "Before Lunch", "After Lunch", "Before Dinner", "After Dinner", "Bedtime"];
 
@@ -146,13 +126,22 @@ const REMINDERS = [
 
 export default function GlucoseScreen() {
   const [activeTab, setActiveTab] = useState("Log");
-  const [glucoseValue, setGlucoseValue] = useState(112);
-  const [selectedMeal, setSelectedMeal] = useState("Fasting");
+  const { logs } = useUserLogs(100);
+  // derive glucose logs
+  const glucoseLogs = useMemo(() => logs.filter((l) => l.type === 'glucose').sort((a,b) => {
+    const ta = a.timestamp?.seconds || new Date(a.timestamp).getTime();
+    const tb = b.timestamp?.seconds || new Date(b.timestamp).getTime();
+    return tb - ta;
+  }), [logs]);
+
+  const latestGlucose = glucoseLogs[0] || null;
+  const [glucoseValue, setGlucoseValue] = useState(latestGlucose ? Number(latestGlucose.value) : 112);
+  const [selectedMeal, setSelectedMeal] = useState(latestGlucose?.meal || "Fasting");
   const [saved, setSaved] = useState(false);
   const [reminders, setReminders] = useState(REMINDERS);
   const [remindersOn, setRemindersOn] = useState(true);
 
-  const status = getGlucoseStatus(glucoseValue);
+  const status = getGlucoseStatus(Number(glucoseValue));
 
   const handleSave = () => {
     setSaved(true);
@@ -169,11 +158,18 @@ export default function GlucoseScreen() {
     );
   };
 
-  // Group history by date
-  const grouped = HISTORY.reduce((acc, r) => {
-    (acc[r.date] = acc[r.date] || []).push(r);
-    return acc;
-  }, {});
+  // Group history by date from logs
+  const grouped = useMemo(() => {
+    const map = {};
+    glucoseLogs.forEach((r, idx) => {
+      const ts = typeof r.timestamp?.toDate === 'function' ? r.timestamp.toDate() : new Date(r.timestamp);
+      const date = ts.toDateString();
+      const time = ts.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      const entry = { id: r.id || idx, date, time, value: Number(r.value), meal: r.meal || r.period || '' };
+      (map[date] = map[date] || []).push(entry);
+    });
+    return map;
+  }, [glucoseLogs]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -199,12 +195,14 @@ export default function GlucoseScreen() {
           <View>
             <Text style={styles.latestLabel}>Latest Reading</Text>
             <View style={styles.latestValueRow}>
-              <Text style={styles.latestValue}>112</Text>
-              <Text style={styles.latestUnit}>mg/dL</Text>
+              <Text style={styles.latestValue}>{latestGlucose ? Math.round(Number(latestGlucose.value)) : '--'}</Text>
+              <Text style={styles.latestUnit}>{latestGlucose?.unit || 'mg/dL'}</Text>
             </View>
-            <View style={[styles.latestBadge, { backgroundColor: "rgba(16,185,129,0.2)" }]}>
-              <View style={[styles.badgeDot, { backgroundColor: "#10B981" }]} />
-              <Text style={[styles.badgeText, { color: "#6EE7B7" }]}>Normal</Text>
+            <View style={[styles.latestBadge, { backgroundColor: latestGlucose && getGlucoseStatus(Number(latestGlucose.value)).bg || "rgba(16,185,129,0.08)" }]}>
+              <View style={[styles.badgeDot, { backgroundColor: latestGlucose ? getGlucoseStatus(Number(latestGlucose.value)).color : '#10B981' }]} />
+              <Text style={[styles.badgeText, { color: latestGlucose ? (getGlucoseStatus(Number(latestGlucose.value)).color === '#10B981' ? '#6EE7B7' : '#374151') : '#6EE7B7' }]}>
+                {latestGlucose ? getGlucoseStatus(Number(latestGlucose.value)).label : 'No data'}
+              </Text>
             </View>
           </View>
           <View style={styles.latestStats}>
@@ -533,7 +531,6 @@ export default function GlucoseScreen() {
           </>
         )}
       </ScrollView>
-      <NavigationBar activeScreen="Glucose" />
     </SafeAreaView>
   );
 }

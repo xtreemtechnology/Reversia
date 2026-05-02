@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Import the screens for your tabs
 import HomeScreen from '../screens/HomeScreen';
@@ -13,6 +14,9 @@ import ProfileScreen from '../screens/ProfileScreen';
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : insets.bottom;
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -20,7 +24,7 @@ export default function MainTabNavigator() {
         tabBarShowLabel: true,
         tabBarActiveTintColor: '#825CFF',
         tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { bottom: bottomOffset, height: (Platform.OS === 'ios' ? 88 : 60) + bottomOffset, paddingBottom: (Platform.OS === 'ios' ? 30 : 8) + bottomOffset }],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'Home') {
@@ -72,8 +76,6 @@ export default function MainTabNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    height: Platform.OS === 'ios' ? 88 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
     paddingTop: 10,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,

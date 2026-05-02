@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 
 export default function OrdersScreen() {
   return (
@@ -12,7 +11,6 @@ export default function OrdersScreen() {
           <Text style={styles.text}>All Orders Screen</Text>
         </View>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Meal" />
     </SafeAreaView>
   );
 }

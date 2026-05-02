@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { limits } from '../constants/index';
 import { 
   View, 
   Text, 
@@ -11,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 // Firebase Imports
 import { auth, db } from '../config/firebase'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -107,7 +107,7 @@ export default function ExerciseEntryScreen({ navigation }) {
           <Text style={styles.label}>Workout Duration</Text>
           <View style={styles.timerRow}>
             <TouchableOpacity 
-              onPress={() => setDuration(Math.max(5, duration - 5))} 
+              onPress={() => setDuration(prev => Math.max(limits.minExerciseDuration, prev - 5))} 
               style={styles.adjustBtn}
             >
               <Ionicons name="remove" size={24} color="#111827" />
@@ -119,7 +119,7 @@ export default function ExerciseEntryScreen({ navigation }) {
             </View>
             
             <TouchableOpacity 
-              onPress={() => setDuration(duration + 5)} 
+              onPress={() => setDuration(prev => Math.min(prev + 5, limits.maxExerciseDuration))} 
               style={styles.adjustBtn}
             >
               <Ionicons name="add" size={24} color="#111827" />
@@ -148,13 +148,12 @@ export default function ExerciseEntryScreen({ navigation }) {
 
       </ScrollView>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Log" />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF' },
+  container: { flex: 1, backgroundColor: '#F3F4F8' },
   content: { padding: 20, paddingBottom: 110 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
   headerTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
@@ -162,16 +161,16 @@ const styles = StyleSheet.create({
   saveText: { color: '#FFF', fontWeight: '700' },
   label: { fontSize: 13, color: '#9CA3AF', marginBottom: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
   activityGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
-  activityCard: { width: '31%', backgroundColor: '#FFF', borderWidth: 1, borderColor: '#F3F4F6', borderRadius: 16, paddingVertical: 15, alignItems: 'center', marginBottom: 12 },
+  activityCard: { width: '31%', backgroundColor: '#FBFBFD', borderWidth: 1, borderColor: '#E7EAF0', borderRadius: 16, paddingVertical: 15, alignItems: 'center', marginBottom: 12 },
   activeCard: { backgroundColor: '#825CFF', borderColor: '#825CFF', elevation: 4, shadowColor: '#825CFF', shadowOpacity: 0.3, shadowRadius: 5, shadowOffset: { width: 0, height: 4 } },
   activityName: { marginTop: 6, fontWeight: '700', fontSize: 12, color: '#4B5563' },
   durationBox: { backgroundColor: '#F9FAFB', padding: 20, borderRadius: 24, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: '#F3F4F6' },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 25 },
-  adjustBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  adjustBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FBFBFD', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   durationDisplay: { alignItems: 'center' },
   durationValue: { fontSize: 36, fontWeight: '900', color: '#111827' },
   durationUnit: { fontSize: 12, color: '#9CA3AF', fontWeight: '700', marginTop: -5 },
-  guideCard: { backgroundColor: '#FFF', padding: 18, borderRadius: 20, borderWidth: 1, borderColor: '#F3F4F6', marginBottom: 20 },
+  guideCard: { backgroundColor: '#FBFBFD', padding: 18, borderRadius: 20, borderWidth: 1, borderColor: '#E7EAF0', marginBottom: 20 },
   guideHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   guideTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
   guideText: { fontSize: 14, color: '#4B5563', lineHeight: 20 },

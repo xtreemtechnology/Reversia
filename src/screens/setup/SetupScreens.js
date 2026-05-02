@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  useWindowDimensions,
   TextInput,
   Image,
   Alert,
   FlatList,
+  Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,37 +22,50 @@ import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
+function useSetupLayoutFlags() {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isCompactScreen = windowHeight < 760;
+  const isNarrowScreen = windowWidth < 390;
+  const isLandscape = windowWidth > windowHeight;
+  const isCompactLayout = isCompactScreen || isNarrowScreen || (isLandscape && windowHeight < 430);
+  return { isCompactLayout };
+}
+
 // --- Small helper components used by the new screens ---
 function PurpleButton({ label, onPress }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
-    <TouchableOpacity style={[styles.continueBtn, { alignSelf: 'stretch', marginTop: 12 }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.continueBtn, isCompactLayout && styles.continueBtnCompact, { alignSelf: 'stretch', marginTop: 12 }]} onPress={onPress}>
       <Text style={styles.continueBtnText}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
 function OptionCard({ label, selected, onPress }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.optionCard, selected && styles.selCardActive]}>
-      <Text style={[styles.selLabel, selected && styles.selLabelActive]}>{label}</Text>
-      {selected && <Ionicons name="checkmark-circle" size={20} color="#825CFF" />}
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[styles.optionCard, isCompactLayout && styles.optionCardCompact, selected && styles.optionCardActive]}>
+      <Text style={[styles.optionLabel, isCompactLayout && styles.optionLabelCompact, selected && styles.optionLabelActive]}>{label}</Text>
+      {selected && <Ionicons name="checkmark-circle" size={isCompactLayout ? 18 : 20} color="#825CFF" />}
     </TouchableOpacity>
   );
 }
 
 function Pill({ children, active, onPress }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.pill, active && styles.pillActive]}>
-      <Text style={[styles.pillText, active && styles.pillTextActive]}>{children}</Text>
+    <TouchableOpacity onPress={onPress} style={[styles.pill, isCompactLayout && styles.pillCompact, active && styles.pillActive]}>
+      <Text style={[styles.pillText, isCompactLayout && styles.pillTextCompact, active && styles.pillTextActive]}>{children}</Text>
     </TouchableOpacity>
   );
 }
 
 function InputField({ icon, placeholder, value, onChangeText }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
-    <View style={styles.inputRow}>
+    <View style={[styles.inputRow, isCompactLayout && styles.inputRowCompact]}>
       <Text style={styles.inputIcon}>{icon}</Text>
-      <TextInput style={styles.modernInput} placeholder={placeholder} value={value} onChangeText={onChangeText} placeholderTextColor="#9CA3AF" />
+      <TextInput style={[styles.modernInput, isCompactLayout && styles.modernInputCompact]} placeholder={placeholder} value={value} onChangeText={onChangeText} placeholderTextColor="#9CA3AF" />
     </View>
   );
 }
@@ -58,6 +74,7 @@ function InputField({ icon, placeholder, value, onChangeText }) {
 // ─── Reusable Step Layout ─────────────────────────────────────────────────────
 function StepFrame({ go, step, total = 7, title, subtitle, prev, next, children, onContinue }) {
   const insets = useSafeAreaInsets();
+  const { isCompactLayout } = useSetupLayoutFlags();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,8 +97,8 @@ function StepFrame({ go, step, total = 7, title, subtitle, prev, next, children,
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.mainTitle}>{title}</Text>
-          <Text style={styles.mainSubtitle}>{subtitle}</Text>
+          <Text style={[styles.mainTitle, isCompactLayout && styles.mainTitleCompact]}>{title}</Text>
+          <Text style={[styles.mainSubtitle, isCompactLayout && styles.mainSubtitleCompact]}>{subtitle}</Text>
           
           <View style={styles.childrenContainer}>
             {children}
@@ -90,7 +107,7 @@ function StepFrame({ go, step, total = 7, title, subtitle, prev, next, children,
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
           <TouchableOpacity 
-            style={styles.continueBtn} 
+            style={[styles.continueBtn, isCompactLayout && styles.continueBtnCompact]} 
             onPress={() => {
               if (onContinue) {
                 const canContinue = onContinue();
@@ -578,12 +595,25 @@ export function SetupHeight({ go, setupData, setSetupData }) {
 
 // --- New Diabetes + Extra Setup Screens ---
 export function DiabetesIntro({ go }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
     <StepFrame go={go} step={7} title="Tell us about your health" subtitle="This helps tailor glucose targets, reminders, and food recommendations." prev="setupHeight" next="diab1">
-      <View style={styles.rootCenter}>
-        <Text style={{ fontSize: 56 }}>🩺</Text>
-        <Text style={styles.centerTitle}>Tell us about your health</Text>
-        <Text style={styles.centerText}>This helps tailor glucose targets, reminders, and food recommendations.</Text>
+      <View style={[styles.healthIntroCard, isCompactLayout && styles.healthIntroCardCompact]}>
+        <View style={[styles.healthIntroIconWrap, isCompactLayout && styles.healthIntroIconWrapCompact]}>
+          <Text style={{ fontSize: 46 }}>🩺</Text>
+        </View>
+        <Text style={[styles.centerTitle, isCompactLayout && styles.centerTitleCompact]}>Health profile</Text>
+        <Text style={[styles.centerText, isCompactLayout && styles.centerTextCompact]}>We'll personalize glucose reminders, meal guidance, and daily insights based on your answers.</Text>
+        <View style={styles.healthIntroMetaRow}>
+          <View style={styles.healthMetaPill}>
+            <Ionicons name="analytics" size={14} color="#825CFF" />
+            <Text style={styles.healthMetaText}>Smart targets</Text>
+          </View>
+          <View style={styles.healthMetaPill}>
+            <Ionicons name="notifications" size={14} color="#825CFF" />
+            <Text style={styles.healthMetaText}>Better reminders</Text>
+          </View>
+        </View>
       </View>
     </StepFrame>
   );
@@ -593,9 +623,17 @@ export function Diabetes1({ go, setupData, setSetupData }) {
   const options = ['Type 1 Diabetes', 'Type 2 Diabetes', 'Prediabetes', 'Healthy Lifestyle'];
   return (
     <StepFrame go={go} step={1} total={3} title="What is your health condition?" subtitle="Choose the option that best describes you" prev="diab0" next="diab2">
-      {options.map((opt) => (
-        <OptionCard key={opt} label={opt} selected={setupData?.diabetesType === opt} onPress={() => setSetupData((p = {}) => ({ ...p, diabetesType: opt }))} />
-      ))}
+      <View style={styles.sectionCard}>
+        <View style={styles.inlineHint}>
+          <Ionicons name="shield-checkmark" size={14} color="#825CFF" />
+          <Text style={styles.inlineHintText}>Used only to personalize your recommendations</Text>
+        </View>
+        <View style={styles.optionStack}>
+          {options.map((opt) => (
+            <OptionCard key={opt} label={opt} selected={setupData?.diabetesType === opt} onPress={() => setSetupData((p = {}) => ({ ...p, diabetesType: opt }))} />
+          ))}
+        </View>
+      </View>
     </StepFrame>
   );
 }
@@ -605,18 +643,24 @@ export function Diabetes2({ go, setupData, setSetupData }) {
   const durations = ['Just found out', 'Less than 1 year', '1-3 years', '3-5 years', '5+ years', 'Not diagnosed'];
   return (
     <StepFrame go={go} step={2} total={3} title="A bit more about you" subtitle="Medication and diagnosis history" prev="diab1" next="diab3">
-      <Text style={styles.groupTitle}>Medication / Insulin</Text>
-      {meds.map((m) => (
-        <OptionCard key={m} label={m} selected={setupData?.onMedication === m} onPress={() => setSetupData((p = {}) => ({ ...p, onMedication: m }))} />
-      ))}
+      <View style={styles.sectionCard}>
+        <Text style={styles.groupTitle}>Medication / Insulin</Text>
+        <View style={styles.optionStack}>
+          {meds.map((m) => (
+            <OptionCard key={m} label={m} selected={setupData?.onMedication === m} onPress={() => setSetupData((p = {}) => ({ ...p, onMedication: m }))} />
+          ))}
+        </View>
 
-      <Text style={styles.groupTitle}>How long diagnosed?</Text>
-      <View style={styles.chipWrap}>
-        {durations.map((d) => (
-          <Pill key={d} active={setupData?.diagnosedDuration === d} onPress={() => setSetupData((p = {}) => ({ ...p, diagnosedDuration: d }))}>
-            {d}
-          </Pill>
-        ))}
+        <View style={styles.sectionDivider} />
+
+        <Text style={styles.groupTitle}>How long diagnosed?</Text>
+        <View style={styles.chipWrap}>
+          {durations.map((d) => (
+            <Pill key={d} active={setupData?.diagnosedDuration === d} onPress={() => setSetupData((p = {}) => ({ ...p, diagnosedDuration: d }))}>
+              {d}
+            </Pill>
+          ))}
+        </View>
       </View>
     </StepFrame>
   );
@@ -626,9 +670,17 @@ export function Diabetes3({ go, setupData, setSetupData }) {
   const frequencies = ['Daily', 'Weekly', 'Rarely', 'Never'];
   return (
     <StepFrame go={go} step={3} total={3} title="Do you check your blood sugar?" subtitle="We use this to set the right reminders" prev="diab2" next="setup8">
-      {frequencies.map((f) => (
-        <OptionCard key={f} label={f} selected={setupData?.checkFrequency === f} onPress={() => setSetupData((p = {}) => ({ ...p, checkFrequency: f }))} />
-      ))}
+      <View style={styles.sectionCard}>
+        <View style={styles.inlineHint}>
+          <Ionicons name="time" size={14} color="#825CFF" />
+          <Text style={styles.inlineHintText}>This helps us choose reminder intensity</Text>
+        </View>
+        <View style={styles.optionStack}>
+          {frequencies.map((f) => (
+            <OptionCard key={f} label={f} selected={setupData?.checkFrequency === f} onPress={() => setSetupData((p = {}) => ({ ...p, checkFrequency: f }))} />
+          ))}
+        </View>
+      </View>
     </StepFrame>
   );
 }
@@ -636,49 +688,66 @@ export function Diabetes3({ go, setupData, setSetupData }) {
 export function Setup8({ go, setupData, setSetupData }) {
   const levels = ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active'];
   return (
-    <StepFrame go={go} step={8} title="How active is your daily life?" subtitle="This helps calculate your needs" prev="diab3" next="setupgen">
-      {levels.map((level) => (
-        <OptionCard key={level} label={level} selected={setupData?.level === level} onPress={() => {
-          setSetupData((p = {}) => ({ ...p, level }));
-          // auto-advance to generating once user selects activity
-          setTimeout(() => go('setupgen'), 350);
-        }} />
-      ))}
+    <StepFrame go={go} step={8} total={8} title="How active is your daily life?" subtitle="This helps calculate your needs" prev="diab3" next="setupgen">
+      <View style={styles.sectionCard}>
+        <View style={styles.inlineHint}>
+          <Ionicons name="walk" size={14} color="#825CFF" />
+          <Text style={styles.inlineHintText}>Selecting activity level moves to next step automatically</Text>
+        </View>
+        <View style={styles.optionStack}>
+          {levels.map((level) => (
+            <OptionCard key={level} label={level} selected={setupData?.level === level} onPress={() => {
+              setSetupData((p = {}) => ({ ...p, level }));
+              // auto-advance to generating once user selects activity
+              setTimeout(() => go('setupgen'), 350);
+            }} />
+          ))}
+        </View>
 
-      <Text style={styles.groupTitle}>Preferred Glucose Unit</Text>
-      <View style={styles.chipWrap}>
-        {(['mg/dL', 'mmol/L']).map((unit) => (
-          <Pill key={unit} active={setupData?.glucoseUnit === unit} onPress={() => setSetupData((p = {}) => ({ ...p, glucoseUnit: unit }))}>
-            {unit}
-          </Pill>
-        ))}
+        <View style={styles.sectionDivider} />
+
+        <Text style={styles.groupTitle}>Preferred Glucose Unit</Text>
+        <View style={styles.chipWrap}>
+          {(['mg/dL', 'mmol/L']).map((unit) => (
+            <Pill key={unit} active={setupData?.glucoseUnit === unit} onPress={() => setSetupData((p = {}) => ({ ...p, glucoseUnit: unit }))}>
+              {unit}
+            </Pill>
+          ))}
+        </View>
+
+        <Text style={styles.groupTitle}>Emergency Contact (Optional)</Text>
+        <InputField
+          icon="👥"
+          placeholder="Emergency contact name"
+          value={setupData?.emergencyContactName}
+          onChangeText={(emergencyContactName) => setSetupData((p = {}) => ({ ...p, emergencyContactName }))}
+        />
+        <InputField
+          icon="☎"
+          placeholder="Caregiver phone"
+          value={setupData?.caregiverPhone}
+          onChangeText={(caregiverPhone) => setSetupData((p = {}) => ({ ...p, caregiverPhone }))}
+        />
       </View>
-
-      <Text style={styles.groupTitle}>Emergency Contact (Optional)</Text>
-      <InputField
-        icon="👥"
-        placeholder="Emergency contact name"
-        value={setupData?.emergencyContactName}
-        onChangeText={(emergencyContactName) => setSetupData((p = {}) => ({ ...p, emergencyContactName }))}
-      />
-      <InputField
-        icon="☎"
-        placeholder="Caregiver phone"
-        value={setupData?.caregiverPhone}
-        onChangeText={(caregiverPhone) => setSetupData((p = {}) => ({ ...p, caregiverPhone }))}
-      />
     </StepFrame>
   );
 }
 
 export function SetupGenerating({ go }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   // try to use a Lottie animation if available at assets/animations/setup-generating.json
+  // Avoid Metro statically resolving `lottie-react-native` on web by gating and using
+  // an eval-based require so web builds don't pull native-only dependencies.
   let LottieView = null;
-  try {
-    // eslint-disable-next-line global-require, import/no-extraneous-dependencies
-    LottieView = require('lottie-react-native').default;
-  } catch (e) {
-    LottieView = null;
+  if (Platform.OS !== 'web') {
+    try {
+      // use eval to prevent static analysis by Metro
+      // eslint-disable-next-line no-eval, global-require
+      const pkg = eval('require')('lottie-react-native');
+      LottieView = pkg?.default || pkg;
+    } catch (e) {
+      LottieView = null;
+    }
   }
   const remoteLottie = { uri: 'https://assets10.lottiefiles.com/packages/lf20_touohxv0.json' };
 
@@ -694,14 +763,14 @@ export function SetupGenerating({ go }) {
     <AnimatedScreen>
       <View style={styles.rootCenter}>
         {/* Decorative hero built with code instead of an image */}
-        <View style={styles.heroCircle}>
-          <View style={styles.heroInnerCircle}>
+        <View style={[styles.heroCircle, isCompactLayout && styles.heroCircleCompact]}>
+          <View style={[styles.heroInnerCircle, isCompactLayout && styles.heroInnerCircleCompact]}>
             <Ionicons name="sparkles" size={46} color="#FFF" />
           </View>
         </View>
 
         {LottieView ? (
-          <View style={{ width: 220, height: 220, marginTop: 18 }}>
+          <View style={[styles.generatingLottieWrap, isCompactLayout && styles.generatingLottieWrapCompact]}>
             {/** prefer local asset if present, otherwise use remote URI */}
             {(() => {
               try {
@@ -714,7 +783,7 @@ export function SetupGenerating({ go }) {
             })()}
           </View>
         ) : (
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
               <View style={[styles.pulseDot, { marginRight: 10 }]} />
               <View style={[styles.pulseDot, { marginRight: 10, backgroundColor: '#70d6ff' }]} />
@@ -722,23 +791,26 @@ export function SetupGenerating({ go }) {
           </View>
         )}
 
-        <Text style={[styles.centerTitle, { marginTop: 18 }]}>Generating your plan</Text>
-        <Text style={[styles.centerText, { marginTop: 8 }]}>Personalising meals, reminders and insights just for you.</Text>
+        <Text style={[styles.centerTitle, styles.generatingTitle, isCompactLayout && styles.centerTitleCompact]}>Generating your plan</Text>
+        <Text style={[styles.centerText, styles.generatingSubtext, isCompactLayout && styles.centerTextCompact]}>Personalizing meals, reminders and insights just for you.</Text>
       </View>
     </AnimatedScreen>
   );
 }
 
 export function SetupGeneratingComplete({ go }) {
+  const { isCompactLayout } = useSetupLayoutFlags();
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
-        <View style={styles.completeBadge}>
-          <Ionicons name="checkmark" size={60} color="#FFF" />
+        <View style={[styles.completeBadgeOuter, isCompactLayout && styles.completeBadgeOuterCompact]}>
+          <View style={[styles.completeBadge, isCompactLayout && styles.completeBadgeCompact]}>
+            <Ionicons name="checkmark" size={58} color="#FFF" />
+          </View>
         </View>
-        <Text style={[styles.centerTitle, { marginTop: 22 }]}>All Set!</Text>
-        <Text style={[styles.centerText, { marginTop: 10 }]}>Your plan is ready — let’s begin your Reversia journey.</Text>
-        <View style={{ width: '100%', marginTop: 26 }}>
+        <Text style={[styles.centerTitle, styles.completeTitle, isCompactLayout && styles.centerTitleCompact]}>All Set!</Text>
+        <Text style={[styles.centerText, styles.completeSubtext, isCompactLayout && styles.centerTextCompact]}>Your plan is ready. Let's begin your Reversia journey.</Text>
+        <View style={[styles.completeButtonWrap, isCompactLayout && styles.completeButtonWrapCompact]}>
           <PurpleButton label="Start Journey" onPress={() => go('MainApp')} />
         </View>
       </View>
@@ -783,6 +855,14 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     marginBottom: 40, 
     lineHeight: 22 
+  },
+  mainTitleCompact: {
+    fontSize: 28,
+  },
+  mainSubtitleCompact: {
+    fontSize: 14,
+    marginBottom: 28,
+    lineHeight: 20,
   },
 
   horizontalPicker: { 
@@ -968,9 +1048,204 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     gap: 10 
   },
+  continueBtnCompact: {
+    height: 58,
+    borderRadius: 30,
+  },
   continueBtnText: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   
   childrenContainer: { marginTop: 20 },
+
+  // Diabetes and post-height setup styles
+  healthIntroCard: {
+    backgroundColor: '#F8FAFF',
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#E6E9F7',
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#111827',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 2,
+  },
+  healthIntroCardCompact: {
+    padding: 16,
+    borderRadius: 20,
+  },
+  healthIntroIconWrap: {
+    width: 94,
+    height: 94,
+    borderRadius: 47,
+    backgroundColor: '#ECE8FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  healthIntroIconWrapCompact: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 8,
+  },
+  healthIntroMetaRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  healthMetaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E6E9F7',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  healthMetaText: {
+    color: '#4B5563',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    minHeight: 58,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    shadowColor: '#111827',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  optionCardCompact: {
+    minHeight: 52,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  optionStack: {
+    marginTop: 4,
+  },
+  optionCardActive: {
+    borderColor: '#825CFF',
+    backgroundColor: '#F5F3FF',
+  },
+  optionLabel: {
+    flex: 1,
+    color: '#374151',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  optionLabelCompact: {
+    fontSize: 14,
+  },
+  optionLabelActive: {
+    color: '#4C1D95',
+  },
+  groupTitle: {
+    marginTop: 14,
+    marginBottom: 10,
+    color: '#111827',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  sectionCard: {
+    backgroundColor: '#F8FAFF',
+    borderRadius: 22,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E6E9F7',
+  },
+  inlineHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E6E9F7',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  inlineHintText: {
+    color: '#6B7280',
+    fontSize: 12.5,
+    fontWeight: '600',
+    flex: 1,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 12,
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  pillCompact: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  pillActive: {
+    borderColor: '#825CFF',
+    backgroundColor: '#EFE9FF',
+  },
+  pillText: {
+    color: '#4B5563',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  pillTextCompact: {
+    fontSize: 12,
+  },
+  pillTextActive: {
+    color: '#4C1D95',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  inputRowCompact: {
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+  },
+  inputIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  modernInputCompact: {
+    padding: 16,
+    fontSize: 14,
+  },
 
   // Inline Edit Input
   valueBoxInput: {
@@ -988,29 +1263,86 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     backgroundColor: '#825CFF',
   },
-  rootCenter: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  centerTitle: { fontSize: 22, fontWeight: '800', color: '#111827', marginTop: 12, textAlign: 'center' },
-  centerText: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 8 },
+  rootCenter: { alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 24 },
+  centerTitle: { fontSize: 24, fontWeight: '800', color: '#111827', marginTop: 12, textAlign: 'center', letterSpacing: 0.2 },
+  centerText: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginTop: 8, lineHeight: 22 },
+  centerTitleCompact: {
+    fontSize: 21,
+    marginTop: 10,
+  },
+  centerTextCompact: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 6,
+  },
   heroCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: 176,
+    height: 176,
+    borderRadius: 88,
     backgroundColor: '#F5F3FF',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E3FF',
+  },
+  heroCircleCompact: {
+    width: 152,
+    height: 152,
+    borderRadius: 76,
   },
   heroInnerCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 102,
+    height: 102,
+    borderRadius: 51,
     backgroundColor: '#825CFF',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    shadowColor: '#825CFF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  heroInnerCircleCompact: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+  },
+  generatingLottieWrap: {
+    width: 190,
+    height: 190,
+    marginTop: 14,
+  },
+  generatingLottieWrapCompact: {
+    width: 154,
+    height: 154,
+    marginTop: 10,
+  },
+  generatingTitle: {
+    marginTop: 14,
+  },
+  generatingSubtext: {
+    marginTop: 6,
+    maxWidth: 290,
+  },
+  completeBadgeOuter: {
+    width: 172,
+    height: 172,
+    borderRadius: 86,
+    backgroundColor: '#ECFEFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  completeBadgeOuterCompact: {
+    width: 148,
+    height: 148,
+    borderRadius: 74,
   },
   completeBadge: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     backgroundColor: '#70d6ff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1019,5 +1351,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 6,
+  },
+  completeBadgeCompact: {
+    width: 114,
+    height: 114,
+    borderRadius: 57,
+  },
+  completeTitle: {
+    marginTop: 18,
+  },
+  completeSubtext: {
+    marginTop: 8,
+    maxWidth: 300,
+  },
+  completeButtonWrap: {
+    width: '100%',
+    marginTop: 22,
+  },
+  completeButtonWrapCompact: {
+    marginTop: 16,
   },
 });

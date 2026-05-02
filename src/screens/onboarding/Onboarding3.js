@@ -17,7 +17,7 @@ export default function Onboarding3({ navigation }) {
       {/* Top Section - Illustration */}
       <View style={styles.topSection}>
         <Image 
-          source={require('../../../assets/Reversia-Logo.png')} 
+          source={require('../../../assets/onboarding3.png')} 
           style={styles.illustration}
           resizeMode="contain"
         />
@@ -25,11 +25,11 @@ export default function Onboarding3({ navigation }) {
 
       {/* Bottom Section - Content Sheet */}
       <View style={styles.bottomSheet}>
-        <Text style={styles.title}>Life Healthier and Happier With DIETIN!</Text>
+        <Text style={styles.title}>From Tracking to Transformation</Text>
         
         <Text style={styles.description}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-          sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Turn daily actions into measurable progress with guidance built to help
+          reverse Type 2 diabetes naturally and sustainably.
         </Text>
 
         <View style={styles.pagination}>
@@ -49,10 +49,7 @@ export default function Onboarding3({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        {/* Skip also leads to Login for authentication */}
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
+
       </View>
     </View>
   );

@@ -17,7 +17,7 @@ export default function Onboarding1({ navigation }) {
       {/* Top Section - Illustration */}
       <View style={styles.topSection}>
         <Image 
-          source={require('../../../assets/Reversia-Logo.png')} 
+          source={require('../../../assets/onboarding1.png')} 
           style={styles.illustration}
           resizeMode="contain"
         />
@@ -25,11 +25,11 @@ export default function Onboarding1({ navigation }) {
 
       {/* Bottom Section - Content Sheet */}
       <View style={styles.bottomSheet}>
-        <Text style={styles.title}>Easy to Control Your Daily Food</Text>
+        <Text style={styles.title}>A Smarter Path to Natural Diabetes Reversal</Text>
         
         <Text style={styles.description}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-          sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Get personalized food guidance that helps flatten glucose swings and
+          restore metabolic health one meal at a time.
         </Text>
 
         <View style={styles.pagination}>
@@ -48,7 +48,7 @@ export default function Onboarding1({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity onPress={() => navigation.replace('Login')}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>

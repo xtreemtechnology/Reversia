@@ -32,7 +32,7 @@ export default function OnboardingStartScreen({ navigation }) {
       <View style={styles.illustrationContainer}>
         {/* Daniel: Make sure you have a cool illustration here in your assets! */}
         <Image 
-          source={require('../../../assets/icon.png')} 
+          source={require('../../../assets/account setup.png')} 
           style={styles.image}
           resizeMode="contain"
         />
@@ -41,9 +41,10 @@ export default function OnboardingStartScreen({ navigation }) {
       {/* Bottom Content Card */}
       <View style={styles.bottomSheet}>
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Prepare your personal information</Text>
+          <Text style={styles.title}>Your Personalized Reversal Blueprint</Text>
           <Text style={styles.subtitle}>
-            Please give some true answers for the following questions so we can calculate your plan accurately.
+            Share a few details and Reversia will craft a lifestyle-first plan
+            tailored to your glucose profile and reversal goals.
           </Text>
         </View>
 

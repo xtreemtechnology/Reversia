@@ -9,15 +9,17 @@ import {
   TextInput,
   Dimensions 
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
 export default function EducationScreen() {
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('Academy');
+  const insets = useSafeAreaInsets();
 
   const lessons = [
     { id: 1, title: "The Insulin 'Lock' Concept", duration: "3 min read", category: "Fundamentals", status: "Completed", color: "#825CFF", icon: "key-variant" },
@@ -29,7 +31,16 @@ export default function EducationScreen() {
     <SafeAreaView style={styles.container}>
       <AnimatedScreen style={{ flex: 1 }}>
       {/* Custom Tab Header */}
-      <View style={styles.tabContainer}>
+      <View style={{ paddingTop: insets.top + 6, paddingHorizontal: 20 }}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn} accessibilityLabel="Go back">
+            <Ionicons name="chevron-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+        </View>
+      </View>
+
+      <View style={[styles.tabContainer, { paddingTop: 10 }]}>
         {['Academy', 'Community'].map((tab) => (
           <TouchableOpacity 
             key={tab} 
@@ -154,14 +165,15 @@ export default function EducationScreen() {
         )}
       </ScrollView>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Meal" />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  tabContainer: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  container: { flex: 1, backgroundColor: '#F3F4F8' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  headerBackBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', elevation: 2 },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, backgroundColor: '#FBFBFD', borderBottomWidth: 1, borderBottomColor: '#E7EAF0' },
   tab: { paddingVertical: 12, marginRight: 25, borderBottomWidth: 3, borderBottomColor: 'transparent' },
   activeTab: { borderBottomColor: '#825CFF' },
   tabText: { fontSize: 16, fontWeight: '600', color: '#9CA3AF' },
@@ -181,7 +193,7 @@ const styles = StyleSheet.create({
   progressBarFill: { height: 6, backgroundColor: '#FFF', borderRadius: 3 },
   progressText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 15, marginTop: 10 },
-  lessonCard: { backgroundColor: '#FFF', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#F3F4F6' },
+  lessonCard: { backgroundColor: '#FBFBFD', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#E7EAF0' },
   lockedCard: { opacity: 0.6 },
   iconBox: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   lessonInfo: { flex: 1 },
@@ -191,10 +203,10 @@ const styles = StyleSheet.create({
   metaText: { fontSize: 12, color: '#9CA3AF', marginLeft: 4, marginRight: 10 },
   completedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ECFDF5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   completedText: { fontSize: 10, fontWeight: '700', color: '#10B981', marginLeft: 2 },
-  expertInputBox: { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 16, padding: 6, marginBottom: 25, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
+  expertInputBox: { flexDirection: 'row', backgroundColor: '#FBFBFD', borderRadius: 16, padding: 6, marginBottom: 25, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
   input: { flex: 1, paddingHorizontal: 12, fontSize: 15, color: '#111827' },
   sendBtn: { backgroundColor: '#825CFF', width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  postCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 16, marginBottom: 15, borderWidth: 1, borderColor: '#F3F4F6' },
+  postCard: { backgroundColor: '#FBFBFD', borderRadius: 24, padding: 16, marginBottom: 15, borderWidth: 1, borderColor: '#E7EAF0' },
   postUserRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   userAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F3F4FF', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   avatarText: { color: '#825CFF', fontWeight: '700', fontSize: 13 },
@@ -203,7 +215,7 @@ const styles = StyleSheet.create({
   postText: { fontSize: 14, color: '#4B5563', lineHeight: 22, marginBottom: 12 },
   postStats: { flexDirection: 'row', alignItems: 'center' },
   statText: { fontSize: 12, color: '#6B7280', marginLeft: 4 },
-  supportCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, flexDirection: 'row', alignItems: 'center', borderLeftWidth: 5, borderLeftColor: '#825CFF', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05 },
+  supportCard: { backgroundColor: '#F8FAFF', borderRadius: 24, padding: 20, flexDirection: 'row', alignItems: 'center', borderLeftWidth: 5, borderLeftColor: '#825CFF', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, borderWidth: 1, borderColor: '#E7E9FF' },
   supportIconBg: { width: 50, height: 50, borderRadius: 16, backgroundColor: '#F5F3FF', justifyContent: 'center', alignItems: 'center' },
   supportTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   supportDesc: { fontSize: 13, color: '#6B7280', marginTop: 2 }

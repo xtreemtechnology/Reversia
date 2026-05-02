@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserLogs } from '../hooks/useUserLogs';
 import moment from 'moment';
+import { getButtonAccessibility } from '../utils/accessibility';
 
 const logCards = [
   { title: 'Glucose', subtitle: 'Record a reading', icon: 'water', color: '#DBEAFE', iconColor: '#3B82F6' },
@@ -20,8 +21,39 @@ const logCards = [
 ];
 
 export default function LogScreen({ navigation }) {
+  const [refreshToken, setRefreshToken] = useState(0);
   // Fetch real-time logs from Firestore
-  const { logs, loading, error } = useUserLogs(15); 
+  const { logs, loading, error } = useUserLogs(15, refreshToken); 
+
+  const handleLogPress = (title) => {
+    switch (title) {
+      case 'Glucose':
+        navigation.navigate('GlucoseEntry');
+        break;
+      case 'Meal':
+        navigation.navigate('MealEntry');
+        break;
+      case 'Water':
+        navigation.navigate('WaterEntry');
+        break;
+      case 'Exercise':
+        navigation.navigate('ExerciseEntry');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleRetry = () => {
+    setRefreshToken((value) => value + 1);
+  };
+
+  const logAccessibilityKey = {
+    Glucose: 'logGlucose',
+    Meal: 'logMeal',
+    Water: 'logWater',
+    Exercise: 'logExercise',
+  };
 
   // Dynamic style helper
   const getLogConfig = (type) => {
@@ -47,9 +79,9 @@ export default function LogScreen({ navigation }) {
             <Text style={styles.kicker}>Quick logging</Text>
             <Text style={styles.title}>Log Section</Text>
           </View>
-          <TouchableOpacity style={styles.iconBtn}>
+          <View style={styles.iconBtn} accessibilityElementsHidden>
             <Ionicons name="calendar-outline" size={22} color="#111827" />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Hero Card */}
@@ -71,12 +103,8 @@ export default function LogScreen({ navigation }) {
             <TouchableOpacity 
               key={item.title} 
               style={styles.gridCard}
-              onPress={() => {
-                if (item.title === 'Glucose') navigation.navigate('GlucoseEntry');
-                else if (item.title === 'Meal') navigation.navigate('MealEntry');
-                else if (item.title === 'Water') navigation.navigate('WaterEntry');
-                else if (item.title === 'Exercise') navigation.navigate('ExerciseEntry');
-              }}
+              onPress={() => handleLogPress(item.title)}
+              {...getButtonAccessibility(logAccessibilityKey[item.title])}
             >
               <View style={[styles.cardIcon, { backgroundColor: item.color }]}>
                 <MaterialCommunityIcons name={item.icon} size={26} color={item.iconColor} />
@@ -91,7 +119,10 @@ export default function LogScreen({ navigation }) {
         {/* Recent Activity List */}
         <View style={styles.recentHeader}>
           <Text style={styles.sectionTitle}>Recent Logs</Text>
-          <TouchableOpacity>
+           <TouchableOpacity
+            onPress={() => navigation.navigate('LogHistory')}
+            {...getButtonAccessibility('expandButton', 'deepLink')}
+           >
              {loading ? (
                 <ActivityIndicator size="small" color="#825CFF" />
              ) : (
@@ -103,11 +134,23 @@ export default function LogScreen({ navigation }) {
         {error ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>Error loading logs: {error.message || String(error)}</Text>
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={handleRetry}
+              {...getButtonAccessibility('confirmButton')}
+            >
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
 
         <View style={styles.recentList}>
-          {logs.length === 0 && !loading ? (
+          {loading ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size="large" color="#825CFF" />
+              <Text style={styles.emptyText}>Loading your recent logs...</Text>
+            </View>
+          ) : logs.length === 0 ? (
             <View style={styles.emptyContainer}>
                 <MaterialCommunityIcons name="clipboard-text-outline" size={40} color="#D1D5DB" />
                 <Text style={styles.emptyText}>No logs found for today.</Text>
@@ -116,7 +159,12 @@ export default function LogScreen({ navigation }) {
             logs.map((item) => {
               const config = getLogConfig(item.type);
               return (
-                <TouchableOpacity key={item.id} style={styles.recentCard}>
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.recentCard}
+                  onPress={() => handleLogPress(item.type === 'glucose' ? 'Glucose' : item.type === 'meal' ? 'Meal' : item.type === 'water' ? 'Water' : 'Exercise')}
+                  {...getButtonAccessibility('expandButton', 'deepLink')}
+                >
                   <View style={styles.recentLeft}>
                     <View style={[styles.recentDot, { backgroundColor: config.dotColor }]} />
                     <View>
@@ -146,20 +194,20 @@ export default function LogScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#F3F4F8' },
   content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
   kicker: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   title: { fontSize: 30, fontWeight: '800', color: '#111827', marginTop: 2 },
-  iconBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3.84 },
-  heroCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 24, padding: 18, marginBottom: 24, elevation: 2, borderWidth: 1, borderColor: '#F3F4F6' },
-  heroIconWrap: { width: 52, height: 52, borderRadius: 16, backgroundColor: '#F3F4FF', justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+  iconBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3.84, borderWidth: 1, borderColor: '#E5E7EB' },
+  heroCard: { flexDirection: 'row', backgroundColor: '#F8FAFF', borderRadius: 24, padding: 18, marginBottom: 24, elevation: 1, borderWidth: 1, borderColor: '#E7E9FF' },
+  heroIconWrap: { width: 52, height: 52, borderRadius: 16, backgroundColor: '#ECEBFF', justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   heroTextWrap: { flex: 1 },
   heroTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   heroText: { fontSize: 13, lineHeight: 19, color: '#6B7280', marginTop: 6 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 22 },
-  gridCard: { width: '48%', minHeight: 145, backgroundColor: '#FFF', borderRadius: 24, padding: 16, marginBottom: 15, elevation: 2, borderWidth: 1, borderColor: '#F3F4F6' },
+  gridCard: { width: '48%', minHeight: 145, backgroundColor: '#FBFBFD', borderRadius: 24, padding: 16, marginBottom: 15, elevation: 1, borderWidth: 1, borderColor: '#E8EBF3' },
   cardIcon: { width: 48, height: 48, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   cardSubtitle: { fontSize: 12, color: '#9CA3AF', marginTop: 4, lineHeight: 16 },
@@ -167,7 +215,7 @@ const styles = StyleSheet.create({
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   seeAll: { fontSize: 13, fontWeight: '600', color: '#825CFF' },
   recentList: { gap: 12 },
-  recentCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 20, padding: 16, elevation: 1, borderWidth: 1, borderColor: '#F9FAFB' },
+  recentCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FCFCFE', borderRadius: 20, padding: 16, elevation: 1, borderWidth: 1, borderColor: '#E7EAF0' },
   recentLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   recentDot: { width: 8, height: 8, borderRadius: 4, marginRight: 12 },
   recentLabel: { fontSize: 14, fontWeight: '700', color: '#111827' },
@@ -175,9 +223,11 @@ const styles = StyleSheet.create({
   recentRight: { alignItems: 'flex-end', marginLeft: 10 },
   recentTime: { fontSize: 11, color: '#9CA3AF' },
   recentStatus: { fontSize: 11, fontWeight: '700', marginTop: 4 },
-  emptyContainer: { alignItems: 'center', marginTop: 20, opacity: 0.5 },
+  emptyContainer: { alignItems: 'center', marginTop: 20, opacity: 0.7, backgroundColor: '#FBFBFD', borderRadius: 20, paddingVertical: 22, borderWidth: 1, borderColor: '#E7EAF0' },
   emptyText: { marginTop: 10, fontSize: 14, color: '#6B7280' }
   ,
-  errorBox: { backgroundColor: '#FEE2E2', borderRadius: 12, padding: 10, marginBottom: 12 },
-  errorText: { color: '#B91C1C', fontSize: 13 }
+  errorBox: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: '#FECACA' },
+  errorText: { color: '#B91C1C', fontSize: 13 },
+  retryBtn: { marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#FFF', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FCA5A5' },
+  retryText: { color: '#B91C1C', fontSize: 13, fontWeight: '700' }
 });

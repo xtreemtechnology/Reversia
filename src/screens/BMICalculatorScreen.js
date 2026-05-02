@@ -2,7 +2,6 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BMICalculator from '../components/BMICalculator';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 
 export default function BMICalculatorScreen({ navigation }) {
   return (
@@ -10,7 +9,6 @@ export default function BMICalculatorScreen({ navigation }) {
       <AnimatedScreen style={{ flex: 1 }}>
         <BMICalculator navigation={navigation} />
       </AnimatedScreen>
-      <NavigationBar activeScreen="Profile" />
     </SafeAreaView>
   );
 }

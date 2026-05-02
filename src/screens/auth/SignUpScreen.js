@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { validateEmail, validatePassword, validateMatch } from '../../utils/validation';
+import { handleAuthError, logError } from '../../utils/errorHandling';
 import {
   View,
   Text,
@@ -31,23 +33,30 @@ export default function SignUpScreen({ navigation }) {
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Missing Information', 'Please fill in all fields');
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    const emailValidation = validateEmail(email);
+    if (!emailValidation) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address');
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      Alert.alert('Weak Password', passwordValidation.errors[0] || 'Please use a stronger password');
       return;
     }
+
+    const matchValidation = validateMatch(password, confirmPassword, 'Passwords');
+    if (!matchValidation.isValid) {
+      Alert.alert('Password Mismatch', matchValidation.error);
+      return;
+    }
+
 
     setLoading(true);
-    setError(null);
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email.trim());
       if (methods && methods.length > 0) {
@@ -69,11 +78,10 @@ export default function SignUpScreen({ navigation }) {
         await sendEmailVerification(userCredential.user);
       }
 
-      Alert.alert(
-        'Account Created',
-        'Your account is ready. We sent a verification email to your inbox.',
-        [{ text: 'Continue', onPress: () => navigation.replace('MainApp') }]
-      );
+      // Navigate immediately so web/native behavior is consistent and doesn't
+      // depend on Alert callback support.
+      Alert.alert('Account Created', 'Your account is ready. We sent a verification email to your inbox.');
+      navigation.replace('Setup');
     } catch (error) {
       console.error('SignUp error', error);
       let message = 'Could not create your account. Please try again.';

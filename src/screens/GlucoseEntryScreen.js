@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { NavigationBar } from '../components/ScreenWithNav';
 import { auth, db } from '../config/firebase'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -134,7 +133,6 @@ export default function GlucoseEntryScreen({ navigation }) {
           </View>
         </ScrollView>
         </View>
-        <NavigationBar activeScreen="Log" />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

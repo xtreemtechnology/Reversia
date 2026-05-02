@@ -1,5 +1,5 @@
 // src/screens/NutritionInsights.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,17 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { useUserLogs } from '../hooks/useUserLogs';
 
 const { width } = Dimensions.get('window');
 
-// ─── Default props (replace with real data from your hooks/context) ───────────
-const DEFAULT_CALORIES = { consumed: 1095, target: 2600 };
-const DEFAULT_MACROS = {
-  protein: { consumed: 62,  target: 130, color: '#10B981', label: 'Protein' },
-  carbs:   { consumed: 98,  target: 260, color: '#F59E0B', label: 'Carbs'   },
-  fat:     { consumed: 38,  target: 87,  color: '#3B82F6', label: 'Fats'    },
+// ─── Helper to get date key ──────────────────────────────────────────────────
+const getDateKey = (value) => {
+  if (!value) return null;
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
 };
-const MEALS = [
-  { id: 1, type: 'Breakfast', icon: 'weather-sunset-up', iconColor: '#F59E0B', iconBg: '#FEF3C7', items: ['Oatmeal', 'Banana', 'Black coffee'], kcal: 320, time: '7:30 AM' },
-  { id: 2, type: 'Lunch',     icon: 'food',              iconColor: '#10B981', iconBg: '#D1FAE5', items: ['Grilled chicken', 'Brown rice', 'Salad'], kcal: 520, time: '1:00 PM' },
-  { id: 3, type: 'Snack',     icon: 'fruit-cherries',    iconColor: '#6D28D9', iconBg: '#EDE9FE', items: ['Apple', 'Almonds'], kcal: 180, time: '4:00 PM' },
-  { id: 4, type: 'Dinner',    icon: 'silverware-fork-knife', iconColor: '#0284C7', iconBg: '#E0F2FE', items: [], kcal: 0, time: '' },
-];
 
 // ─── Calorie Ring ─────────────────────────────────────────────────────────────
 const CalorieRing = ({ consumed, target }) => {
@@ -205,13 +200,67 @@ const insightStyles = StyleSheet.create({
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-export default function NutritionInsights({
-  navigation,
-  calories = DEFAULT_CALORIES,
-  macros   = DEFAULT_MACROS,
-}) {
+export default function NutritionInsights({ navigation }) {
   const [activeTab, setActiveTab] = useState('today');
-  const totalMealKcal = MEALS.reduce((s, m) => s + m.kcal, 0);
+  const { logs, loading } = useUserLogs(60);
+
+  // Extract meal logs
+  const mealLogs = useMemo(
+    () => logs.filter((log) => log.type === 'meal').slice(0, 50),
+    [logs]
+  );
+
+  // Get today's meals
+  const todayMeals = useMemo(
+    () => mealLogs.filter((log) => getDateKey(log.timestamp) === getDateKey(new Date())),
+    [mealLogs]
+  );
+
+  // Calculate totals
+  const totals = useMemo(() => ({
+    calories: todayMeals.reduce((s, m) => s + (Number(m.calories) || 0), 0),
+    protein: todayMeals.reduce((s, m) => s + (Number(m.protein) || 0), 0),
+    carbs: todayMeals.reduce((s, m) => s + (Number(m.carbs) || 0), 0),
+    fat: todayMeals.reduce((s, m) => s + (Number(m.fats) || 0), 0),
+  }), [todayMeals]);
+
+  // Build meals UI data with real logs
+  const meals = useMemo(() => {
+    const mealTypes = [
+      { type: 'Breakfast', icon: 'weather-sunset-up', iconColor: '#F59E0B', iconBg: '#FEF3C7' },
+      { type: 'Lunch', icon: 'food', iconColor: '#10B981', iconBg: '#D1FAE5' },
+      { type: 'Snack', icon: 'fruit-cherries', iconColor: '#6D28D9', iconBg: '#EDE9FE' },
+      { type: 'Dinner', icon: 'silverware-fork-knife', iconColor: '#0284C7', iconBg: '#E0F2FE' },
+    ];
+
+    return mealTypes.map((mt, i) => {
+      const mealLogs_filtered = todayMeals.filter((m) => m.mealType === mt.type);
+      const kcal = mealLogs_filtered.reduce((s, m) => s + (Number(m.calories) || 0), 0);
+      const time = mealLogs_filtered[0]?.timestamp 
+        ? new Date(typeof mealLogs_filtered[0].timestamp.toDate === 'function' 
+            ? mealLogs_filtered[0].timestamp.toDate() 
+            : mealLogs_filtered[0].timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        : '';
+      return {
+        id: i,
+        type: mt.type,
+        icon: mt.icon,
+        iconColor: mt.iconColor,
+        iconBg: mt.iconBg,
+        items: mealLogs_filtered.map(m => m.value || m.name || 'Food'),
+        kcal,
+        time,
+      };
+    });
+  }, [todayMeals]);
+
+  const calories = { consumed: totals.calories, target: 2600 };
+  const macros = {
+    protein: { consumed: totals.protein, target: 130, color: '#10B981', label: 'Protein' },
+    carbs: { consumed: totals.carbs, target: 260, color: '#F59E0B', label: 'Carbs' },
+    fat: { consumed: totals.fat, target: 87, color: '#3B82F6', label: 'Fats' },
+  };
+  const totalMealKcal = totals.calories;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -292,7 +341,7 @@ export default function NutritionInsights({
               </View>
             </TouchableOpacity>
           </View>
-          {MEALS.map(meal => (
+          {meals.map(meal => (
             <MealRow
               key={meal.id}
               meal={meal}

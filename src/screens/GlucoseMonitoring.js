@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,22 +15,9 @@ const { width } = Dimensions.get('window');
 const CHART_H = 200;
 const CHART_W = width - 40; // full width minus horizontal padding
 
-// ─── Mock data points per range ───────────────────────────────────────────────
-const DATA = {
-  '1 hr':  [120, 126, 130, 128, 122, 118, 115, 119, 126],
-  '3 hrs': [110, 140, 165, 148, 130, 118, 112, 122, 135, 126, 119, 115],
-  '6 hrs': [95, 105, 130, 160, 145, 128, 112, 100, 108, 120, 135, 126, 118, 110, 106, 115],
-  '12 hrs':[88, 92, 110, 135, 155, 148, 130, 115, 100, 95, 102, 115, 130, 145, 138, 126, 118, 112, 108, 114],
-  '24 hrs':[80, 85, 90, 95, 110, 130, 155, 148, 130, 115, 100, 92, 88, 95, 110, 125, 140, 148, 135, 120, 110, 105, 108, 115],
-};
+import { useUserLogs } from '../hooks/useUserLogs';
 
-const TIME_LABELS = {
-  '1 hr':  ['6:00', '6:15', '6:30', '6:45', '7:00'],
-  '3 hrs': ['4 PM', '5 PM', '6 PM', '7 PM'],
-  '6 hrs': ['12 PM', '2 PM', '4 PM', '6 PM'],
-  '12 hrs':['6 AM', '12 PM', '6 PM'],
-  '24 hrs':['12 AM', '6 AM', '12 PM', '6 PM'],
-};
+// DATA will be built from user's glucose logs dynamically
 
 const MIN_GLUCOSE = 50;
 const MAX_GLUCOSE = 220;
@@ -80,9 +67,11 @@ const chipStyles = StyleSheet.create({
   chip: {
     flex: 1, alignItems: 'center',
     paddingVertical: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FBFBFD',
     borderRadius: 18,
     marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
   },
   label: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 4 },
   value: { fontSize: 18, fontWeight: '800' },
@@ -102,8 +91,10 @@ const InsightCard = ({ icon, iconColor, iconBg, text }) => (
 const insightStyles = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: '#FFF', borderRadius: 18,
+    backgroundColor: '#FBFBFD', borderRadius: 18,
     padding: 16, marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
   },
   iconBox: {
     width: 36, height: 36, borderRadius: 12,
@@ -118,8 +109,35 @@ export default function GlucoseMonitoring({ navigation }) {
   const TIME_RANGES = ['1 hr', '3 hrs', '6 hrs', '12 hrs', '24 hrs'];
   const [activeRange, setActiveRange] = useState('1 hr');
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const { logs } = useUserLogs(200);
 
-  const points = DATA[activeRange];
+  const points = useMemo(() => {
+    // parse activeRange to hours
+    const hours = Number(activeRange.split(' ')[0]);
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
+    const glogs = logs
+      .filter(l => l.type === 'glucose')
+      .map(l => ({
+        v: Number(l.value),
+        t: typeof l.timestamp?.toDate === 'function' ? l.timestamp.toDate() : new Date(l.timestamp),
+      }))
+      .filter(g => g.t >= cutoff)
+      .sort((a,b) => a.t - b.t);
+
+    if (!glogs.length) return [110];
+
+    // sample or normalize to up to 24 points
+    const maxPoints = 24;
+    if (glogs.length <= maxPoints) return glogs.map(g => g.v);
+    const step = glogs.length / maxPoints;
+    const sampled = [];
+    for (let i = 0; i < maxPoints; i++) {
+      const idx = Math.floor(i * step);
+      sampled.push(glogs[idx].v);
+    }
+    return sampled;
+  }, [logs, activeRange]);
   const linePath = buildPath(points);
   const areaPath = buildArea(points);
 
@@ -143,7 +161,18 @@ export default function GlucoseMonitoring({ navigation }) {
   const safeLowY  = toY(SAFE_LOW);
 
   // Time labels
-  const labels = TIME_LABELS[activeRange];
+  const labels = useMemo(() => {
+    const hrs = Number(activeRange.split(' ')[0]);
+    const now = new Date();
+    if (hrs <= 1) return ['Now'];
+    const ticks = 4;
+    const arr = [];
+    for (let i = ticks; i >= 0; i--) {
+      const d = new Date(now.getTime() - (i * hrs * 60 * 60 * 1000) / ticks);
+      arr.push(d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }));
+    }
+    return arr;
+  }, [activeRange]);
 
   return (
     <SafeAreaView style={styles.container}>

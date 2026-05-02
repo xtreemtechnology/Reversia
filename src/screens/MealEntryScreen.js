@@ -13,14 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import PressableScale from '../components/PressableScale';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 // Firebase Imports
 import { auth, db } from '../config/firebase'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function MealEntryScreen({ navigation, route }) {
   const [mealName, setMealName] = useState(route?.params?.mealName ?? '');
-  const [selectedTag, setSelectedTag] = useState(route?.params?.prefillTag ?? '');
+  const [selectedTag, setSelectedTag] = useState(route?.params?.mealType ?? route?.params?.prefillTag ?? '');
   const [loading, setLoading] = useState(false);
 
   const handleSaveMeal = async () => {
@@ -116,7 +115,6 @@ export default function MealEntryScreen({ navigation, route }) {
 
       </ScrollView>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Log" />
     </SafeAreaView>
   );
 }

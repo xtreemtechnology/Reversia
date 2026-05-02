@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, {
   Path,
@@ -21,6 +21,7 @@ import AIInsightModal from '../components/AIInsightModal';
 import AnimatedScreen from '../components/AnimatedScreen';
 import PressableScale from '../components/PressableScale';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { useUserLogs } from '../hooks/useUserLogs';
 
 const { width } = Dimensions.get('window');
 
@@ -76,6 +77,76 @@ const ringStyles = StyleSheet.create({
   score: { fontSize: 22, fontWeight: '800', color: '#111827' },
   label: { fontSize: 11, color: '#10B981', fontWeight: '700', marginTop: -2 },
 });
+
+const getDateKey = (value) => {
+  if (!value) return null;
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
+};
+
+const buildTrendPath = (values, widthValue, heightValue) => {
+  if (!values.length) return null;
+  if (values.length === 1) {
+    const centerY = heightValue / 2;
+    return `M0,${centerY} L${widthValue},${centerY}`;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const spread = Math.max(max - min, 1);
+  const points = values.map((value, index) => {
+    const x = (index / (values.length - 1)) * widthValue;
+    const y = heightValue - ((value - min) / spread) * (heightValue - 12) - 6;
+    return { x, y };
+  });
+
+  return points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`)
+    .join(' ');
+};
+
+const getHealthSummary = (glucoseValues) => {
+  if (!glucoseValues.length) {
+    return { score: null, label: 'No data', inRangeText: 'Add a glucose reading' };
+  }
+
+  const inRangeCount = glucoseValues.filter((value) => value >= 70 && value <= 180).length;
+  const inRangePercent = Math.round((inRangeCount / glucoseValues.length) * 100);
+  const average = Math.round(glucoseValues.reduce((sum, value) => sum + value, 0) / glucoseValues.length);
+  const score = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round((inRangePercent * 0.7) + (average >= 70 && average <= 140 ? 30 : average <= 180 ? 18 : 10))
+    )
+  );
+
+  const label = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Fair' : 'Needs work';
+
+  return {
+    score,
+    label,
+    inRangeText: `${inRangePercent}% in range`,
+  };
+};
+
+const getConsecutiveLogDays = (logs) => {
+  const uniqueDays = new Set(logs.map((log) => getDateKey(log.timestamp)).filter(Boolean));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let streak = 0;
+  const cursor = new Date(today);
+
+  while (streak < uniqueDays.size + 1) {
+    const key = cursor.toISOString().split('T')[0];
+    if (!uniqueDays.has(key)) break;
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+};
 
 // ─── Category Tab ─────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -166,10 +237,12 @@ const MiniStatCard = ({ icon, iconColor, iconBg, title, value, sub, onPress }) =
 const miniStyles = StyleSheet.create({
   card: {
     width: (width - 56) / 3,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FBFBFD',
     borderRadius: 20,
     padding: 14,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
   },
   iconBox: {
     width: 38,
@@ -221,10 +294,12 @@ const ActionCard = ({ title, desc, icon, color, iconColor, onPress }) => (
 const actionStyles = StyleSheet.create({
   card: {
     width: '48%',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FBFBFD',
     borderRadius: 24,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
   },
   iconBox: {
     width: 48, height: 48, borderRadius: 16,
@@ -279,8 +354,10 @@ const dateStyles = StyleSheet.create({
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
   const { userData } = useUserProfile();
+  const { logs, loading: logsLoading } = useUserLogs(60);
   const [showAIInsight, setShowAIInsight] = useState(false);
   const [activeCategory, setActiveCategory] = useState('overview');
+  const insets = useSafeAreaInsets();
 
   const chartWidth = width - 88;
   const chartHeight = 100;
@@ -292,11 +369,143 @@ export default function HomeScreen({ navigation }) {
     return 'Good evening 👋';
   };
 
+  const glucoseLogs = useMemo(
+    () => logs.filter((log) => log.type === 'glucose').slice(0, 7),
+    [logs]
+  );
+  const glucoseValues = useMemo(
+    () => [...glucoseLogs].reverse().map((log) => Number(log.value)).filter((value) => Number.isFinite(value)),
+    [glucoseLogs]
+  );
+  const latestGlucose = glucoseLogs[0] || null;
+  const healthSummary = useMemo(() => getHealthSummary(glucoseValues), [glucoseValues]);
+  const trendPath = useMemo(
+    () => buildTrendPath(glucoseValues, chartWidth * 0.48, chartHeight * 0.8),
+    [glucoseValues, chartWidth, chartHeight]
+  );
+  const todayLogs = useMemo(
+    () => logs.filter((log) => getDateKey(log.timestamp) === getDateKey(new Date())),
+    [logs]
+  );
+  const progressPercent = Math.min(100, todayLogs.length * 25);
+  const logStreak = useMemo(() => getConsecutiveLogDays(logs), [logs]);
+  const mealLogs = useMemo(
+    () => logs.filter((log) => log.type === 'meal').slice(0, 20),
+    [logs]
+  );
+  const mealTotals = useMemo(
+    () => mealLogs.reduce(
+      (totals, log) => ({
+        calories: totals.calories + (Number(log.calories) || 0),
+        protein: totals.protein + (Number(log.protein) || 0),
+        carbs: totals.carbs + (Number(log.carbs) || 0),
+        fats: totals.fats + (Number(log.fats) || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    ),
+    [mealLogs]
+  );
+
+  // Sleep data from logs
+  const sleepLogs = useMemo(
+    () => logs.filter((log) => log.type === 'sleep').slice(0, 10),
+    [logs]
+  );
+  const todaysSleepLog = useMemo(
+    () => sleepLogs.find((log) => getDateKey(log.timestamp) === getDateKey(new Date())),
+    [sleepLogs]
+  );
+  const lastSleepLog = sleepLogs[0] || null;
+  const sleepDurationMinutes = lastSleepLog?.value || 0;
+  const sleepHours = Math.floor(sleepDurationMinutes / 60);
+  const sleepMinutes = sleepDurationMinutes % 60;
+  const sleepFormatted = sleepHours > 0 ? `${sleepHours}h ${sleepMinutes}m` : `${sleepMinutes}m`;
+  const sleepEfficiency = lastSleepLog?.efficiency || 86;
+  const sleepStatus = lastSleepLog?.status || (lastSleepLog?.value ? 'Good' : 'No data');
+  const sleepBedTime = lastSleepLog?.bedTime || '11:33 PM';
+  const sleepWakeTime = lastSleepLog?.wakeTime || '08:38 AM';
+
+  // Activity data from exercise logs
+  const exerciseLogs = useMemo(
+    () => logs.filter((log) => log.type === 'exercise').slice(0, 20),
+    [logs]
+  );
+  const activitySteps = useMemo(() => {
+    // Estimate steps: 1 min activity ≈ 100 steps (average pace)
+    const totalMinutes = exerciseLogs.reduce((total, log) => {
+      const duration = Number(log.value) || 0;
+      return total + duration;
+    }, 0);
+    return Math.round(totalMinutes * 100);
+  }, [exerciseLogs]);
+
+  // BMI calculation from user profile
+  const bmiValue = useMemo(() => {
+    if (!userData?.currentWeight || !userData?.height) return null;
+    const weight = Number(userData.currentWeight) || 0;
+    const heightM = (Number(userData.height) || 0) / 100; // Convert cm to meters
+    if (heightM <= 0 || weight <= 0) return null;
+    return (weight / (heightM * heightM)).toFixed(1);
+  }, [userData?.currentWeight, userData?.height]);
+
+  const getBMIStatus = (bmi) => {
+    if (!bmi) return 'Not set';
+    bmi = Number(bmi);
+    if (bmi < 18.5) return 'Underweight';
+    if (bmi < 25) return 'Healthy range';
+    if (bmi < 30) return 'Overweight';
+    return 'Obese';
+  };
+
+  const calorieTarget = 2600;
+  const proteinTarget = 120;
+  const carbTarget = 275;
+  const fatTarget = 80;
+  const isLogLoading = logsLoading && !logs.length;
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setActiveCategory('overview');
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleCategorySelect = (key) => {
+    setActiveCategory(key);
+
+    if (key === 'overview') return;
+
+    if (key === 'sleep') {
+      navigation.navigate('SleepInsights');
+      return;
+    }
+
+    if (key === 'nutrition') {
+      navigation.navigate('NutritionInsights');
+      return;
+    }
+
+    if (key === 'glucose') {
+      navigation.navigate('GlucoseMonitor');
+      return;
+    }
+
+    if (key === 'activity') {
+      navigation.navigate('ActivityTracker');
+      return;
+    }
+
+    if (key === 'bmi') {
+      navigation.navigate('BodyComposition');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AnimatedScreen style={{ flex: 1 }}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 18 }]}
           showsVerticalScrollIndicator={false}
         >
           {/* ── Header ── */}
@@ -306,11 +515,11 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.userName}>{userData?.firstName || 'Daniel'}</Text>
             </View>
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.notificationBtn}>
-                <Ionicons name="notifications-outline" size={24} color="#111827" />
-                <View style={styles.notificationDot} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
+              <Ionicons name="notifications-outline" size={24} color="#111827" />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Profile' })}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>
                     {(userData?.firstName?.[0] || 'D') + (userData?.lastName?.[0] || 'N')}
@@ -321,21 +530,23 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* ── Date Navigator ── */}
-          <DateNavigator />
+          <DateNavigator navigation={navigation} />
 
           {/* ── Category Tabs ── */}
-          <CategoryTabs active={activeCategory} onSelect={setActiveCategory} />
+          <CategoryTabs active={activeCategory} onSelect={handleCategorySelect} />
 
           {/* ── Health Score + Glucose Chart Row ── */}
           <View style={styles.scoreRow}>
             {/* Health Score Card */}
             <View style={styles.scoreCard}>
               <Text style={styles.scoreCardTitle}>Health Score</Text>
-              <HealthScoreRing score={78} label="Good" />
+              <HealthScoreRing score={healthSummary.score ?? 0} label={healthSummary.label} />
               <TouchableOpacity style={styles.shareBtn}>
                 <Ionicons name="share-social-outline" size={14} color="#6B7280" />
               </TouchableOpacity>
-              <Text style={styles.scoreMotivation}>Keep it up! 🎯</Text>
+              <Text style={styles.scoreMotivation}>
+                {isLogLoading ? 'Loading your saved records...' : healthSummary.inRangeText}
+              </Text>
             </View>
 
             {/* Glucose Trend Card */}
@@ -344,33 +555,42 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate('GlucoseMonitor')}
             >
               <Text style={styles.chartTitle}>Metabolic Trend</Text>
-              <Text style={styles.chartSub}>88% In Range</Text>
+              <Text style={styles.chartSub}>{isLogLoading ? 'Syncing your glucose logs...' : healthSummary.inRangeText}</Text>
 
-              <Svg width={chartWidth * 0.48} height={chartHeight * 0.8}>
-                <Defs>
-                  <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="#825CFF" stopOpacity="0.3" />
-                    <Stop offset="1" stopColor="#825CFF" stopOpacity="0.02" />
-                  </LinearGradient>
-                </Defs>
-                <Path
-                  d={`M0,42 C${chartWidth * 0.12},10 ${chartWidth * 0.3},70 ${chartWidth * 0.48},28`}
-                  stroke="#825CFF"
-                  strokeWidth="3"
-                  fill="none"
-                />
-                <Path
-                  d={`M0,42 C${chartWidth * 0.12},10 ${chartWidth * 0.3},70 ${chartWidth * 0.48},28 L${chartWidth * 0.48},${chartHeight * 0.8} L0,${chartHeight * 0.8} Z`}
-                  fill="url(#fade)"
-                />
-                <Circle cx={chartWidth * 0.48} cy="28" r="5" fill="#825CFF" />
-              </Svg>
+              {trendPath ? (
+                <Svg width={chartWidth * 0.48} height={chartHeight * 0.8}>
+                  <Defs>
+                    <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+                      <Stop offset="0" stopColor="#825CFF" stopOpacity="0.3" />
+                      <Stop offset="1" stopColor="#825CFF" stopOpacity="0.02" />
+                    </LinearGradient>
+                  </Defs>
+                  <Path
+                    d={trendPath}
+                    stroke="#825CFF"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                  <Path
+                    d={`${trendPath} L${chartWidth * 0.48},${chartHeight * 0.8} L0,${chartHeight * 0.8} Z`}
+                    fill="url(#fade)"
+                  />
+                  <Circle cx={chartWidth * 0.48} cy="28" r="5" fill="#825CFF" />
+                </Svg>
+              ) : (
+                <View style={styles.emptyTrendCard}>
+                  <MaterialCommunityIcons name="chart-line" size={28} color="#C4B5FD" />
+                  <Text style={styles.emptyTrendText}>{isLogLoading ? 'Loading glucose records...' : 'Add a glucose reading to see your trend.'}</Text>
+                </View>
+              )}
 
               <View style={styles.glucoseValueRow}>
-                <Text style={styles.glucoseValue}>112</Text>
-                <Text style={styles.glucoseUnit}> mg/dL</Text>
+                <Text style={styles.glucoseValue}>{latestGlucose ? Math.round(Number(latestGlucose.value)) : '--'}</Text>
+                <Text style={styles.glucoseUnit}>{latestGlucose?.unit || 'mg/dL'}</Text>
               </View>
-              <Text style={styles.chartSub}>Last reading</Text>
+              <Text style={styles.chartSub}>
+                {latestGlucose ? `Last reading • ${latestGlucose.period || 'Logged'}` : 'No glucose readings yet'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -406,8 +626,8 @@ export default function HomeScreen({ navigation }) {
               iconColor="#6D28D9"
               iconBg="#EDE9FE"
               title="Sleep"
-              value="7h 20m"
-              sub="86% efficiency"
+              value={lastSleepLog ? sleepFormatted : '--'}
+              sub={lastSleepLog ? `${sleepEfficiency}% efficiency` : 'Log sleep data'}
               onPress={() => navigation.navigate('SleepInsights')}
             />
             <MiniStatCard
@@ -415,8 +635,8 @@ export default function HomeScreen({ navigation }) {
               iconColor="#D97706"
               iconBg="#FEF3C7"
               title="Calories"
-              value="1,095"
-              sub="of 2,600 kcal"
+              value={mealTotals.calories || '--'}
+              sub={mealTotals.calories ? ` of ${calorieTarget} kcal` : 'Log meals'}
               onPress={() => navigation.navigate('NutritionInsights')}
             />
             <MiniStatCard
@@ -424,7 +644,7 @@ export default function HomeScreen({ navigation }) {
               iconColor="#0284C7"
               iconBg="#E0F2FE"
               title="Activity"
-              value="4,230"
+              value={activitySteps || '0'}
               sub="steps today"
               onPress={() => navigation.navigate('ActivityTracker')}
             />
@@ -433,8 +653,8 @@ export default function HomeScreen({ navigation }) {
               iconColor="#059669"
               iconBg="#D1FAE5"
               title="BMI"
-              value="24.1"
-              sub="Healthy range"
+              value={bmiValue ?? '--'}
+              sub={getBMIStatus(bmiValue)}
               onPress={() => navigation.navigate('BodyComposition')}
             />
           </ScrollView>
@@ -460,14 +680,14 @@ export default function HomeScreen({ navigation }) {
 
             <View style={styles.calRow}>
               <MaterialCommunityIcons name="fire" size={18} color="#F59E0B" />
-              <Text style={styles.calText}>1,095</Text>
-              <Text style={styles.calOf}> of 2,600 kcal eaten</Text>
+              <Text style={styles.calText}>{mealTotals.calories || '--'}</Text>
+              <Text style={styles.calOf}>{mealTotals.calories ? ` of ${calorieTarget} kcal eaten` : ' Log meals to see calories'}</Text>
             </View>
 
             <View style={{ marginTop: 14 }}>
-              <MacroBar label="Protein" percent={24} color="#10B981" />
-              <MacroBar label="Carbohydrates" percent={17} color="#F59E0B" />
-              <MacroBar label="Fats" percent={21} color="#3B82F6" />
+              <MacroBar label="Protein" percent={Math.min(100, Math.round((mealTotals.protein / proteinTarget) * 100) || 0)} color="#10B981" />
+              <MacroBar label="Carbohydrates" percent={Math.min(100, Math.round((mealTotals.carbs / carbTarget) * 100) || 0)} color="#F59E0B" />
+              <MacroBar label="Fats" percent={Math.min(100, Math.round((mealTotals.fats / fatTarget) * 100) || 0)} color="#3B82F6" />
             </View>
           </TouchableOpacity>
 
@@ -483,32 +703,38 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             {/* Sleep Stages Bar */}
-            <View style={styles.stagesBar}>
-              <View style={[styles.stage, { flex: 0.08, backgroundColor: '#60A5FA' }]} />
-              <View style={[styles.stage, { flex: 0.45, backgroundColor: '#86EFAC' }]} />
-              <View style={[styles.stage, { flex: 0.25, backgroundColor: '#818CF8' }]} />
-              <View style={[styles.stage, { flex: 0.15, backgroundColor: '#6D28D9' }]} />
-              <View style={[styles.stage, { flex: 0.07, backgroundColor: '#FCD34D' }]} />
-            </View>
+            {lastSleepLog && (lastSleepLog.lightPercent || lastSleepLog.remPercent) ? (
+              <View style={styles.stagesBar}>
+                <View style={[styles.stage, { flex: lastSleepLog.lightPercent || 8, backgroundColor: '#60A5FA' }]} />
+                <View style={[styles.stage, { flex: lastSleepLog.deepPercent || 45, backgroundColor: '#86EFAC' }]} />
+                <View style={[styles.stage, { flex: lastSleepLog.remPercent || 25, backgroundColor: '#818CF8' }]} />
+              </View>
+            ) : (
+              <View style={styles.stagesBar}>
+                <View style={[styles.stage, { flex: 1, backgroundColor: '#E5E7EB' }]} />
+              </View>
+            )}
 
             <View style={styles.sleepTimes}>
-              <Text style={styles.sleepTime}>🛏 11:33 PM</Text>
-              <Text style={styles.sleepTime}>☀️ 08:38 AM</Text>
+              <Text style={styles.sleepTime}>🛏 {lastSleepLog?.bedTime || '--:-- --'}</Text>
+              <Text style={styles.sleepTime}>☀️ {lastSleepLog?.wakeTime || '--:-- --'}</Text>
             </View>
 
             <View style={styles.sleepStatsRow}>
               <View style={styles.sleepStat}>
-                <Text style={styles.sleepStatValue}>7h 20m</Text>
+                <Text style={styles.sleepStatValue}>{lastSleepLog ? sleepFormatted : '--'}</Text>
                 <Text style={styles.sleepStatLabel}>Total Sleep</Text>
               </View>
               <View style={styles.sleepDivider} />
               <View style={styles.sleepStat}>
-                <Text style={styles.sleepStatValue}>86%</Text>
+                <Text style={styles.sleepStatValue}>{lastSleepLog?.efficiency || '--'}%</Text>
                 <Text style={styles.sleepStatLabel}>Efficiency</Text>
               </View>
               <View style={styles.sleepDivider} />
               <View style={styles.sleepStat}>
-                <Text style={[styles.sleepStatValue, { color: '#10B981' }]}>Normal</Text>
+                <Text style={[styles.sleepStatValue, { color: lastSleepLog ? '#10B981' : '#9CA3AF' }]}>
+                  {lastSleepLog?.status || 'No data'}
+                </Text>
                 <Text style={styles.sleepStatLabel}>Status</Text>
               </View>
             </View>
@@ -531,15 +757,15 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.progressCard}>
             <View>
               <Text style={styles.progressSmall}>Today's Progress</Text>
-              <Text style={styles.progressBig}>78% Complete</Text>
-              <Text style={styles.progressSub}>2 healthy actions left today</Text>
+              <Text style={styles.progressBig}>{progressPercent}% Complete</Text>
+              <Text style={styles.progressSub}>{todayLogs.length} log{todayLogs.length === 1 ? '' : 's'} saved today</Text>
             </View>
             <View style={styles.progressBarTrack}>
-              <View style={[styles.progressBarFill, { width: '78%' }]} />
+              <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
             </View>
             <View style={styles.streakWrap}>
               <Text style={styles.streakEmoji}>🔥</Text>
-              <Text style={styles.streakText}>9 Day Streak</Text>
+              <Text style={styles.streakText}>{logStreak} Day Streak</Text>
             </View>
           </View>
 
@@ -555,6 +781,14 @@ export default function HomeScreen({ navigation }) {
           {/* ── Quick Access Grid ── */}
           <Text style={styles.sectionTitle}>Quick Access</Text>
           <View style={styles.grid}>
+            <ActionCard
+              title="Academy"
+              desc="Reversal lessons"
+              icon="school"
+              color="#FEF3FF"
+              iconColor="#8B5CF6"
+              onPress={() => navigation.navigate('Education')}
+            />
             <ActionCard
               title="AI Meal Scan"
               desc="Snap & analyse"
@@ -617,7 +851,7 @@ export default function HomeScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F3F4F8' },
   scrollContent: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 120 },
 
   // Header
@@ -641,11 +875,13 @@ const styles = StyleSheet.create({
 
   scoreCard: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F8FAFF',
     borderRadius: 24,
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E7E9FF',
   },
   scoreCardTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', marginBottom: 10 },
   shareBtn: { position: 'absolute', top: 12, left: 12 },
@@ -653,11 +889,24 @@ const styles = StyleSheet.create({
 
   chartCard: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FBFBFD',
     borderRadius: 24,
     padding: 16,
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
   },
+  emptyTrendCard: {
+    flex: 1,
+    minHeight: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F5F3FF',
+    borderRadius: 18,
+    padding: 12,
+  },
+  emptyTrendText: { fontSize: 12, color: '#6B7280', textAlign: 'center', lineHeight: 16 },
   chartTitle: { fontSize: 13, fontWeight: '700', color: '#111827' },
   chartSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2, marginBottom: 8 },
   glucoseValueRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 6 },
@@ -684,7 +933,8 @@ const styles = StyleSheet.create({
 
   // Nutrition Card
   nutritionCard: {
-    backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 16,
+    backgroundColor: '#FBFBFD', borderRadius: 24, padding: 20, marginBottom: 16,
+    borderWidth: 1, borderColor: '#E7EAF0',
   },
   nutritionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   nutritionTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
@@ -700,7 +950,8 @@ const styles = StyleSheet.create({
 
   // Sleep Card
   sleepCard: {
-    backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 16,
+    backgroundColor: '#FBFBFD', borderRadius: 24, padding: 20, marginBottom: 16,
+    borderWidth: 1, borderColor: '#E7EAF0',
   },
   sleepHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 },
   sleepTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
@@ -718,8 +969,9 @@ const styles = StyleSheet.create({
 
   // AI Insight
   insightCard: {
-    flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 24,
+    flexDirection: 'row', backgroundColor: '#F8FAFF', borderRadius: 24,
     padding: 18, marginBottom: 16, alignItems: 'center',
+    borderWidth: 1, borderColor: '#E7E9FF',
   },
   insightIcon: {
     width: 48, height: 48, borderRadius: 16,
@@ -745,7 +997,8 @@ const styles = StyleSheet.create({
 
   // Plan
   planCard: {
-    backgroundColor: '#FFF', borderRadius: 28, padding: 20, marginBottom: 24,
+    backgroundColor: '#FBFBFD', borderRadius: 28, padding: 20, marginBottom: 24,
+    borderWidth: 1, borderColor: '#E7EAF0',
   },
   planTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 14 },
 

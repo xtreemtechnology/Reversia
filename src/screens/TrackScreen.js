@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 
 export default function TrackScreen() {
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -71,7 +71,7 @@ export default function TrackScreen() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <View>
             <Text style={styles.smallText}>Daily Tracking</Text>
             <Text style={styles.title}>Stay Consistent</Text>
@@ -176,7 +176,6 @@ export default function TrackScreen() {
         </View>
       </ScrollView>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Home" />
     </SafeAreaView>
   );
 }

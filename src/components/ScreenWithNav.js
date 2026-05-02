@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const NavItem = ({ name, icon, active, onPress }) => (
   <TouchableOpacity style={styles.navItem} onPress={onPress}>
@@ -12,6 +13,8 @@ export const NavItem = ({ name, icon, active, onPress }) => (
 
 export const NavigationBar = ({ activeScreen }) => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : insets.bottom;
 
   const handleNavigation = (screen) => {
     // Navigate through MainTabs (nested in MainApp stack)
@@ -23,7 +26,7 @@ export const NavigationBar = ({ activeScreen }) => {
   };
 
   return (
-    <View style={styles.navBar}>
+    <View style={[styles.navBar, { bottom: bottomOffset, paddingBottom: Math.max(bottomOffset, 8) }]}>
       <NavItem name="Home" icon="home-variant" active={activeScreen === 'Home'} onPress={() => handleNavigation('Home')} />
       <NavItem name="Log" icon="plus" active={activeScreen === 'Log'} onPress={() => handleNavigation('Log')} />
       <View style={styles.scanWrapper}>
@@ -38,7 +41,7 @@ export const NavigationBar = ({ activeScreen }) => {
 };
 
 const styles = StyleSheet.create({
-  navBar: { position: 'absolute', bottom: 0, width: '100%', height: 85, backgroundColor: '#FFF', flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingHorizontal: 15, elevation: 10, alignItems: 'center' },
+  navBar: { position: 'absolute', width: '100%', height: 85, backgroundColor: '#FFF', flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingHorizontal: 15, elevation: 10, alignItems: 'center' },
   navItem: { flex: 1, alignItems: 'center' },
   navText: { fontSize: 12, color: '#9CA3AF', marginTop: 5 },
   activeText: { color: '#825CFF', fontWeight: '500' },

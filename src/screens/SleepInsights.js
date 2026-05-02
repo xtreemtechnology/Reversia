@@ -1,5 +1,5 @@
 // src/screens/SleepInsights.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,32 +19,16 @@ import Svg, {
   Stop,
   Path,
 } from 'react-native-svg';
+import { useUserLogs } from '../hooks/useUserLogs';
 
 const { width } = Dimensions.get('window');
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const SLEEP_DATA = {
-  bedTime:   '11:33 PM',
-  wakeTime:  '08:38 AM',
-  totalSleep: { hrs: 7, mins: 20 },
-  efficiency: 86,
-  status: 'Normal',
-  stages: [
-    { label: 'Awake',   duration: 25,  color: '#FCD34D', pct: 0.06 },
-    { label: 'Light',   duration: 220, color: '#86EFAC', pct: 0.45 },
-    { label: 'Deep',    duration: 115, color: '#818CF8', pct: 0.25 },
-    { label: 'REM',     duration: 75,  color: '#6D28D9', pct: 0.16 },
-    { label: 'Awake',   duration: 30,  color: '#FCD34D', pct: 0.08 },
-  ],
-  weekData: [
-    { day: 'Mon', hrs: 6.5, quality: 'Fair'   },
-    { day: 'Tue', hrs: 7.8, quality: 'Good'   },
-    { day: 'Wed', hrs: 5.2, quality: 'Poor'   },
-    { day: 'Thu', hrs: 8.1, quality: 'Great'  },
-    { day: 'Fri', hrs: 7.0, quality: 'Good'   },
-    { day: 'Sat', hrs: 7.3, quality: 'Good'   },
-    { day: 'Sun', hrs: 7.3, quality: 'Good'   },
-  ],
+// ─── Helper to get date key ──────────────────────────────────────────────────
+const getDateKey = (value) => {
+  if (!value) return null;
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
 };
 
 const QUALITY_COLOR = {
@@ -299,7 +283,65 @@ const insightStyles = StyleSheet.create({
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function SleepInsights({ navigation }) {
   const [activeTab, setActiveTab] = useState('tonight');
-  const { bedTime, wakeTime, totalSleep, efficiency, status, stages, weekData } = SLEEP_DATA;
+  const { logs, loading } = useUserLogs(60);
+
+  // Extract today's sleep log
+  const sleepLogs = useMemo(
+    () => logs.filter((log) => log.type === 'sleep').slice(0, 30),
+    [logs]
+  );
+
+  const todaysSleepLog = useMemo(
+    () => sleepLogs.find((log) => getDateKey(log.timestamp) === getDateKey(new Date())),
+    [sleepLogs]
+  );
+
+  const lastSleepLog = sleepLogs[0] || null;
+
+  // Build sleep data with fallbacks
+  const sleepData = useMemo(() => {
+    const log = lastSleepLog || {};
+    const minutes = Number(log.value) || 440; // Default 7h 20m
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return {
+      bedTime: log.bedTime || '11:33 PM',
+      wakeTime: log.wakeTime || '08:38 AM',
+      totalSleep: { hrs, mins },
+      efficiency: log.efficiency || 86,
+      status: log.status || 'Normal',
+      stages: log.stages || [
+        { label: 'Awake',   duration: 25,  color: '#FCD34D', pct: 0.06 },
+        { label: 'Light',   duration: 220, color: '#86EFAC', pct: 0.45 },
+        { label: 'Deep',    duration: 115, color: '#818CF8', pct: 0.25 },
+        { label: 'REM',     duration: 75,  color: '#6D28D9', pct: 0.16 },
+        { label: 'Awake',   duration: 30,  color: '#FCD34D', pct: 0.08 },
+      ],
+    };
+  }, [lastSleepLog]);
+
+  // Build week data from last 7 days
+  const weekData = useMemo(() => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const weekLogs = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().split('T')[0];
+      const dayName = dayNames[d.getDay()];
+      
+      const dayLog = sleepLogs.find((log) => getDateKey(log.timestamp) === dateKey);
+      const hrs = dayLog ? (Number(dayLog.value) || 0) / 60 : 0;
+      const quality = !dayLog ? 'None' : hrs < 5 ? 'Poor' : hrs < 6.5 ? 'Fair' : hrs < 8 ? 'Good' : 'Great';
+      
+      weekLogs.push({ day: dayName, hrs: hrs.toFixed(1), quality });
+    }
+    return weekLogs;
+  }, [sleepLogs]);
+
+  const { bedTime, wakeTime, totalSleep, efficiency, status, stages } = sleepData;
 
   // Deduplicate stages for detail cards (combine Awake)
   const uniqueStages = [

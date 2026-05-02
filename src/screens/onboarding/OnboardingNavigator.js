@@ -31,6 +31,8 @@ import AccountSetupComplete from './AccountSetupComplete';
 
 // 4. Main App Navigation
 import AppStackNavigator from '../../navigation/AppStackNavigator';
+import SetupEntry from '../setup/SetupEntry';
+import SetupAlias from '../setup/SetupAlias';
 import { auth } from '../../config/firebase';
 
 const Stack = createNativeStackNavigator();
@@ -80,6 +82,15 @@ export default function OnboardingNavigator() {
       <Stack.Screen name="AccountSetupReadiness" component={AccountSetupReadiness} />
       <Stack.Screen name="SetupGenerating" component={SetupGenerating} />
       <Stack.Screen name="AccountSetupComplete" component={AccountSetupComplete} />
+      <Stack.Screen name="setupIntro" component={SetupAlias} />
+      <Stack.Screen name="setupCountry" component={SetupAlias} />
+      <Stack.Screen name="setupName" component={SetupAlias} />
+      <Stack.Screen name="setupGender" component={SetupAlias} />
+      <Stack.Screen name="setupAge" component={SetupAlias} />
+      <Stack.Screen name="setupWeight" component={SetupAlias} />
+      <Stack.Screen name="setupHeight" component={SetupAlias} />
+      <Stack.Screen name="setupComplete" component={SetupAlias} />
+      <Stack.Screen name="Setup" component={SetupEntry} />
       
       {/* --- MAIN APP SECTION --- */}
       {/* AppStackNavigator handles MainTabs + all detail screens */}

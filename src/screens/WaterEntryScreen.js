@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import AnimatedScreen from '../components/AnimatedScreen';
-import { NavigationBar } from '../components/ScreenWithNav';
 // Firebase Imports
 import { auth, db } from '../config/firebase'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -107,7 +106,6 @@ export default function WaterEntryScreen({ navigation }) {
         </Text>
       </View>
       </AnimatedScreen>
-      <NavigationBar activeScreen="Log" />
     </SafeAreaView>
   );
 }

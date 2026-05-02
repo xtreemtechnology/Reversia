@@ -3,7 +3,7 @@ import { db, auth } from '../config/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
-export const useUserLogs = (maxLimit = 50) => {
+export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,7 +55,7 @@ export const useUserLogs = (maxLimit = 50) => {
       if (unsubscribeFromLogs) unsubscribeFromLogs();
       authUnsub();
     };
-  }, [maxLimit]);
+  }, [maxLimit, refreshTrigger]);
 
   return { logs, loading, error };
 };

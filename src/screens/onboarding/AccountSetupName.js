@@ -56,17 +56,12 @@ export default function AccountSetupName({ navigation }) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
-        {/* Header with Back and Skip */}
+        {/* Header with Back Button Only */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.skipButton}
-            onPress={() => navigation.navigate('AccountSetupGender')}
-          >
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
+          <View style={styles.skipButton} />
         </View>
 
         <View style={styles.content}>

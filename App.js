@@ -1,5 +1,6 @@
 // App.js - Updated with Onboarding
 import React, { useEffect, useState } from 'react';
+import { View, Text, StatusBar } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,18 +20,26 @@ const NAVIGATION_STATE_KEY = 'NAVIGATION_STATE_V1';
 export default function App() {
   const [initialState, setInitialState] = useState();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [mountedAt, setMountedAt] = useState(null);
 
   useEffect(() => {
     let mounted = true;
 
     const restoreNavigationState = async () => {
       try {
-        const savedState = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
-        if (savedState && mounted) {
-          setInitialState(JSON.parse(savedState));
+        // Try to restore saved navigation state so a refresh resumes where the user left off.
+        const saved = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setInitialState(parsed);
+          } catch (e) {
+            // If saved state can't be parsed, remove it to avoid breaking navigation
+            await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
+          }
         }
       } catch (error) {
-        // Ignore restoration failures and fall back to the default route.
+        // ignore AsyncStorage errors
       } finally {
         if (mounted) {
           setIsNavigationReady(true);
@@ -64,19 +73,22 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {isNavigationReady ? (
-        <NavigationContainer
-          ref={navigationRef}
-          initialState={initialState}
-          onStateChange={(state) => {
-            AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch(() => {});
-          }}
-        >
-          <ErrorBoundary>
-            <OnboardingNavigator MainAppComponent={MainApp} />
-          </ErrorBoundary>
-        </NavigationContainer>
-      ) : null}
+      <>
+        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+        {isNavigationReady ? (
+          <NavigationContainer
+            ref={navigationRef}
+            initialState={initialState}
+            onStateChange={(state) => {
+              AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch(() => {});
+            }}
+          >
+            <ErrorBoundary>
+              <OnboardingNavigator MainAppComponent={MainApp} />
+            </ErrorBoundary>
+          </NavigationContainer>
+        ) : null}
+      </>
     </SafeAreaProvider>
   );
 }

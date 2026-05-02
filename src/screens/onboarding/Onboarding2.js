@@ -17,7 +17,7 @@ export default function Onboarding2({ navigation }) {
       {/* Top Section - Illustration */}
       <View style={styles.topSection}>
         <Image 
-          source={require('../../../assets/Reversia-Logo.png')} 
+          source={require('../../../assets/onboarding2.png')} 
           style={styles.illustration}
           resizeMode="contain"
         />
@@ -25,11 +25,11 @@ export default function Onboarding2({ navigation }) {
 
       {/* Bottom Section - Content Sheet */}
       <View style={styles.bottomSheet}>
-        <Text style={styles.title}>Control Consistency of Your Diet</Text>
+        <Text style={styles.title}>Precision Habits. Predictable Glucose.</Text>
         
         <Text style={styles.description}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-          sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Reversia unifies meals, movement, sleep, and hydration into one clear
+          daily rhythm designed to improve insulin sensitivity.
         </Text>
 
         <View style={styles.pagination}>
@@ -48,7 +48,7 @@ export default function Onboarding2({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity onPress={() => navigation.replace('Login')}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>

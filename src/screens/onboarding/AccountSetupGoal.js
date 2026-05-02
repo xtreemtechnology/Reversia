@@ -65,12 +65,7 @@ export default function AccountSetupGoal({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.skipButton}
-          onPress={() => navigation.navigate('AccountSetupHealthStatus')}
-        >
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
+        <View style={styles.skipButton} />
       </View>
 
       <View style={styles.content}>
@@ -81,7 +76,7 @@ export default function AccountSetupGoal({ navigation }) {
 
         <Text style={styles.title}>What is your main goal?</Text>
         <Text style={styles.subtitle}>
-          We’ll personalize your wellness journey based on your choice.
+          We’ll tailor your Reversia protocol to match this priority.
         </Text>
 
         {/* Goal Selection List */}
