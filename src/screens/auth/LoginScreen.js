@@ -6,23 +6,22 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   ActivityIndicator,
-  Alert,
   Platform,
   KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
-  Image
+  Image,
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 
 // FIREBASE IMPORTS
 import { auth } from '../../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { handleAuthError, logError, handleValidationError } from '../../utils/errorHandling';
 
-const { width } = Dimensions.get('window');
+// removed module-level Dimensions usage; use useWindowDimensions() inside components if needed
 
 // FIX: Only use TouchableWithoutFeedback on mobile to prevent blocking focus on Web
 const ContainerWrapper = Platform.OS === 'web' ? View : TouchableWithoutFeedback;
@@ -34,19 +33,23 @@ export default function LoginScreen({ navigation, route }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [error, setError] = useState(null);
   const passwordRef = useRef(null);
 
   const handleSignIn = async () => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setError(null);
     
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter your email and password');
+      const validationError = handleValidationError('Email and password', 'required');
+      setError(validationError.message);
       return;
     }
     
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      const validationError = handleValidationError('Email', 'email');
+      setError(validationError.message);
       return;
     }
     
@@ -55,12 +58,9 @@ export default function LoginScreen({ navigation, route }) {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       navigation.replace('MainApp');
     } catch (err) {
-      const errorMessage = err.code === 'auth/user-not-found' 
-        ? 'No account found with this email. Please sign up.'
-        : err.code === 'auth/wrong-password'
-        ? 'Incorrect password. Please try again.'
-        : err.message || 'Login failed. Please try again.';
-      Alert.alert('Login Failed', errorMessage);
+      logError('LoginScreen.handleSignIn', err, { email: email.trim() });
+      const friendlyError = handleAuthError(err);
+      setError(friendlyError.message);
     } finally {
       setLoading(false);
     }
@@ -134,6 +134,12 @@ export default function LoginScreen({ navigation, route }) {
                   {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.signInButtonText}>Sign In</Text>}
                 </TouchableOpacity>
 
+                {error && (
+                  <View style={styles.errorBox}>
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                )}
+
                 <Text style={styles.orText}>or sign in with</Text>
 
                 {/* FIXED: Social Container - Centered and constrained */}
@@ -201,4 +207,6 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 30 },
   footerText: { color: '#000' },
   signUpText: { color: '#825CFF', fontWeight: 'bold' },
+  errorBox: { backgroundColor: '#FEE2E2', borderRadius: 10, padding: 10, marginTop: 12, marginBottom: 6 },
+  errorText: { color: '#B91C1C' },
 });

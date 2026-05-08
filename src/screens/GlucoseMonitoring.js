@@ -6,14 +6,12 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
 
-const { width } = Dimensions.get('window');
 const CHART_H = 200;
-const CHART_W = width - 40; // full width minus horizontal padding
 
 import { useUserLogs } from '../hooks/useUserLogs';
 
@@ -25,22 +23,22 @@ const SAFE_LOW  = 70;
 const SAFE_HIGH = 140;
 
 // ─── Map a glucose value to SVG Y coordinate ─────────────────────────────────
-const toY = (val) =>
-  CHART_H - ((val - MIN_GLUCOSE) / (MAX_GLUCOSE - MIN_GLUCOSE)) * CHART_H;
+const toY = (val, chartH) =>
+  chartH - ((val - MIN_GLUCOSE) / (MAX_GLUCOSE - MIN_GLUCOSE)) * chartH;
 
 // ─── Map index to SVG X coordinate ───────────────────────────────────────────
-const toX = (i, total) => (i / (total - 1)) * CHART_W;
+const toX = (i, total, chartW) => (i / (total - 1)) * chartW;
 
 // ─── Build smooth SVG path from data array ───────────────────────────────────
-const buildPath = (points) => {
+const buildPath = (points, chartW, chartH) => {
   if (points.length < 2) return '';
   return points
     .map((val, i) => {
-      const x = toX(i, points.length);
-      const y = toY(val);
+      const x = toX(i, points.length, chartW);
+      const y = toY(val, chartH);
       if (i === 0) return `M${x},${y}`;
-      const prevX = toX(i - 1, points.length);
-      const prevY = toY(points[i - 1]);
+      const prevX = toX(i - 1, points.length, chartW);
+      const prevY = toY(points[i - 1], chartH);
       const cpX = (prevX + x) / 2;
       return `C${cpX},${prevY} ${cpX},${y} ${x},${y}`;
     })
@@ -48,10 +46,10 @@ const buildPath = (points) => {
 };
 
 // ─── Build area fill path ─────────────────────────────────────────────────────
-const buildArea = (points) => {
-  const line = buildPath(points);
-  const lastX = toX(points.length - 1, points.length);
-  return `${line} L${lastX},${CHART_H} L0,${CHART_H} Z`;
+const buildArea = (points, chartW, chartH) => {
+  const line = buildPath(points, chartW, chartH);
+  const lastX = toX(points.length - 1, points.length, chartW);
+  return `${line} L${lastX},${chartH} L0,${chartH} Z`;
 };
 
 // ─── Stat Chip ────────────────────────────────────────────────────────────────
@@ -106,6 +104,8 @@ const insightStyles = StyleSheet.create({
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function GlucoseMonitoring({ navigation }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const CHART_W = Math.max(screenWidth - 40, 200);
   const TIME_RANGES = ['1 hr', '3 hrs', '6 hrs', '12 hrs', '24 hrs'];
   const [activeRange, setActiveRange] = useState('1 hr');
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -138,8 +138,8 @@ export default function GlucoseMonitoring({ navigation }) {
     }
     return sampled;
   }, [logs, activeRange]);
-  const linePath = buildPath(points);
-  const areaPath = buildArea(points);
+  const linePath = buildPath(points, CHART_W, CHART_H);
+  const areaPath = buildArea(points, CHART_W, CHART_H);
 
   // Compute stats
   const inRange = points.filter(v => v >= SAFE_LOW && v <= SAFE_HIGH).length;
@@ -151,14 +151,14 @@ export default function GlucoseMonitoring({ navigation }) {
   // Selected point
   const selVal  = selectedIndex !== null ? points[selectedIndex] : points[points.length - 1];
   const selX    = selectedIndex !== null
-    ? toX(selectedIndex, points.length)
-    : toX(points.length - 1, points.length);
-  const selY    = toY(selVal);
+    ? toX(selectedIndex, points.length, CHART_W)
+    : toX(points.length - 1, points.length, CHART_W);
+  const selY    = toY(selVal, CHART_H);
   const inRangePt = selVal >= SAFE_LOW && selVal <= SAFE_HIGH;
 
   // Safe range Y positions
-  const safeHighY = toY(SAFE_HIGH);
-  const safeLowY  = toY(SAFE_LOW);
+  const safeHighY = toY(SAFE_HIGH, CHART_H);
+  const safeLowY  = toY(SAFE_LOW, CHART_H);
 
   // Time labels
   const labels = useMemo(() => {
@@ -277,8 +277,8 @@ export default function GlucoseMonitoring({ navigation }) {
             {[50, 100, 150, 200].map(v => (
               <Line
                 key={v}
-                x1="0" y1={toY(v)}
-                x2={CHART_W} y2={toY(v)}
+                x1="0" y1={toY(v, CHART_H)}
+                x2={CHART_W} y2={toY(v, CHART_H)}
                 stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4"
               />
             ))}
@@ -320,8 +320,8 @@ export default function GlucoseMonitoring({ navigation }) {
             {points.map((val, i) => (
               <Circle
                 key={i}
-                cx={toX(i, points.length)}
-                cy={toY(val)}
+                cx={toX(i, points.length, CHART_W)}
+                cy={toY(val, CHART_H)}
                 r="3"
                 fill={val >= SAFE_LOW && val <= SAFE_HIGH ? '#10B981' : '#EF4444'}
                 onPress={() => setSelectedIndex(i)}

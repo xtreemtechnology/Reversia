@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment';
 import { useUserLogs } from '../hooks/useUserLogs';
+import { MEAL_LABELS } from '../utils/mealUtils';
 import { getButtonAccessibility } from '../utils/accessibility';
 
 const getLogConfig = (type) => {
@@ -21,6 +22,12 @@ const getLogConfig = (type) => {
 
 export default function LogHistoryScreen({ navigation }) {
   const { logs, loading, error } = useUserLogs(50);
+  const [expanded, setExpanded] = useState({});
+
+  const toggleMeal = (dayKey, mealId) => {
+    const k = `${dayKey}::${mealId}`;
+    setExpanded(prev => ({ ...prev, [k]: !prev[k] }));
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -56,27 +63,72 @@ export default function LogHistoryScreen({ navigation }) {
           <Text style={styles.stateText}>Start tracking meals, water, glucose, or exercise to see them here.</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-          {logs.map((item) => {
-            const config = getLogConfig(item.type);
-            return (
-              <View key={item.id} style={styles.card}>
-                <View style={[styles.iconWrap, { backgroundColor: `${config.iconColor}18` }]}>
-                  <MaterialCommunityIcons name={config.icon} size={22} color={config.iconColor} />
+          <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+            {(() => {
+              // Group logs by day (YYYY-MM-DD) then by meal
+              const byDay = {};
+              const orderedMeals = ['breakfast','lunch','snack','dinner','other'];
+
+              logs
+                .slice()
+                .sort((a,b) => {
+                  const ta = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+                  const tb = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+                  return tb - ta;
+                })
+                .forEach(item => {
+                  const dayKey = item.timestamp ? moment(item.timestamp.toDate()).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+                  byDay[dayKey] = byDay[dayKey] || { label: moment(dayKey).format('MMMM D, YYYY'), meals: {} };
+                  const mealKey = (item.meal || item.period || 'other').toLowerCase();
+                  byDay[dayKey].meals[mealKey] = byDay[dayKey].meals[mealKey] || [];
+                  byDay[dayKey].meals[mealKey].push(item);
+                });
+
+              return Object.keys(byDay).map(dayKey => (
+                <View key={dayKey}>
+                  <Text style={styles.dayHeader}>{byDay[dayKey].label}</Text>
+                  {orderedMeals.map(mealId => {
+                    const items = byDay[dayKey].meals[mealId];
+                    if (!items || !items.length) return null;
+
+                    const key = `${dayKey}::${mealId}`;
+                    const isOpen = !!expanded[key];
+                    const count = items.length;
+                    const calories = items.reduce((s, it) => s + (Number(it.calories) || 0), 0);
+
+                    return (
+                      <View key={mealId} style={styles.mealSection}>
+                        <TouchableOpacity style={styles.mealHeaderRow} onPress={() => toggleMeal(dayKey, mealId)}>
+                          <Text style={styles.mealHeader}>{MEAL_LABELS[mealId] || mealId}</Text>
+                          <View style={styles.mealMetaRow}>
+                            <Text style={styles.mealMeta}>{count} item{count>1?'s':''}</Text>
+                            {calories > 0 && <Text style={[styles.mealMeta, { marginLeft: 12 }]}>{calories} kcal</Text>}
+                            <Text style={[styles.mealToggle]}>{isOpen ? '▾' : '▸'}</Text>
+                          </View>
+                        </TouchableOpacity>
+
+                        {isOpen && items.map(item => {
+                          const config = getLogConfig(item.type);
+                          return (
+                            <View key={item.id} style={styles.card}>
+                              <View style={[styles.iconWrap, { backgroundColor: `${config.iconColor}18` }]}>
+                                <MaterialCommunityIcons name={config.icon} size={22} color={config.iconColor} />
+                              </View>
+                              <View style={styles.cardBody}>
+                                <Text style={styles.label}>{config.label}</Text>
+                                <Text style={styles.value} numberOfLines={1}>{item.value} {item.unit || ''}</Text>
+                                <Text style={styles.meta}>{item.period || ''} • {item.timestamp ? moment(item.timestamp.toDate()).format('h:mm A') : 'Just now'}</Text>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
                 </View>
-                <View style={styles.cardBody}>
-                  <Text style={styles.label}>{config.label}</Text>
-                  <Text style={styles.value} numberOfLines={1}>
-                    {item.value} {item.unit || ''}
-                  </Text>
-                  <Text style={styles.meta}>
-                    {item.period || 'Logged'} • {item.timestamp ? moment(item.timestamp.toDate()).format('MMM D, h:mm A') : 'Just now'}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </ScrollView>
+              ));
+            })()}
+          </ScrollView>
       )}
     </SafeAreaView>
   );

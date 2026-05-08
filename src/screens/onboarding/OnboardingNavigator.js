@@ -17,22 +17,24 @@ import VerifyEmail from '../auth/VerifyEmail';
 import EmailVerificationSuccess from '../auth/EmailVerificationSuccess';
 import ResetPasswordSuccessScreen from '../auth/ResetPasswordSuccessScreen';
 
-// 3. Account Setup (The 8 Steps)
-import AccountSetupName from './AccountSetupName';
-import AccountSetupGender from './AccountSetupGender';
-import AccountSetupAge from './AccountSetupAge';
-import AccountSetupWeight from './AccountSetupWeight';
-import AccountSetupHeight from './AccountSetupHeight';
-import AccountSetupGoal from './AccountSetupGoal';
-import AccountSetupHealthStatus from './AccountSetupHealthStatus';
-import AccountSetupReadiness from './AccountSetupReadiness';
-import SetupGenerating from './SetupGenerating';
-import AccountSetupComplete from './AccountSetupComplete';
+// 3. Account Setup (The 8 Steps) - Import from feature folder
+import {
+  AccountSetupName,
+  AccountSetupGender,
+  AccountSetupAge,
+  AccountSetupWeight,
+  AccountSetupHeight,
+  AccountSetupGoal,
+  AccountSetupHealthStatus,
+  AccountSetupReadiness,
+  AccountSetupComplete,
+} from '../../features/onboarding/index';
 
 // 4. Main App Navigation
 import AppStackNavigator from '../../navigation/AppStackNavigator';
 import SetupEntry from '../setup/SetupEntry';
 import SetupAlias from '../setup/SetupAlias';
+import SetupGenerating from './SetupGenerating';
 import { auth } from '../../config/firebase';
 
 const Stack = createNativeStackNavigator();

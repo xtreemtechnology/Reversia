@@ -7,7 +7,6 @@ import {
   TextInput, 
   ScrollView, 
   ActivityIndicator, 
-  Alert 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -16,15 +15,19 @@ import AnimatedScreen from '../components/AnimatedScreen';
 // Firebase Imports
 import { auth, db } from '../config/firebase'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { detectMeal, MEAL_LABELS } from '../utils/mealUtils';
 
 export default function MealEntryScreen({ navigation, route }) {
   const [mealName, setMealName] = useState(route?.params?.mealName ?? '');
   const [selectedTag, setSelectedTag] = useState(route?.params?.mealType ?? route?.params?.prefillTag ?? '');
+  const [selectedMeal, setSelectedMeal] = useState(route?.params?.meal || detectMeal(new Date()));
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleSaveMeal = async () => {
+    setMessage(null);
     if (!mealName.trim()) {
-      Alert.alert("Error", "Please enter what you ate.");
+      setMessage("Please enter what you ate.");
       return;
     }
 
@@ -39,6 +42,7 @@ export default function MealEntryScreen({ navigation, route }) {
           type: 'meal',
           value: mealName,       // The text of the meal
           period: selectedTag || 'Regular', // Using the tag as the 'period' for the Log list
+          meal: selectedMeal || detectMeal(new Date()),
           timestamp: serverTimestamp(),
           createdAt: new Date().toISOString(),
         });
@@ -47,7 +51,7 @@ export default function MealEntryScreen({ navigation, route }) {
       }
     } catch (error) {
       console.error("Meal Save Error:", error);
-      Alert.alert("Error", "Could not save your meal. Please try again.");
+      setMessage("Could not save your meal. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -86,6 +90,20 @@ export default function MealEntryScreen({ navigation, route }) {
           />
         </View>
 
+        {/* Meal Time Selector */}
+        <Text style={[styles.sectionLabel, { marginTop: 6 }]}>Meal time</Text>
+        <View style={{ flexDirection: 'row', marginBottom: 12, flexWrap: 'wrap' }}>
+          {['breakfast','lunch','snack','dinner','other'].map(m => (
+            <TouchableOpacity
+              key={m}
+              style={[styles.tagBtn, selectedMeal === m && styles.activeTag, { marginRight: 10, marginBottom: 10 }]}
+              onPress={() => setSelectedMeal(m)}
+            >
+              <Text style={[styles.tagText, selectedMeal === m && styles.activeTagText]}>{MEAL_LABELS[m] || m}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* Quick Add Section */}
         <Text style={styles.sectionLabel}>Quick Add</Text>
         <View style={styles.quickGrid}>
@@ -113,6 +131,12 @@ export default function MealEntryScreen({ navigation, route }) {
           </View>
         </View>
 
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
       </ScrollView>
       </AnimatedScreen>
     </SafeAreaView>
@@ -138,4 +162,6 @@ const styles = StyleSheet.create({
   impactCard: { flexDirection: 'row', backgroundColor: '#ECFDF5', padding: 18, borderRadius: 16, alignItems: 'center', marginTop: 10 },
   impactTitle: { fontSize: 14, fontWeight: '700', color: '#065F46' },
   impactDesc: { fontSize: 13, color: '#065F46', marginTop: 4, lineHeight: 18, maxWidth: '90%' },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

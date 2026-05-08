@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { validateName } from '../../utils/validation';
 import { handleFirestoreError, logError } from '../../utils/errorHandling';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -14,17 +14,19 @@ export default function EditProfile({ navigation }) {
   const [lastName, setLastName] = useState(userData?.lastName || '');
   const [email, setEmail] = useState(userData?.email || '');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleSave = async () => {
+    setMessage(null);
     const firstNameValidation = validateName(firstName);
     if (!firstNameValidation.isValid) {
-      Alert.alert('First Name Error', firstNameValidation.error);
+      setMessage(firstNameValidation.error);
       return;
     }
     
     const lastNameValidation = validateName(lastName);
     if (!lastNameValidation.isValid) {
-      Alert.alert('Last Name Error', lastNameValidation.error);
+      setMessage(lastNameValidation.error);
       return;
     }
 
@@ -32,7 +34,7 @@ export default function EditProfile({ navigation }) {
     try {
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert('Error', 'Please log in to update your profile');
+        setMessage('Please log in to update your profile');
         return;
       }
       
@@ -42,13 +44,13 @@ export default function EditProfile({ navigation }) {
           lastName: lastName.trim(),
           updatedAt: new Date().toISOString(),
         });
-        Alert.alert('Success', 'Profile updated successfully');
+        setMessage('Profile updated successfully');
         navigation.goBack();
       }
     } catch (error) {
       logError('EditProfile.handleSave', error, { firstName: firstName.trim(), lastName: lastName.trim() });
       const errorInfo = handleFirestoreError(error);
-      Alert.alert(errorInfo.title, errorInfo.message);
+      setMessage(errorInfo.message);
     } finally {
       setLoading(false);
     }
@@ -111,6 +113,12 @@ export default function EditProfile({ navigation }) {
           <Text style={styles.hint}>Email cannot be changed. Contact support for assistance.</Text>
         </View>
 
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -130,4 +138,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '700', color: '#6B7280', marginBottom: 8, textTransform: 'uppercase' },
   input: { backgroundColor: '#FBFBFD', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', borderWidth: 1, borderColor: '#E5E7EB' },
   hint: { fontSize: 12, color: '#9CA3AF', marginTop: 6 },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 6, marginBottom: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

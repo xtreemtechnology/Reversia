@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, TextInput, 
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert 
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ export default function GlucoseEntryScreen({ navigation }) {
   const [selectedState, setSelectedState] = useState('Fasting');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ label: 'Normal', color: '#10B981', bg: '#ECFDF5' });
+  const [message, setMessage] = useState(null);
 
   const states = ['Fasting', 'Pre-Meal', 'Post-Meal', 'Bedtime'];
 
@@ -33,8 +34,9 @@ export default function GlucoseEntryScreen({ navigation }) {
   }, [glucose]);
 
   const handleSave = async () => {
+    setMessage(null);
     if (!glucose || isNaN(glucose)) {
-      Alert.alert("Error", "Please enter a valid numeric reading.");
+      setMessage("Please enter a valid numeric reading.");
       return;
     }
 
@@ -55,7 +57,7 @@ export default function GlucoseEntryScreen({ navigation }) {
       }
     } catch (error) {
       console.error("Save Error:", error);
-      Alert.alert("Error", "Failed to save. Check your connection.");
+      setMessage("Failed to save. Check your connection.");
     } finally {
       setLoading(false);
     }
@@ -131,6 +133,12 @@ export default function GlucoseEntryScreen({ navigation }) {
               Keeping your blood sugar between 70-140 mg/dL helps minimize long-term inflammation and protects your energy levels.
             </Text>
           </View>
+
+          {message && (
+            <View style={styles.messageBox}>
+              <Text style={styles.messageText}>{message}</Text>
+            </View>
+          )}
         </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -171,5 +179,7 @@ const styles = StyleSheet.create({
   tipCard: { backgroundColor: '#F5F3FF', padding: 20, borderRadius: 24 },
   tipHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   tipTitle: { fontSize: 14, fontWeight: '800', color: '#5B21B6' },
-  tipText: { fontSize: 14, color: '#5B21B6', lineHeight: 22, opacity: 0.8 }
+  tipText: { fontSize: 14, color: '#5B21B6', lineHeight: 22, opacity: 0.8 },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

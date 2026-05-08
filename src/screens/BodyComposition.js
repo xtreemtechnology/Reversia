@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import LogWeightModal from '../components/LogWeightModal';
@@ -18,9 +18,10 @@ import Svg, {
   Stop,
   Rect,
   Line,
+  Path,
 } from 'react-native-svg';
 
-const { width } = Dimensions.get('window');
+// removed module-level Dimensions; components will read window width via hook
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const USER_DATA = {
@@ -72,15 +73,17 @@ const getTrend = (current, previous) => {
 
 // ─── BMI Gauge ────────────────────────────────────────────────────────────────
 const BMIGauge = ({ bmi }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const cat = getBMICategory(bmi);
+  const trackWidth = Math.max(Math.min(screenWidth - 72, 420), 240);
   // Map bmi 15–40 onto 0–100%
   const pct = Math.min(Math.max((bmi - 15) / 25, 0), 1);
-  const indicatorX = pct * (width - 80);
+  const indicatorX = pct * trackWidth;
 
   return (
     <View style={gaugeStyles.wrapper}>
       {/* Coloured track */}
-      <View style={gaugeStyles.track}>
+      <View style={[gaugeStyles.track, { width: trackWidth }]}>
         {[
           { color: '#60A5FA', flex: 0.148 },
           { color: '#10B981', flex: 0.26  },
@@ -98,11 +101,11 @@ const BMIGauge = ({ bmi }) => {
           />
         ))}
         {/* Indicator needle */}
-        <View style={[gaugeStyles.needle, { left: indicatorX - 6 }]} />
+        <View style={[gaugeStyles.needle, { left: Math.max(indicatorX - 6, 0) }]} />
       </View>
 
       {/* Labels */}
-      <View style={gaugeStyles.labels}>
+      <View style={[gaugeStyles.labels, { width: trackWidth }]}>
         <Text style={gaugeStyles.rangeLabel}>15</Text>
         <Text style={gaugeStyles.rangeLabel}>18.5</Text>
         <Text style={gaugeStyles.rangeLabel}>25</Text>
@@ -122,7 +125,7 @@ const BMIGauge = ({ bmi }) => {
 };
 
 const gaugeStyles = StyleSheet.create({
-  wrapper: { marginVertical: 14 },
+  wrapper: { marginVertical: 14, alignItems: 'center' },
   track: {
     flexDirection: 'row', height: 14,
     borderRadius: 7, overflow: 'visible',
@@ -139,6 +142,7 @@ const gaugeStyles = StyleSheet.create({
   labels: {
     flexDirection: 'row', justifyContent: 'space-between',
     marginTop: 8,
+    alignSelf: 'center',
   },
   rangeLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '600' },
   valueRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
@@ -149,9 +153,12 @@ const gaugeStyles = StyleSheet.create({
 
 // ─── Donut Ring ───────────────────────────────────────────────────────────────
 const DonutRing = ({ pct, color, size = 80, strokeW = 9 }) => {
-  const R    = (size - strokeW) / 2;
+  const R = (size - strokeW) / 2;
   const CIRC = 2 * Math.PI * R;
-  const filled = (pct / 100) * CIRC;
+  const pctNorm = Math.max(0, Math.min(Number(pct) || 0, 100));
+  const filled = (pctNorm / 100) * CIRC;
+  const remaining = Math.max(0, CIRC - filled);
+
   return (
     <Svg width={size} height={size}>
       <Circle
@@ -161,18 +168,20 @@ const DonutRing = ({ pct, color, size = 80, strokeW = 9 }) => {
       <Circle
         cx={size / 2} cy={size / 2} r={R}
         stroke={color} strokeWidth={strokeW} fill="none"
-        strokeDasharray={`${filled} ${CIRC}`}
+        strokeDasharray={`${filled} ${remaining}`}
         strokeLinecap="round"
-        rotation="-90"
-        origin={`${size / 2}, ${size / 2}`}
+        strokeDashoffset={0}
+        rotation={-90}
+        originX={size / 2}
+        originY={size / 2}
       />
     </Svg>
   );
 };
 
 // ─── Body Stat Card ───────────────────────────────────────────────────────────
-const BodyStatCard = ({ icon, iconColor, iconBg, title, value, unit, sub, subColor, trend, ring, ringColor }) => (
-  <View style={bscStyles.card}>
+const BodyStatCard = ({ icon, iconColor, iconBg, title, value, unit, sub, subColor, trend, ring, ringColor, style }) => (
+  <View style={[bscStyles.card, style]}>
     <View style={bscStyles.top}>
       <View style={[bscStyles.iconBox, { backgroundColor: iconBg }]}>
         <MaterialCommunityIcons name={icon} size={20} color={iconColor} />
@@ -185,23 +194,34 @@ const BodyStatCard = ({ icon, iconColor, iconBg, title, value, unit, sub, subCol
       )}
     </View>
     <Text style={bscStyles.title}>{title}</Text>
+
     {ring !== undefined ? (
-      <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, marginVertical: 6 }}>
-        <DonutRing pct={ring} color={ringColor || iconColor} />
-        <View style={{ position: 'absolute' }}>
-          <Text style={[bscStyles.value, { fontSize: 15 }]}>{value}<Text style={bscStyles.unit}>{unit}</Text></Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 6 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={[bscStyles.value, { fontSize: 18 }]}>
+            {value}
+            <Text style={bscStyles.unit}>{unit}</Text>
+          </Text>
+          {sub && <Text style={[bscStyles.sub, subColor && { color: subColor }]}>{sub}</Text>}
+        </View>
+        <View style={{ width: 80, height: 80, justifyContent: 'center', alignItems: 'center', marginLeft: 12 }}>
+          <DonutRing pct={ring} color={ringColor || iconColor} size={80} strokeW={9} />
+          <View style={{ position: 'absolute', justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 12, fontWeight: '800', color: '#111827' }}>
+              {value}
+              <Text style={{ fontSize: 10, color: '#9CA3AF' }}>{unit}</Text>
+            </Text>
+          </View>
         </View>
       </View>
     ) : (
       <Text style={bscStyles.value}>{value}<Text style={bscStyles.unit}>{unit}</Text></Text>
     )}
-    {sub && <Text style={[bscStyles.sub, subColor && { color: subColor }]}>{sub}</Text>}
   </View>
 );
 
 const bscStyles = StyleSheet.create({
   card: {
-    width: (width - 52) / 2,
     backgroundColor: '#FFF',
     borderRadius: 22,
     padding: 16,
@@ -224,12 +244,13 @@ const bscStyles = StyleSheet.create({
 });
 
 // ─── Weight Mini Chart ────────────────────────────────────────────────────────
-const CHART_W = width - 80;
 const CHART_H = 80;
 const MIN_W   = 82.0;
 const MAX_W   = 84.0;
 
 const WeightChart = ({ data }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const CHART_W = Math.max(screenWidth - 80, 120);
   const toX = (i) => (i / (data.length - 1)) * CHART_W;
   const toY = (v) => CHART_H - ((v - MIN_W) / (MAX_W - MIN_W)) * CHART_H;
 
@@ -262,15 +283,9 @@ const WeightChart = ({ data }) => {
           />
         ))}
         {/* Line */}
-        <Svg>
-          {/* Area */}
-          <Svg>
-            <Rect
-              x="0" y="0" width={CHART_W} height={CHART_H}
-              fill="url(#wGrad)"
-            />
-          </Svg>
-        </Svg>
+        <Path d={pathD} fill="none" stroke="#825CFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Area */}
+        <Path d={`${pathD} L${CHART_W},${CHART_H} L0,${CHART_H} Z`} fill="url(#wGrad)" />
         {/* Dots */}
         {data.map((d, i) => (
           <Circle
@@ -356,6 +371,12 @@ export default function BodyComposition({ navigation }) {
   const [weekWeights, setWeekWeights] = useState(WEEK_WEIGHTS);
   const [activeTab, setActiveTab] = useState('current');
   const [showWeightModal, setShowWeightModal] = useState(false);
+
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrow = screenWidth < 430;
+  const contentPadding = 20;
+  const contentWidth = Math.max(screenWidth - contentPadding * 2, 320);
+  const cardWidth = isNarrow ? '100%' : (contentWidth - 12) / 2;
 
   const d = userData;
   const bmiCat   = getBMICategory(d.bmi);
@@ -478,6 +499,7 @@ export default function BodyComposition({ navigation }) {
                 title="BMR (Daily Calories)"
                 value={d.bmr} unit=" kcal"
                 sub="Base metabolic rate"
+                style={{ width: cardWidth }}
               />
               <BodyStatCard
                 icon="human" iconColor="#825CFF" iconBg="#EDE9FE"
@@ -486,6 +508,7 @@ export default function BodyComposition({ navigation }) {
                 ring={d.bodyFat} ringColor="#825CFF"
                 sub="Target: <25%"
                 subColor={d.bodyFat > 25 ? '#EF4444' : '#10B981'}
+                style={{ width: cardWidth }}
               />
               <BodyStatCard
                 icon="arm-flex" iconColor="#10B981" iconBg="#D1FAE5"
@@ -494,6 +517,7 @@ export default function BodyComposition({ navigation }) {
                 ring={d.musclePct} ringColor="#10B981"
                 sub="Good range"
                 subColor="#10B981"
+                style={{ width: cardWidth }}
               />
               <BodyStatCard
                 icon="water" iconColor="#3B82F6" iconBg="#EFF6FF"
@@ -501,6 +525,7 @@ export default function BodyComposition({ navigation }) {
                 value={d.waterPct} unit="%"
                 ring={d.waterPct} ringColor="#3B82F6"
                 sub="Target: 55-65%"
+                style={{ width: cardWidth }}
               />
               <BodyStatCard
                 icon="liver" iconColor="#F59E0B" iconBg="#FEF3C7"
@@ -509,6 +534,7 @@ export default function BodyComposition({ navigation }) {
                 trend={{ icon: 'trending-down', color: '#10B981', label: '-2%' }}
                 sub="Target: <10"
                 subColor={d.visceralFat > 10 ? '#F59E0B' : '#10B981'}
+                style={{ width: cardWidth }}
               />
               <BodyStatCard
                 icon="bone" iconColor="#0284C7" iconBg="#E0F2FE"
@@ -516,6 +542,7 @@ export default function BodyComposition({ navigation }) {
                 value={d.boneMass} unit=" kg"
                 sub="Normal range"
                 subColor="#10B981"
+                style={{ width: cardWidth }}
               />
             </View>
 

@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  View, Text, StyleSheet, TouchableOpacity, Dimensions, 
-  Animated, ActivityIndicator, Alert
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, 
+  Animated, ActivityIndicator
 } from 'react-native';
-import { Camera, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-const { width } = Dimensions.get('window');
+// read width at render time
 
 export default function ScanScreen({ navigation }) {
+  const { width: screenWidth } = useWindowDimensions();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [foodData, setFoodData] = useState(null);
   const [scannedBarcode, setScannedBarcode] = useState(null);
@@ -19,6 +20,7 @@ export default function ScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
   const [debugStatus, setDebugStatus] = useState({});
+  const [message, setMessage] = useState(null);
 
   // Animation for the scanning line
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function ScanScreen({ navigation }) {
   // Simulate barcode scan and fetch from Firestore
   const handleScan = async () => {
     setIsAnalyzing(true);
+    setMessage(null);
     try {
       // capture a photo for context (best-effort)
       try {
@@ -47,7 +50,7 @@ export default function ScanScreen({ navigation }) {
 
       // If a barcode was scanned already, perform lookup
       if (!scannedBarcode) {
-        Alert.alert('No barcode', 'No barcode detected yet. Point the camera at a barcode and try again.');
+        setMessage('No barcode detected yet. Point the camera at a barcode and try again.');
         setIsAnalyzing(false);
         return;
       }
@@ -60,7 +63,7 @@ export default function ScanScreen({ navigation }) {
         : error.message.includes('timeout')
         ? 'Scan timed out. Please try again.'
         : 'Failed to scan. Please ensure the barcode is visible.';
-      Alert.alert('Scan Failed', errorMsg);
+      setMessage(errorMsg);
     } finally {
       setIsAnalyzing(false);
     }
@@ -91,11 +94,11 @@ export default function ScanScreen({ navigation }) {
         }
       }
 
-      Alert.alert('Not Found', `This food item (barcode: ${barcode}) is not in our database.`);
+      setMessage(`This food item (barcode: ${barcode}) is not in our database.`);
       setFoodData(null);
     } catch (err) {
       console.error('Lookup error', err);
-      Alert.alert('Lookup Failed', 'Could not lookup barcode.');
+      setMessage('Could not lookup barcode.');
     }
   };
 
@@ -116,12 +119,12 @@ export default function ScanScreen({ navigation }) {
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        Alert.alert('Please log in first');
+        setMessage('Please log in first.');
         return;
       }
 
       if (!foodData) {
-        Alert.alert('No food data to save');
+        setMessage('No food data to save.');
         return;
       }
 
@@ -136,7 +139,7 @@ export default function ScanScreen({ navigation }) {
         timestamp: serverTimestamp(),
       });
 
-      Alert.alert('Success', 'Added to your meal plan!');
+      setMessage('Added to your meal plan!');
       setFoodData(null);
       setScannedBarcode(null);
     } catch (error) {
@@ -146,13 +149,13 @@ export default function ScanScreen({ navigation }) {
           : error.message.includes('network')
           ? 'Network connection failed. Please try again.'
           : 'Could not save meal. Please try again.';
-        Alert.alert('Save Failed', addErrorMsg);
+        setMessage(addErrorMsg);
     }
   };
 
   const translateY = scanLineAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, width * 0.7],
+    outputRange: [0, screenWidth * 0.7],
   });
 
   useEffect(() => {
@@ -175,6 +178,11 @@ export default function ScanScreen({ navigation }) {
         <Text style={styles.title}>Food Scanner</Text>
         <Text style={styles.subtitle}>Check Glycemic Impact instantly</Text>
       </View>
+      {message && (
+        <View style={styles.messageBox}>
+          <Text style={styles.messageText}>{message}</Text>
+        </View>
+      )}
       {/* Camera Viewfinder */}
       <View style={styles.scannerContainer}>
         {(!permission || !permission.granted) ? (
@@ -187,11 +195,12 @@ export default function ScanScreen({ navigation }) {
           </View>
         ) : (
           <View style={styles.viewfinder}>
-            <Camera
+            <CameraView
               ref={cameraRef}
               style={{ width: '100%', height: '100%' }}
               onBarCodeScanned={handleBarCodeScanned}
               barCodeScannerSettings={{}}
+              facing="environment"
             />
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
@@ -284,10 +293,12 @@ const styles = StyleSheet.create({
   header: { padding: 20, alignItems: 'center', paddingTop: 10 },
   title: { fontSize: 22, fontWeight: '800', color: '#FFF' },
   subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
-  scannerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 100 },
+  messageBox: { backgroundColor: '#FEE2E2', marginHorizontal: 20, borderRadius: 12, padding: 12, marginBottom: 10 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
+  scannerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 80, paddingBottom: 20 },
   viewfinder: {
-    width: width * 0.7,
-    height: width * 0.7,
+    width: '70%',
+    aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -312,7 +323,7 @@ const styles = StyleSheet.create({
   bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 20 },
   bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 20 },
   hintText: { color: '#FFF', marginTop: 30, fontSize: 14, opacity: 0.8 },
-  resultCard: { backgroundColor: '#FBFBFD', margin: 20, borderRadius: 28, padding: 18, position: 'absolute', bottom: 165, width: width - 40, elevation: 8, borderWidth: 1, borderColor: '#E7EAF0' },
+  resultCard: { backgroundColor: '#FBFBFD', margin: 20, borderRadius: 28, padding: 18, position: 'absolute', bottom: 90, width: 'auto', left: 0, right: 0, elevation: 8, borderWidth: 1, borderColor: '#E7EAF0' },
   resultHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   foodIconBox: { width: 48, height: 48, backgroundColor: '#F3F4FF', borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   foodNameContainer: { flex: 1 },
@@ -328,7 +339,7 @@ const styles = StyleSheet.create({
   statDivider: { width: 1, height: 20, backgroundColor: '#F3F4F6', alignSelf: 'center' },
   logButton: { backgroundColor: '#825CFF', borderRadius: 18, padding: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
   logButtonText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
-  controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingBottom: 110, paddingHorizontal: 30 },
+  controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingBottom: 80, paddingHorizontal: 30 },
   controlBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
   captureBtn: { width: 80, height: 80, borderRadius: 40, borderWidth: 4, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
   captureInner: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F8FAFC' },

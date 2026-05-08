@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
-  Dimensions,
   ActivityIndicator,
-  Alert
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 
@@ -16,12 +15,15 @@ import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { auth, db } from '../../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
-const { width } = Dimensions.get('window');
 const ITEM_WIDTH = 70; // Adjusted for better spacing
 
 export default function AccountSetupAge({ navigation }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrow = screenWidth < 380;
+  const listPadding = Math.max(8, screenWidth / 2 - ITEM_WIDTH / 2);
   const [selectedAge, setSelectedAge] = useState(27);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const flatListRef = useRef(null);
   
   // Generate ages from 18 to 99
@@ -29,6 +31,7 @@ export default function AccountSetupAge({ navigation }) {
 
   // 2. FIREBASE SAVE LOGIC
   const handleContinue = async () => {
+    setError(null);
     setLoading(true);
     try {
       const user = auth.currentUser;
@@ -43,7 +46,7 @@ export default function AccountSetupAge({ navigation }) {
       }
     } catch (error) {
       console.log("Error saving age:", error);
-      Alert.alert("Error", "Could not save your age. Please check your internet.");
+      setError("Could not save your age. Please check your internet.");
     } finally {
       setLoading(false);
     }
@@ -110,7 +113,7 @@ export default function AccountSetupAge({ navigation }) {
         </Text>
 
         <View style={styles.pickerContainer}>
-          <View style={styles.pickerWrapper}>
+          <View style={[styles.pickerWrapper, { width: Math.min(screenWidth, 420) }]}>
             <TouchableOpacity onPress={() => scroll('left')} style={styles.arrowButton}>
               <Ionicons name="chevron-back" size={30} color="#825CFF" />
             </TouchableOpacity>
@@ -124,7 +127,7 @@ export default function AccountSetupAge({ navigation }) {
               showsHorizontalScrollIndicator={false}
               snapToInterval={ITEM_WIDTH}
               decelerationRate="fast"
-              contentContainerStyle={styles.listContent}
+              contentContainerStyle={[styles.listContent, { paddingHorizontal: listPadding }]}
               initialScrollIndex={ages.indexOf(27)}
               getItemLayout={(data, index) => (
                 { length: ITEM_WIDTH, offset: ITEM_WIDTH * index, index }
@@ -138,6 +141,12 @@ export default function AccountSetupAge({ navigation }) {
           {/* Active Indicator Line */}
           <View style={styles.activeIndicator} />
         </View>
+
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -189,8 +198,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 32, fontWeight: '700', color: '#825CFF', textAlign: 'center', marginBottom: 15 },
   subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', lineHeight: 22, marginBottom: 60, paddingHorizontal: 20 },
   pickerContainer: { height: 120, alignItems: 'center', justifyContent: 'center' },
-  pickerWrapper: { flexDirection: 'row', alignItems: 'center', width: width },
-  listContent: { paddingHorizontal: width / 2 - ITEM_WIDTH / 2 },
+  pickerWrapper: { flexDirection: 'row', alignItems: 'center' },
+  listContent: {},
   ageItem: { width: ITEM_WIDTH, height: 80, justifyContent: 'center', alignItems: 'center' },
   selectedAgeContainer: { backgroundColor: '#F3F4FF', borderRadius: 20 },
   ageText: { fontSize: 24, color: '#D1D5DB', fontWeight: '600' },
@@ -198,6 +207,18 @@ const styles = StyleSheet.create({
   arrowButton: { padding: 10, zIndex: 10 },
   activeIndicator: { width: 40, height: 4, backgroundColor: '#825CFF', borderRadius: 2, marginTop: 10 },
   footer: { paddingHorizontal: 25, paddingBottom: 40 },
+  errorBox: {
+    width: '100%',
+    marginTop: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+  },
+  errorText: {
+    color: '#B91C1C',
+    textAlign: 'center',
+  },
   continueButton: {
     backgroundColor: '#825CFF',
     height: 65,

@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, {
@@ -21,7 +21,7 @@ import Svg, {
 } from 'react-native-svg';
 import { useUserLogs } from '../hooks/useUserLogs';
 
-const { width } = Dimensions.get('window');
+// will read width at render time where needed
 
 // ─── Helper to get date key ──────────────────────────────────────────────────
 const getDateKey = (value) => {
@@ -163,11 +163,12 @@ const CHART_H = 90;
 const MAX_HRS  = 10;
 
 const WeekChart = ({ data }) => {
-  const BAR_W = Math.floor((width - 80) / data.length);
+  const { width: screenWidth } = useWindowDimensions();
+  const BAR_W = Math.floor((screenWidth - 80) / data.length);
 
   return (
     <View style={weekStyles.wrapper}>
-      <Svg width={width - 40} height={CHART_H + 30}>
+      <Svg width={screenWidth - 40} height={CHART_H + 30}>
         <Defs>
           <LinearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="#825CFF" stopOpacity="1" />
@@ -177,7 +178,7 @@ const WeekChart = ({ data }) => {
         {/* Goal line at 8hrs */}
         <Line
           x1="0" y1={CHART_H - (8 / MAX_HRS) * CHART_H}
-          x2={width - 40} y2={CHART_H - (8 / MAX_HRS) * CHART_H}
+          x2={screenWidth - 40} y2={CHART_H - (8 / MAX_HRS) * CHART_H}
           stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="5 4"
         />
         {data.map((d, i) => {

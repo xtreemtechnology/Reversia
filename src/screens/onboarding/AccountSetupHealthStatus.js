@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Alert
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 
@@ -18,6 +17,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 export default function AccountSetupHealthStatus({ navigation }) {
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const statuses = [
     { id: 'type2', title: 'Type 2 Diabetes' },
@@ -31,6 +31,7 @@ export default function AccountSetupHealthStatus({ navigation }) {
   const handleContinue = async () => {
     if (!selectedStatus) return;
 
+    setError(null);
     setLoading(true);
     try {
       const user = auth.currentUser;
@@ -45,7 +46,7 @@ export default function AccountSetupHealthStatus({ navigation }) {
       }
     } catch (error) {
       console.log("Error saving health status:", error);
-      Alert.alert("Error", "We couldn't save your status. Please check your connection.");
+      setError("We couldn't save your status. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -101,6 +102,12 @@ export default function AccountSetupHealthStatus({ navigation }) {
             );
           })}
         </View>
+
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Bottom Continue Button */}
@@ -202,6 +209,18 @@ const styles = StyleSheet.create({
   },
   selectedLabel: {
     color: '#825CFF',
+  },
+  errorBox: {
+    width: '100%',
+    marginTop: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+  },
+  errorText: {
+    color: '#B91C1C',
+    textAlign: 'center',
   },
   footer: { paddingHorizontal: 25, paddingBottom: 40 },
   continueButton: {

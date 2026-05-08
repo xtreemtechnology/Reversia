@@ -8,9 +8,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   Switch,
-  Alert,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, {
@@ -22,7 +21,7 @@ import Svg, {
   Line,
 } from 'react-native-svg';
 
-const { width } = Dimensions.get('window');
+// removed module-level Dimensions; components will read width via useWindowDimensions
 
 // ─── Mock synced data ─────────────────────────────────────────────────────────
 const SYNCED_DATA = {
@@ -109,8 +108,8 @@ const ringStyles = StyleSheet.create({
 });
 
 // ─── Stat Tile ────────────────────────────────────────────────────────────────
-const StatTile = ({ icon, iconColor, iconBg, title, value, unit, sub, subColor }) => (
-  <View style={tileStyles.tile}>
+const StatTile = ({ icon, iconColor, iconBg, title, value, unit, sub, subColor, style }) => (
+  <View style={[tileStyles.tile, style]}>
     <View style={[tileStyles.iconBox, { backgroundColor: iconBg }]}>
       <MaterialCommunityIcons name={icon} size={20} color={iconColor} />
     </View>
@@ -124,7 +123,6 @@ const StatTile = ({ icon, iconColor, iconBg, title, value, unit, sub, subColor }
 
 const tileStyles = StyleSheet.create({
   tile: {
-    width: (width - 52) / 2,
     backgroundColor: '#FFF',
     borderRadius: 22, padding: 16, marginBottom: 12,
   },
@@ -140,11 +138,12 @@ const tileStyles = StyleSheet.create({
 
 // ─── Steps Bar Chart ──────────────────────────────────────────────────────────
 const CHART_H  = 90;
-const CHART_W  = width - 80;
 const MAX_STEPS = 12000;
 
 const StepsChart = ({ data }) => {
-  const BAR_W = Math.floor(CHART_W / data.length) - 6;
+  const { width: screenWidth } = useWindowDimensions();
+  const CHART_W = Math.max(screenWidth - 80, 160);
+  const BAR_W = Math.max(Math.floor(CHART_W / data.length) - 6, 6);
 
   return (
     <View style={{ marginTop: 10 }}>
@@ -201,7 +200,8 @@ const { Rect } = require('react-native-svg');
 const HRSparkline = ({ min, current, max }) => {
   // Simple 12-point mock HR data
   const hrData = [68, 72, 75, 71, 69, 74, 78, 80, 73, 70, 72, 72];
-  const W = width - 80;
+  const { width: screenWidth } = useWindowDimensions();
+  const W = Math.max(screenWidth - 80, 200);
   const H = 50;
   const toX = (i) => (i / (hrData.length - 1)) * W;
   const toY = (v) => H - ((v - 60) / 30) * H;
@@ -454,7 +454,14 @@ export default function HealthIntegration({ navigation }) {
   const [connected, setConnected] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [dataTypes, setDataTypes] = useState(DATA_TYPES);
+  const [message, setMessage] = useState(null);
   const d = SYNCED_DATA;
+
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrow = screenWidth < 430;
+  const contentPadding = 16;
+  const contentWidth = Math.max(screenWidth - contentPadding * 2, 320);
+  const cardWidth = isNarrow ? '100%' : (contentWidth - 12) / 2;
 
   const toggleDataType = (key) => {
     setDataTypes(prev =>
@@ -463,25 +470,13 @@ export default function HealthIntegration({ navigation }) {
   };
 
   const handleConnect = () => {
-    Alert.alert(
-      'Connect Google Fit',
-      'Reversia will request permission to read your health data from Google Fit.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Connect', onPress: () => setConnected(true) },
-      ]
-    );
+    setConnected(true);
+    setMessage('Google Fit connected.');
   };
 
   const handleDisconnect = () => {
-    Alert.alert(
-      'Disconnect Google Fit',
-      'This will stop syncing your health data. You can reconnect at any time.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: () => setConnected(false) },
-      ]
-    );
+    setConnected(false);
+    setMessage('Google Fit disconnected.');
   };
 
   return (
@@ -494,13 +489,19 @@ export default function HealthIntegration({ navigation }) {
         <Text style={styles.headerTitle}>Health Integration</Text>
         {connected && (
           <TouchableOpacity style={styles.syncBtn}
-            onPress={() => Alert.alert('Syncing...', 'Data refreshed from Google Fit.')}
+            onPress={() => setMessage('Data refreshed from Google Fit.')}
           >
             <MaterialCommunityIcons name="sync" size={20} color="#10B981" />
           </TouchableOpacity>
         )}
         {!connected && <View style={{ width: 38 }} />}
       </View>
+
+      {message && (
+        <View style={styles.messageBox}>
+          <Text style={styles.messageText}>{message}</Text>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
@@ -563,6 +564,7 @@ export default function HealthIntegration({ navigation }) {
                     title="Steps Today"
                     value={d.steps.toLocaleString()} unit="steps"
                     sub={`${d.stepsGoal.toLocaleString()} goal`}
+                    style={{ width: cardWidth }}
                   />
                   <StatTile
                     icon="heart-pulse" iconColor="#EF4444" iconBg="#FEE2E2"
@@ -570,12 +572,14 @@ export default function HealthIntegration({ navigation }) {
                     value={d.heartRate} unit="bpm"
                     sub="Resting — Normal"
                     subColor="#10B981"
+                    style={{ width: cardWidth }}
                   />
                   <StatTile
                     icon="map-marker-distance" iconColor="#0284C7" iconBg="#E0F2FE"
                     title="Distance"
                     value={d.distance} unit="km"
                     sub="Today's movement"
+                    style={{ width: cardWidth }}
                   />
                   <StatTile
                     icon="timer-outline" iconColor="#825CFF" iconBg="#EDE9FE"
@@ -583,6 +587,7 @@ export default function HealthIntegration({ navigation }) {
                     value={d.activeMin} unit="min"
                     sub={`of ${d.activeGoal} min goal`}
                     subColor={d.activeMin >= d.activeGoal ? '#10B981' : '#F59E0B'}
+                    style={{ width: cardWidth }}
                   />
                 </View>
 
@@ -803,6 +808,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginHorizontal: 16, marginTop: 10 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
   backBtn: {
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center',

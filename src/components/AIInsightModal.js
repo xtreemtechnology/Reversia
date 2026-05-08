@@ -4,7 +4,20 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 const { height } = Dimensions.get('window');
 
-export default function AIInsightModal({ visible, onClose }) {
+const getModalContext = (userData = {}) => {
+  const condition = userData.diabetesType || userData.healthStatus || 'your profile';
+  const activity = userData.level || 'your activity level';
+  const readiness = userData.readinessLevel || 'your readiness';
+  return {
+    condition,
+    activity,
+    readiness,
+  };
+};
+
+export default function AIInsightModal({ visible, onClose, userData }) {
+  const context = getModalContext(userData || {});
+
   return (
     <Modal
       animationType="slide"
@@ -35,9 +48,7 @@ export default function AIInsightModal({ visible, onClose }) {
           <View style={styles.insightCard}>
             <Text style={styles.statusTitle}>Current State: <Text style={styles.statusGreen}>Optimizing</Text></Text>
             <Text style={styles.mainInsight}>
-              "Daniel, your glucose trend is stable. Since you just logged a 
-              <Text style={{fontWeight: '800'}}> Medium-GI meal</Text>, your insulin sensitivity window is 
-              now open for the next 30 minutes."
+              {`Your profile says ${context.condition}. Based on ${context.activity}, we will keep guidance practical and timed to your routine. The next step is to act on one small win today.`}
             </Text>
           </View>
 
@@ -49,7 +60,7 @@ export default function AIInsightModal({ visible, onClose }) {
             </View>
             <View style={styles.actionTextContainer}>
               <Text style={styles.actionTitle}>10-Min Power Walk</Text>
-              <Text style={styles.actionDesc}>Will reduce your post-meal peak by approx. 22%.</Text>
+              <Text style={styles.actionDesc}>A good fit for {context.readiness.toLowerCase()} days and low-friction momentum.</Text>
             </View>
           </View>
 
@@ -59,7 +70,7 @@ export default function AIInsightModal({ visible, onClose }) {
             </View>
             <View style={styles.actionTextContainer}>
               <Text style={styles.actionTitle}>Hydration Buffer</Text>
-              <Text style={styles.actionDesc}>Drink 500ml of water now to aid filtration.</Text>
+              <Text style={styles.actionDesc}>Use hydration to support your glucose-friendly routine today.</Text>
             </View>
           </View>
 

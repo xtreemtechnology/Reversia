@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
-  Alert
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 
@@ -16,14 +15,18 @@ import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { auth, db } from '../../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
-const { width } = Dimensions.get('window');
 const TICK_SPACING = 20; 
 
 export default function AccountSetupHeight({ navigation }) {
   const [height, setHeight] = useState(170); // Default to average height
   const [unit, setUnit] = useState('cm');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const scrollRef = useRef(null);
+  const { width: screenWidth } = useWindowDimensions();
+  const toggleWidth = Math.min(160, Math.max(120, screenWidth - 160));
+  const valueBoxWidth = Math.min(240, Math.max(170, screenWidth - 110));
+  const rulerPadding = Math.max(8, screenWidth / 2 - (TICK_SPACING / 2));
 
   const minVal = unit === 'cm' ? 100 : 3;
   const maxVal = unit === 'cm' ? 250 : 8;
@@ -40,6 +43,7 @@ export default function AccountSetupHeight({ navigation }) {
 
   // 3. FIREBASE SAVE LOGIC
   const handleContinue = async () => {
+    setError(null);
     setLoading(true);
     try {
       const user = auth.currentUser;
@@ -55,7 +59,7 @@ export default function AccountSetupHeight({ navigation }) {
       }
     } catch (error) {
       console.log("Error saving height:", error);
-      Alert.alert("Error", "Could not save height. Please check your connection.");
+      setError("Could not save height. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -108,7 +112,7 @@ export default function AccountSetupHeight({ navigation }) {
           Height is important for calculating your BMI and personalized activity goals.
         </Text>
 
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, { width: toggleWidth }]}>
           <TouchableOpacity 
             style={[styles.toggleTab, unit === 'ft' && styles.activeTab]} 
             onPress={() => toggleUnit('ft')}
@@ -125,7 +129,7 @@ export default function AccountSetupHeight({ navigation }) {
 
         <View style={styles.valueDisplayContainer}>
           <AntDesign name="caretleft" size={24} color="#825CFF" style={styles.indicatorArrow} />
-          <View style={styles.valueBox}>
+          <View style={[styles.valueBox, { minWidth: valueBoxWidth }]}>
             <Text style={styles.valueText}>{height} <Text style={{fontSize: 20}}>{unit}</Text></Text>
           </View>
         </View>
@@ -139,7 +143,7 @@ export default function AccountSetupHeight({ navigation }) {
             scrollEventThrottle={16}
             snapToInterval={TICK_SPACING}
             decelerationRate="fast"
-            contentContainerStyle={styles.rulerScroll}
+            contentContainerStyle={[styles.rulerScroll, { paddingHorizontal: rulerPadding }]}
           >
             {rulerTicks.map((tick) => (
               <View key={tick} style={styles.tickWrapper}>
@@ -153,6 +157,12 @@ export default function AccountSetupHeight({ navigation }) {
             ))}
           </ScrollView>
         </View>
+
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -186,23 +196,35 @@ const styles = StyleSheet.create({
   progressActive: { color: '#825CFF' },
   title: { fontSize: 32, fontWeight: '700', color: '#825CFF', textAlign: 'center' },
   subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', paddingHorizontal: 40, marginBottom: 30 },
-  toggleContainer: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 25, width: 120, height: 45, padding: 4, marginBottom: 30 },
+  toggleContainer: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 25, height: 45, padding: 4, marginBottom: 30 },
   toggleTab: { flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 20 },
   activeTab: { backgroundColor: '#825CFF' },
   toggleText: { fontSize: 16, color: '#9CA3AF', fontWeight: '600' },
   activeToggleText: { color: '#FFFFFF' },
   valueDisplayContainer: { alignItems: 'center', marginBottom: 20 },
   indicatorArrow: { transform: [{ rotate: '270deg' }], marginBottom: 5 },
-  valueBox: { backgroundColor: '#F3FFFA', paddingHorizontal: 40, paddingVertical: 15, borderRadius: 20 },
+  valueBox: { backgroundColor: '#F3FFFA', paddingHorizontal: 40, paddingVertical: 15, borderRadius: 20, alignItems: 'center' },
   valueText: { fontSize: 48, fontWeight: '700', color: '#825CFF' },
   rulerContainer: { width: '100%', height: 120 },
-  rulerScroll: { paddingHorizontal: width / 2 - (TICK_SPACING / 2) },
+  rulerScroll: {},
   tickWrapper: { width: TICK_SPACING, alignItems: 'center' },
   tickLine: { width: 2, backgroundColor: '#E5E7EB', borderRadius: 1 },
   shortTick: { height: 25 },
   longTick: { height: 45, backgroundColor: '#D1D5DB' },
   activeTickLine: { backgroundColor: '#825CFF', width: 3 },
   tickLabel: { marginTop: 10, fontSize: 14, color: '#9CA3AF', fontWeight: '600' },
+  errorBox: {
+    width: '100%',
+    marginTop: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+  },
+  errorText: {
+    color: '#B91C1C',
+    textAlign: 'center',
+  },
   footer: { paddingHorizontal: 25, paddingBottom: 40 },
   continueButton: { backgroundColor: '#825CFF', height: 65, borderRadius: 35, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   continueText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },

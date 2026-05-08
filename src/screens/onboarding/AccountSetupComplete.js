@@ -6,18 +6,17 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
   StatusBar,
 } from 'react-native';
 import { AntDesign, MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { auth } from '../../config/firebase';
 
-const { width } = Dimensions.get('window');
-
 export default function AccountSetupComplete({ navigation }) {
   const chartHeight = 150;
-  const chartWidth = width - 80;
+  const { width: screenWidth } = useWindowDimensions();
+  const chartWidth = screenWidth - 80;
 
   return (
     <SafeAreaView style={styles.container}>

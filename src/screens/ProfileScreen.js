@@ -9,9 +9,29 @@ import { auth } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import AnimatedScreen from '../components/AnimatedScreen';
 
+const formatProfileValue = (value, fallback = '--') => {
+  if (value === undefined || value === null || value === '') return fallback;
+  return value;
+};
+
+const getProfileSummary = (userData = {}) => {
+  const chips = [
+    userData.diabetesType || userData.healthStatus,
+    userData.level,
+    userData.readinessLevel,
+    userData.region,
+  ]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  return chips;
+};
+
 export default function ProfileScreen({ navigation }) {
   const { userData } = useUserProfile();
   const { logs } = useUserLogs(200);
+  const profileChips = useMemo(() => getProfileSummary(userData || {}), [userData]);
   const inRangePercent = useMemo(() => {
     const SAFE_LOW = 70; const SAFE_HIGH = 140;
     const today = new Date();
@@ -71,11 +91,31 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Weight</Text>
-            <Text style={styles.statValue}>{userData?.currentWeight || '--'}<Text style={styles.unit}>kg</Text></Text>
+            <Text style={styles.statValue}>{formatProfileValue(userData?.currentWeight)}<Text style={styles.unit}>kg</Text></Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Height</Text>
-            <Text style={styles.statValue}>{userData?.height || '--'}<Text style={styles.unit}>cm</Text></Text>
+            <Text style={styles.statValue}>{formatProfileValue(userData?.height)}<Text style={styles.unit}>cm</Text></Text>
+          </View>
+        </View>
+
+        {/* Health Snapshot */}
+        <Text style={styles.sectionTitle}>Health Snapshot</Text>
+        <View style={styles.snapshotCard}>
+          <Text style={styles.snapshotTitle}>{userData?.diabetesType || userData?.healthStatus || 'Profile not completed'}</Text>
+          <Text style={styles.snapshotText}>
+            {userData?.age ? `Age ${userData.age} • ` : ''}
+            {userData?.gender ? `${userData.gender} • ` : ''}
+            {userData?.level ? `Activity: ${userData.level}` : 'Activity not set'}
+          </Text>
+          <View style={styles.snapshotChipRow}>
+            {profileChips.length ? profileChips.map((item) => (
+              <View key={item} style={styles.snapshotChip}>
+                <Text style={styles.snapshotChipText}>{item}</Text>
+              </View>
+            )) : (
+              <Text style={styles.snapshotMuted}>Complete setup to see your personalized profile here.</Text>
+            )}
           </View>
         </View>
 
@@ -162,6 +202,25 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 20, fontWeight: '800', color: '#111827' },
   unit: { fontSize: 12, color: '#9CA3AF' },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 12 },
+  snapshotCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: '#E7EAF0',
+  },
+  snapshotTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
+  snapshotText: { marginTop: 4, color: '#6B7280', fontSize: 13, lineHeight: 18 },
+  snapshotChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  snapshotChip: {
+    backgroundColor: '#F5F3FF',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  snapshotChipText: { fontSize: 12, color: '#6D28D9', fontWeight: '700' },
+  snapshotMuted: { fontSize: 12, color: '#9CA3AF' },
   milestoneCard: { backgroundColor: '#FBFBFD', borderRadius: 20, padding: 16, marginBottom: 25, borderWidth: 1, borderColor: '#E7EAF0' },
   milestoneItem: { flexDirection: 'row', alignItems: 'center' },
   milestoneIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 12 },

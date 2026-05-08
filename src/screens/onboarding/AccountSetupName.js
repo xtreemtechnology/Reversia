@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
@@ -21,10 +20,12 @@ export default function AccountSetupName({ navigation }) {
   // Initializing with an empty string so the user can type their own name
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleContinue = async () => {
+    setError(null);
     if (name.trim().length < 2) {
-      Alert.alert("Name required", "Please enter your real name to continue.");
+      setError('Please enter your real name to continue.');
       return;
     }
 
@@ -44,7 +45,7 @@ export default function AccountSetupName({ navigation }) {
       }
     } catch (error) {
       console.log("Error saving name:", error);
-      Alert.alert("Error", "We couldn't save your name. Please check your connection.");
+      setError("We couldn't save your name. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -89,6 +90,12 @@ export default function AccountSetupName({ navigation }) {
               disabled={loading}
             />
           </View>
+
+          {error && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
         </View>
 
         {/* Bottom Continue Button */}
@@ -185,6 +192,17 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: '#000',
+  },
+  errorBox: {
+    width: '100%',
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+  },
+  errorText: {
+    color: '#B91C1C',
+    textAlign: 'center',
   },
   footer: {
     paddingHorizontal: 25,

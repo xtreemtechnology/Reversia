@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -20,27 +19,24 @@ export default function ForgotPasswordScreen({ navigation, route }) {
   const [email, setEmail] = useState(route?.params?.email || '');
   const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null);
 
   // 2. RESET LOGIC
   const handleResetPassword = async () => {
+    setStatus(null);
+
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address.');
+      setStatus({ type: 'error', message: 'Please enter your email address.' });
       return;
     }
 
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      Alert.alert(
-        'Email Sent',
-        'Check your inbox for a link to reset your password.',
-        [
-          { 
-            text: 'Back to Login', 
-            onPress: () => navigation.navigate('Login', { email: email.trim() }) 
-          }
-        ]
-      );
+      setStatus({
+        type: 'success',
+        message: 'Check your inbox for a link to reset your password.',
+      });
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
       if (error.code === 'auth/user-not-found') {
@@ -48,7 +44,7 @@ export default function ForgotPasswordScreen({ navigation, route }) {
       } else if (error.code === 'auth/invalid-email') {
         message = 'The email address is badly formatted.';
       }
-      Alert.alert('Reset Failed', message);
+      setStatus({ type: 'error', message });
     } finally {
       setLoading(false);
     }
@@ -121,6 +117,19 @@ export default function ForgotPasswordScreen({ navigation, route }) {
             <Text style={styles.sendButtonText}>Send</Text>
           )}
         </TouchableOpacity>
+
+        {status?.message && (
+          <View style={[styles.statusBox, status.type === 'success' ? styles.statusSuccess : styles.statusError]}>
+            <Text style={[styles.statusText, status.type === 'success' ? styles.statusSuccessText : styles.statusErrorText]}>
+              {status.message}
+            </Text>
+            {status.type === 'success' && (
+              <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Login', { email: email.trim() })}>
+                <Text style={styles.loginButtonText}>Back to Login</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -228,6 +237,41 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: '700',
+  },
+  statusBox: {
+    width: '100%',
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 16,
+  },
+  statusSuccess: {
+    backgroundColor: '#ECFDF5',
+  },
+  statusError: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusText: {
+    textAlign: 'center',
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  statusSuccessText: {
+    color: '#065F46',
+  },
+  statusErrorText: {
+    color: '#B91C1C',
+  },
+  loginButton: {
+    alignSelf: 'center',
+    marginTop: 12,
+    backgroundColor: '#825CFF',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 });

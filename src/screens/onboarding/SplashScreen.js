@@ -1,14 +1,43 @@
 // src/screens/onboarding/SplashScreen.js
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, StatusBar } from 'react-native';
+import { auth } from '../../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Onboarding1');
-    }, 4000);
+    let resolved = false;
+    let timer = null;
 
-    return () => clearTimeout(timer);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      resolved = true;
+      if (timer) clearTimeout(timer);
+
+      if (user) {
+        navigation.replace('MainApp');
+      } else {
+        // Check if user previously completed onboarding
+        const hasCompletedOnboarding = await AsyncStorage.getItem('ONBOARDING_COMPLETE');
+        // No user — proceed to onboarding
+        navigation.replace('Onboarding1');
+      }
+      try { unsub && unsub(); } catch {}
+    });
+
+    // Fallback: if auth doesn't resolve within 3 seconds, go to onboarding
+    // (increased from 800ms to allow slower Firebase operations to complete)
+    timer = setTimeout(() => {
+      if (!resolved) {
+        navigation.replace('Onboarding1');
+        try { unsub && unsub(); } catch {}
+      }
+    }, 3000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      try { unsub && unsub(); } catch {}
+    };
   }, []);
 
   return (

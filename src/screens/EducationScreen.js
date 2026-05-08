@@ -7,14 +7,14 @@ import {
   TouchableOpacity, 
   ImageBackground, 
   TextInput,
-  Dimensions 
+  useWindowDimensions 
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import AnimatedScreen from '../components/AnimatedScreen';
 import { useNavigation } from '@react-navigation/native';
 
-const { width } = Dimensions.get('window');
+// useWindowDimensions available if runtime width needed
 
 export default function EducationScreen() {
   const navigation = useNavigation();

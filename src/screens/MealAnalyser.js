@@ -8,9 +8,8 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Alert,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   Image,
   Platform,
 } from 'react-native';
@@ -19,8 +18,9 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { auth, db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { detectMeal } from '../utils/mealUtils';
 
-const { width, height } = Dimensions.get('window');
+// removed module-level Dimensions; we'll read width/height via hook inside the component
 
 // ─── Claude API call ──────────────────────────────────────────────────────────
 const analyseWithClaude = async (base64Image, mimeType = 'image/jpeg') => {
@@ -339,10 +339,15 @@ export default function MealAnalyser({ navigation }) {
   const [logging, setLogging] = useState(false);
   const [facing, setFacing] = useState('back');
   const [flashOn, setFlashOn] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const cameraRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim  = useRef(new Animated.Value(0)).current;
+
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const viewfinderSize = Math.min(Math.floor(screenWidth * 0.75), 520);
+  const viewfinderTop = Math.max(Math.floor(screenHeight * 0.08), 24);
 
   // Pulse animation on capture button
   useEffect(() => {
@@ -380,7 +385,7 @@ export default function MealAnalyser({ navigation }) {
       setCapturedBase64(photo.base64);
       await runAnalysis(photo.base64);
     } catch (err) {
-      Alert.alert('Camera Error', err.message);
+      setMessage(err.message);
     }
   };
 
@@ -388,7 +393,7 @@ export default function MealAnalyser({ navigation }) {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Please enable photo library access in your settings to use this feature.');
+        setMessage('Please enable photo library access in your settings to use this feature.');
         return;
       }
       const picked = await ImagePicker.launchImageLibraryAsync({
@@ -404,7 +409,7 @@ export default function MealAnalyser({ navigation }) {
       }
     } catch (err) {
       console.error('Gallery access error:', err);
-      Alert.alert('Error', 'Could not access your photo library. Please try again.');
+      setMessage('Could not access your photo library. Please try again.');
     }
   };
 
@@ -416,11 +421,8 @@ export default function MealAnalyser({ navigation }) {
       setResult(data);
     } catch (err) {
       console.error('Analysis error:', err);
-      Alert.alert(
-        'Analysis Failed',
-        'Could not analyse this image. Please try a clearer photo of the food.',
-        [{ text: 'OK', onPress: handleRetake }]
-      );
+      setMessage('Could not analyse this image. Please try a clearer photo of the food.');
+      handleRetake();
     } finally {
       setIsAnalysing(false);
     }
@@ -428,7 +430,7 @@ export default function MealAnalyser({ navigation }) {
 
   const handleLog = async () => {
     const user = auth.currentUser;
-    if (!user) { Alert.alert('Please log in first'); return; }
+    if (!user) { setMessage('Please log in first.'); return; }
     if (!result)  return;
 
     setLogging(true);
@@ -451,13 +453,13 @@ export default function MealAnalyser({ navigation }) {
         diabetesSafe: result.diabetesSafe,
         imageUri: capturedUri || null,
         period: 'AI Meal Scan',
+        meal: detectMeal(new Date()),
         timestamp: serverTimestamp(),
       });
-      Alert.alert('🎉 Logged!', `${result.foodName} has been added to your meal log.`, [
-        { text: 'Done', onPress: () => navigation.goBack() },
-      ]);
+      setMessage(`${result.foodName} has been added to your meal log.`);
+      navigation.goBack();
     } catch (err) {
-      Alert.alert('Error', 'Failed to log meal: ' + err.message);
+      setMessage('Failed to log meal: ' + err.message);
     } finally {
       setLogging(false);
     }
@@ -518,9 +520,15 @@ export default function MealAnalyser({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
         {/* Viewfinder frame */}
         {!result && !isAnalysing && (
-          <View style={styles.frame}>
+          <View style={[styles.frame, { width: viewfinderSize, height: viewfinderSize, marginTop: viewfinderTop }]}>
             {/* Corners */}
             {['topLeft','topRight','bottomLeft','bottomRight'].map(pos => (
               <View key={pos} style={[styles.corner, styles[pos]]} />
@@ -611,6 +619,9 @@ const styles = StyleSheet.create({
   // Overlay
   overlay: { flex: 1 },
 
+  messageBox: { backgroundColor: '#FEE2E2', marginHorizontal: 16, borderRadius: 12, padding: 12, marginTop: 10 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
+
   // Header
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -629,8 +640,7 @@ const styles = StyleSheet.create({
 
   // Viewfinder
   frame: {
-    width: width * 0.75, height: width * 0.75,
-    alignSelf: 'center', marginTop: height * 0.08,
+    alignSelf: 'center',
     justifyContent: 'center', alignItems: 'center',
     position: 'relative',
   },

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../../config/firebase';
 
 export default function EmailVerificationSuccess({ navigation }) {
+  const [statusMessage, setStatusMessage] = React.useState(null);
 
   // Optional: Double check verification status on mount
   useEffect(() => {
@@ -28,11 +28,7 @@ export default function EmailVerificationSuccess({ navigation }) {
     if (auth.currentUser?.emailVerified) {
       navigation.navigate('OnboardingStart');
     } else {
-      Alert.alert(
-        "Almost there!",
-        "Your email isn't verified yet. Please check your inbox and tap the link."
-      );
-      navigation.goBack(); // Send them back to the verification pending screen
+      setStatusMessage("Your email isn't verified yet. Please check your inbox and tap the link.");
     }
   };
 
@@ -65,6 +61,15 @@ export default function EmailVerificationSuccess({ navigation }) {
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
+
+        {statusMessage && (
+          <View style={styles.statusBox}>
+            <Text style={styles.statusText}>{statusMessage}</Text>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.backButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -140,6 +145,30 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: '700',
+  },
+  statusBox: {
+    marginTop: 16,
+    width: '100%',
+    backgroundColor: '#FEE2E2',
+    borderRadius: 14,
+    padding: 14,
+  },
+  statusText: {
+    color: '#B91C1C',
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 12,
+  },
+  backButton: {
+    alignSelf: 'center',
+    backgroundColor: '#825CFF',
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  backButtonText: {
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 });

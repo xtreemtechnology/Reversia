@@ -30,7 +30,7 @@ function SetupIntro({ navigation }) {
       {/* Top Illustration Area */}
       <View style={styles.illustrationArea}>
         <Image 
-          source={{ uri: 'https://i.ibb.co/v4m0n9P/onboarding-illustration.png' }} 
+          source={require('../../../assets/account setup.png')} 
           style={styles.mainImage}
           resizeMode="contain"
         />
@@ -132,8 +132,9 @@ function GeneratingRoute(props) {
 }
 
 function GeneratingCompleteRoute(props) {
+  const { setupData } = useSetupFlow();
   const go = (to) => props.navigation.navigate(to);
-  return <Setup.SetupGeneratingComplete {...props} go={go} />;
+  return <Setup.SetupGeneratingComplete {...props} go={go} setupData={setupData} />;
 }
 
 // ─── MAIN ENTRY POINT ─────────────────────────────────────────────────────────

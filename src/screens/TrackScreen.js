@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -16,6 +17,9 @@ import AnimatedScreen from '../components/AnimatedScreen';
 export default function TrackScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrow = screenWidth < 640;
+  const boxWidth = isNarrow ? '100%' : '48%';
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -91,7 +95,7 @@ export default function TrackScreen() {
 
           <View style={styles.grid}>
             {progress.map((item, index) => (
-              <View key={index} style={styles.metricBox}>
+              <View key={index} style={[styles.metricBox, { width: boxWidth }]}>
                 <View
                   style={[
                     styles.iconWrap,
@@ -115,8 +119,8 @@ export default function TrackScreen() {
         {/* Quick Logs */}
         <Text style={styles.sectionTitle}>Quick Log</Text>
 
-        <View style={styles.quickGrid}>
-          <TouchableOpacity style={styles.quickCard}>
+          <View style={styles.quickGrid}>
+          <TouchableOpacity style={[styles.quickCard, { width: boxWidth }]}>
             <MaterialCommunityIcons
               name="food-apple-outline"
               size={24}
@@ -125,17 +129,17 @@ export default function TrackScreen() {
             <Text style={styles.quickText}>Add Meal</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickCard}>
+          <TouchableOpacity style={[styles.quickCard, { width: boxWidth }]}>
             <Ionicons name="water-outline" size={24} color="#2563EB" />
             <Text style={styles.quickText}>Drink Water</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickCard}>
+          <TouchableOpacity style={[styles.quickCard, { width: boxWidth }]}>
             <Ionicons name="walk-outline" size={24} color="#EA580C" />
             <Text style={styles.quickText}>Exercise</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickCard}>
+          <TouchableOpacity style={[styles.quickCard, { width: boxWidth }]}>
             <Ionicons name="moon-outline" size={24} color="#7C3AED" />
             <Text style={styles.quickText}>Sleep</Text>
           </TouchableOpacity>
@@ -244,7 +248,6 @@ const styles = StyleSheet.create({
   },
 
   metricBox: {
-    width: "48%",
     backgroundColor: "#F8FAFC",
     borderRadius: 20,
     padding: 16,
@@ -288,7 +291,6 @@ const styles = StyleSheet.create({
   },
 
   quickCard: {
-    width: "48%",
     backgroundColor: "#ffffff",
     borderRadius: 20,
     padding: 18,

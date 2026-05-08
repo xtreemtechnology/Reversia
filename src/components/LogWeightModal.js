@@ -9,18 +9,14 @@ import {
   Animated,
   PanResponder,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-const { width, height } = Dimensions.get('window');
-
-const SHEET_HEIGHT = Math.min(height * 0.88, 760);
 const ITEM_HEIGHT  = 52;
 const VISIBLE_ITEMS = 5;
 const PICKER_H = ITEM_HEIGHT * VISIBLE_ITEMS;
@@ -232,6 +228,8 @@ const trendStyles = StyleSheet.create({
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 export default function LogWeightModal({ visible, onClose, onSaved, lastWeight = 82.4 }) {
+  const { height: screenHeight } = useWindowDimensions();
+  const sheetHeight = Math.min(screenHeight * 0.88, 760);
   // Build integer & decimal parts from lastWeight
   const lastWhole   = Math.floor(lastWeight);
   const lastDecimal = Math.round((lastWeight - lastWhole) * 10);
@@ -244,8 +242,9 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
   const [unitIndex, setUnitIndex]       = useState(0); // 0 = kg
   const [saving, setSaving]             = useState(false);
   const [saved, setSaved]               = useState(false);
+  const [message, setMessage]           = useState(null);
 
-  const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const slideAnim = useRef(new Animated.Value(sheetHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
   // Compute current weight from picker state
@@ -274,7 +273,7 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: SHEET_HEIGHT,
+          toValue: sheetHeight,
           duration: 280,
           useNativeDriver: true,
         }),
@@ -289,7 +288,8 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
 
   const handleSave = async () => {
     const user = auth.currentUser;
-    if (!user) { Alert.alert('Please log in first'); return; }
+    setMessage(null);
+    if (!user) { setMessage('Please log in first.'); return; }
 
     setSaving(true);
     try {
@@ -311,7 +311,7 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
         onClose();
       }, 1200);
     } catch (err) {
-      Alert.alert('Error', 'Failed to save: ' + err.message);
+      setMessage('Failed to save: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -339,7 +339,7 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
       <Animated.View
         style={[
           styles.sheet,
-          { transform: [{ translateY: slideAnim }] },
+          { height: sheetHeight, transform: [{ translateY: slideAnim }] },
         ]}
       >
         {/* Handle */}
@@ -432,6 +432,12 @@ export default function LogWeightModal({ visible, onClose, onSaved, lastWeight =
               </>
             )}
           </TouchableOpacity>
+
+            {message && (
+              <View style={styles.messageBox}>
+                <Text style={styles.messageText}>{message}</Text>
+              </View>
+            )}
         </ScrollView>
 
       </Animated.View>
@@ -444,7 +450,6 @@ const styles = StyleSheet.create({
   sheet: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    height: SHEET_HEIGHT,
     backgroundColor: '#FFF',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
@@ -525,4 +530,6 @@ const styles = StyleSheet.create({
   },
   saveBtnSuccess: { backgroundColor: '#10B981' },
   saveBtnText: { color: '#FFF', fontWeight: '800', fontSize: 16 },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

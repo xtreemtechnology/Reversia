@@ -45,6 +45,14 @@ export const handleAuthError = (error) => {
       title: 'Network Error',
       message: 'Unable to connect to authentication service. Please check your internet connection.',
     },
+    'auth/invalid-credential': {
+      title: 'Invalid Login',
+      message: 'The email or password you entered is incorrect. Please try again.',
+    },
+    'auth/invalid-login-credentials': {
+      title: 'Invalid Login',
+      message: 'The email or password you entered is incorrect. Please try again.',
+    },
   };
 
   if (errorMap[error.code]) {

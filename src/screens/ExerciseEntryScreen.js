@@ -7,7 +7,7 @@ import {
   TouchableOpacity, 
   ScrollView, 
   ActivityIndicator, 
-  Alert 
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -17,9 +17,15 @@ import { auth, db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function ExerciseEntryScreen({ navigation }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrowScreen = screenWidth < 430;
+  const contentPadding = 20; // matches styles.content
+  const contentWidth = screenWidth - contentPadding * 2;
+  const activityCardWidth = isNarrowScreen ? Math.floor((contentWidth - 8) / 2) : Math.floor((contentWidth - 16) / 3);
   const [selectedType, setSelectedType] = useState('HIIT');
   const [duration, setDuration] = useState(15); 
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   // Updated for Home Workout types
   const activities = [
@@ -34,6 +40,7 @@ export default function ExerciseEntryScreen({ navigation }) {
   const currentActivity = activities.find(a => a.name === selectedType);
 
   const handleSaveExercise = async () => {
+    setMessage(null);
     setLoading(true);
     try {
       const user = auth.currentUser;
@@ -49,10 +56,12 @@ export default function ExerciseEntryScreen({ navigation }) {
         });
 
         navigation.goBack();
+      } else {
+        setMessage('Please log in first.');
       }
     } catch (error) {
       console.error("Exercise Save Error:", error);
-      Alert.alert("Error", "Could not log your activity.");
+      setMessage("Could not log your activity.");
     } finally {
       setLoading(false);
     }
@@ -87,7 +96,7 @@ export default function ExerciseEntryScreen({ navigation }) {
           {activities.map(item => (
             <TouchableOpacity 
               key={item.name} 
-              style={[styles.activityCard, selectedType === item.name && styles.activeCard]}
+              style={[styles.activityCard, { width: activityCardWidth }, selectedType === item.name && styles.activeCard]}
               onPress={() => setSelectedType(item.name)}
             >
               <MaterialCommunityIcons 
@@ -146,6 +155,12 @@ export default function ExerciseEntryScreen({ navigation }) {
           </Text>
         </View>
 
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
       </ScrollView>
       </AnimatedScreen>
     </SafeAreaView>
@@ -175,5 +190,7 @@ const styles = StyleSheet.create({
   guideTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
   guideText: { fontSize: 14, color: '#4B5563', lineHeight: 20 },
   infoCard: { flexDirection: 'row', padding: 16, backgroundColor: '#F5F3FF', borderRadius: 16, alignItems: 'center' },
-  infoText: { flex: 1, marginLeft: 10, fontSize: 13, color: '#5B21B6', lineHeight: 18, fontWeight: '500' }
+  infoText: { flex: 1, marginLeft: 10, fontSize: 13, color: '#5B21B6', lineHeight: 18, fontWeight: '500' },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

@@ -5,7 +5,6 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   ActivityIndicator, 
-  Alert 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -17,10 +16,12 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 export default function WaterEntryScreen({ navigation }) {
   const [glasses, setGlasses] = useState(4);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleSaveWater = async () => {
+    setMessage(null);
     if (glasses === 0) {
-      Alert.alert("Hydration", "Please log at least one glass of water.");
+      setMessage("Please log at least one glass of water.");
       return;
     }
 
@@ -44,7 +45,7 @@ export default function WaterEntryScreen({ navigation }) {
       }
     } catch (error) {
       console.error("Water Save Error:", error);
-      Alert.alert("Error", "We couldn't save your progress. Please try again.");
+      setMessage("We couldn't save your progress. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -104,6 +105,12 @@ export default function WaterEntryScreen({ navigation }) {
         <Text style={styles.hintText}>
           Logging {glasses} glasses will contribute to your daily hydration goal.
         </Text>
+
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
       </View>
       </AnimatedScreen>
     </SafeAreaView>
@@ -158,5 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 13, 
     marginTop: 20, 
     lineHeight: 18 
-  }
+  },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

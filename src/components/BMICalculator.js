@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,6 +18,7 @@ export default function BMICalculator({ navigation, showHeader = true, onSaved }
   const [bmi, setBmi] = useState(null);
   const [category, setCategory] = useState({ label: '-', color: '#9CA3AF' });
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const w = parseFloat(weight);
@@ -39,11 +39,12 @@ export default function BMICalculator({ navigation, showHeader = true, onSaved }
   }, [weight, height]);
 
   const handleSaveBMI = async () => {
+    setMessage(null);
     setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert('Error', 'You must be signed in to update your profile.');
+        setMessage('You must be signed in to update your profile.');
         return;
       }
 
@@ -59,14 +60,14 @@ export default function BMICalculator({ navigation, showHeader = true, onSaved }
       if (typeof onSaved === 'function') {
         onSaved({ bmi, weight, height, category: category.label });
       } else {
-        Alert.alert('Success', 'Your health metrics have been updated.');
+        setMessage('Your health metrics have been updated.');
       }
 
       if (navigation?.canGoBack?.()) {
         navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not save metrics.');
+      setMessage('Could not save metrics.');
     } finally {
       setLoading(false);
     }
@@ -122,6 +123,12 @@ export default function BMICalculator({ navigation, showHeader = true, onSaved }
       >
         {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveText}>Update Profile</Text>}
       </TouchableOpacity>
+
+      {message && (
+        <View style={styles.messageBox}>
+          <Text style={styles.messageText}>{message}</Text>
+        </View>
+      )}
     </ScrollView>
   );
 
@@ -161,4 +168,6 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 14, color: '#5B21B6', lineHeight: 20, opacity: 0.8 },
   saveBtn: { backgroundColor: '#825CFF', borderRadius: 20, padding: 20, alignItems: 'center' },
   saveText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  messageBox: { backgroundColor: '#FEE2E2', borderRadius: 14, padding: 12, marginTop: 14 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

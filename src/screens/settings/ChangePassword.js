@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { validatePassword, validateMatch } from '../../utils/validation';
 import { handleAuthError, logError } from '../../utils/errorHandling';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../../config/firebase';
@@ -16,27 +16,29 @@ export default function ChangePassword({ navigation }) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleChangePassword = async () => {
+    setMessage(null);
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Missing Information', 'Please fill in all password fields');
+      setMessage('Please fill in all password fields');
       return;
     }
 
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.isValid) {
-      Alert.alert('Weak Password', passwordValidation.errors[0] || 'Please use a stronger password');
+      setMessage(passwordValidation.errors[0] || 'Please use a stronger password');
       return;
     }
 
     const matchValidation = validateMatch(newPassword, confirmPassword, 'Passwords');
     if (!matchValidation.isValid) {
-      Alert.alert('Password Mismatch', matchValidation.error);
+      setMessage(matchValidation.error);
       return;
     }
 
     if (currentPassword === newPassword) {
-      Alert.alert('Same Password', 'Your new password must be different from your current password');
+      setMessage('Your new password must be different from your current password');
       return;
     }
 
@@ -44,19 +46,19 @@ export default function ChangePassword({ navigation }) {
     try {
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert('Error', 'Please log in to change your password');
+        setMessage('Please log in to change your password');
         return;
       }
       
       if (user) {
         await updatePassword(user, newPassword);
-        Alert.alert('Success', 'Password changed successfully');
+        setMessage('Password changed successfully');
         navigation.goBack();
       }
     } catch (error) {
       logError('ChangePassword.handleChangePassword', error);
       const errorInfo = handleAuthError(error);
-      Alert.alert(errorInfo.title, errorInfo.message);
+      setMessage(errorInfo.message);
     } finally {
       setLoading(false);
     }
@@ -127,6 +129,12 @@ export default function ChangePassword({ navigation }) {
           <Text style={styles.submitBtnText}>{loading ? 'Updating...' : 'Change Password'}</Text>
         </TouchableOpacity>
 
+        {message && (
+          <View style={styles.messageBox}>
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -145,4 +153,6 @@ const styles = StyleSheet.create({
   eyeIcon: { paddingRight: 14 },
   submitBtn: { backgroundColor: '#111827', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 20, borderWidth: 1, borderColor: '#111827' },
   submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  messageBox: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, marginTop: 12 },
+  messageText: { color: '#B91C1C', textAlign: 'center' },
 });

@@ -9,7 +9,7 @@ import GlucoseMonitoring from '../screens/GlucoseMonitoring';
 import NutritionInsights from '../screens/NutritionInsights';
 import SleepInsights from '../screens/SleepInsights';
 import GlucoseEntryScreen from '../screens/GlucoseEntryScreen';
-import MealEntryScreen from '../screens/MealEntryScreen';
+import MealEntryScreen from '../features/meals/screens/MealEntryScreen';
 import WaterEntryScreen from '../screens/WaterEntryScreen';
 import ExerciseEntryScreen from '../screens/ExerciseEntryScreen';
 import LogHistoryScreen from '../screens/LogHistoryScreen';
@@ -17,7 +17,7 @@ import BMICalculatorScreen from '../screens/BMICalculatorScreen';
 import EducationScreen from '../screens/EducationScreen';
 import ActivityTracker from '../screens/ActivityTracker';
 import BodyComposition from '../screens/BodyComposition';
-import MealAnalyser from '../screens/MealAnalyser';
+import MealAnalyser from '../features/meals/screens/MealAnalyser';
 import HealthIntegration from '../screens/HealthIntegration';
 
 // Settings screens

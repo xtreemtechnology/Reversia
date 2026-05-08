@@ -7,14 +7,13 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useUserLogs } from '../hooks/useUserLogs';
 
-const { width } = Dimensions.get('window');
-
+// runtime dimensions can be read with useWindowDimensions when needed
 // ─── Helper to get date key ──────────────────────────────────────────────────
 const getDateKey = (value) => {
   if (!value) return null;

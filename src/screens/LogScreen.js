@@ -5,7 +5,11 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  ActivityIndicator 
+  ActivityIndicator, 
+  useWindowDimensions,
+  Modal,
+  Image,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,6 +26,9 @@ const logCards = [
 
 export default function LogScreen({ navigation }) {
   const [refreshToken, setRefreshToken] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
+  const isNarrow = screenWidth < 640;
+  const gridCardWidth = isNarrow ? '100%' : '48%';
   // Fetch real-time logs from Firestore
   const { logs, loading, error } = useUserLogs(15, refreshToken); 
 
@@ -42,6 +49,19 @@ export default function LogScreen({ navigation }) {
       default:
         break;
     }
+  };
+
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  const openRecent = (item) => {
+    if (item.type === 'meal') {
+      setSelectedLog(item);
+      return;
+    }
+    // fallback: navigate to appropriate entry screen
+    if (item.type === 'glucose') return navigation.navigate('GlucoseEntry');
+    if (item.type === 'water') return navigation.navigate('WaterEntry');
+    return navigation.navigate('ExerciseEntry');
   };
 
   const handleRetry = () => {
@@ -102,7 +122,7 @@ export default function LogScreen({ navigation }) {
           {logCards.map((item) => (
             <TouchableOpacity 
               key={item.title} 
-              style={styles.gridCard}
+              style={[styles.gridCard, { width: gridCardWidth }]}
               onPress={() => handleLogPress(item.title)}
               {...getButtonAccessibility(logAccessibilityKey[item.title])}
             >
@@ -162,7 +182,7 @@ export default function LogScreen({ navigation }) {
                 <TouchableOpacity
                   key={item.id}
                   style={styles.recentCard}
-                  onPress={() => handleLogPress(item.type === 'glucose' ? 'Glucose' : item.type === 'meal' ? 'Meal' : item.type === 'water' ? 'Water' : 'Exercise')}
+                  onPress={() => openRecent(item)}
                   {...getButtonAccessibility('expandButton', 'deepLink')}
                 >
                   <View style={styles.recentLeft}>
@@ -179,7 +199,7 @@ export default function LogScreen({ navigation }) {
                         {item.timestamp ? moment(item.timestamp.toDate()).format('h:mm A') : 'Just now'}
                     </Text>
                     <Text style={[styles.recentStatus, { color: config.statusColor }]}>
-                      {item.period || 'Logged'}
+                      {item.meal || item.period || 'Logged'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -187,6 +207,46 @@ export default function LogScreen({ navigation }) {
             })
           )}
         </View>
+        {/* Meal detail modal */}
+        <Modal visible={!!selectedLog} animationType="slide" transparent>
+          <TouchableWithoutFeedback onPress={() => setSelectedLog(null)}>
+            <View style={modalStyles.backdrop}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={modalStyles.sheet}>
+                  <View style={modalStyles.headerRow}>
+                    <Text style={modalStyles.modalTitle}>Log detail</Text>
+                    <TouchableOpacity onPress={() => setSelectedLog(null)}>
+                      <Ionicons name="close" size={22} color="#374151" />
+                    </TouchableOpacity>
+                  </View>
+                  {selectedLog && (
+                    <ScrollView>
+                      {selectedLog.imageUri && (
+                        <Image source={{ uri: selectedLog.imageUri }} style={modalStyles.image} />
+                      )}
+                      <Text style={modalStyles.fieldLabel}>Food</Text>
+                      <Text style={modalStyles.fieldValue}>{selectedLog.value}</Text>
+                      {selectedLog.calories !== undefined && (
+                        <>
+                          <Text style={modalStyles.fieldLabel}>Calories</Text>
+                          <Text style={modalStyles.fieldValue}>{selectedLog.calories} kcal</Text>
+                        </>
+                      )}
+                      {selectedLog.servingSize && (
+                        <>
+                          <Text style={modalStyles.fieldLabel}>Serving</Text>
+                          <Text style={modalStyles.fieldValue}>{selectedLog.servingSize}</Text>
+                        </>
+                      )}
+                      <Text style={modalStyles.fieldLabel}>Logged</Text>
+                      <Text style={modalStyles.fieldValue}>{selectedLog.timestamp ? moment(selectedLog.timestamp.toDate()).format('MMM D, h:mm A') : 'Just now'}</Text>
+                    </ScrollView>
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </ScrollView>
 
     </SafeAreaView>
@@ -207,7 +267,7 @@ const styles = StyleSheet.create({
   heroText: { fontSize: 13, lineHeight: 19, color: '#6B7280', marginTop: 6 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 22 },
-  gridCard: { width: '48%', minHeight: 145, backgroundColor: '#FBFBFD', borderRadius: 24, padding: 16, marginBottom: 15, elevation: 1, borderWidth: 1, borderColor: '#E8EBF3' },
+  gridCard: { minHeight: 145, backgroundColor: '#FBFBFD', borderRadius: 24, padding: 16, marginBottom: 15, elevation: 1, borderWidth: 1, borderColor: '#E8EBF3' },
   cardIcon: { width: 48, height: 48, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   cardSubtitle: { fontSize: 12, color: '#9CA3AF', marginTop: 4, lineHeight: 16 },
@@ -230,4 +290,14 @@ const styles = StyleSheet.create({
   errorText: { color: '#B91C1C', fontSize: 13 },
   retryBtn: { marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#FFF', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FCA5A5' },
   retryText: { color: '#B91C1C', fontSize: 13, fontWeight: '700' }
+});
+
+const modalStyles = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%', padding: 16 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
+  image: { width: '100%', height: 160, borderRadius: 12, marginBottom: 12 },
+  fieldLabel: { fontSize: 12, color: '#6B7280', fontWeight: '700', marginTop: 8 },
+  fieldValue: { fontSize: 16, color: '#111827', fontWeight: '700', marginTop: 4 },
 });

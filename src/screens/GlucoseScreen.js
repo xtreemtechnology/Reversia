@@ -6,16 +6,16 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   TextInput,
   Modal,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useUserLogs } from '../hooks/useUserLogs';
 
-const { width } = Dimensions.get("window");
+// runtime width will be gathered with `useWindowDimensions()` inside the component
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────────
 const COLORS = {
@@ -125,6 +125,7 @@ const REMINDERS = [
 ];
 
 export default function GlucoseScreen() {
+  const { width: screenWidth } = useWindowDimensions();
   const [activeTab, setActiveTab] = useState("Log");
   const { logs } = useUserLogs(100);
   // derive glucose logs

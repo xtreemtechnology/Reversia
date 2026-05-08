@@ -18,6 +18,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedScreen from '../../components/AnimatedScreen';
 import { ActivityIndicator } from 'react-native';
+import { auth, db } from '../../config/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 const { width } = Dimensions.get('window');
@@ -214,15 +216,15 @@ export function SetupGender({ go, setupData, setSetupData }) {
     >
       <View style={styles.genderGrid}>
         {[
-          { label: 'Male', img: 'https://i.ibb.co/L8z0PzY/male-avatar.png' },
-          { label: 'Female', img: 'https://i.ibb.co/mS6yP8K/female-avatar.png' }
+          { label: 'Male', img: require('../../../assets/Male.png') },
+          { label: 'Female', img: require('../../../assets/Female.png') }
         ].map(g => (
           <TouchableOpacity 
             key={g.label}
             onPress={() => setSetupData(prev => ({ ...prev, gender: g.label }))}
             style={[styles.genderCard, setupData?.gender === g.label && styles.genderCardActive]}
           >
-            <Image source={{ uri: g.img }} style={styles.genderIllustration} />
+            <Image source={g.img} style={styles.genderIllustration} />
             <Text style={[styles.genderLabel, setupData?.gender === g.label && styles.genderLabelActive]}>{g.label}</Text>
           </TouchableOpacity>
         ))}
@@ -620,7 +622,7 @@ export function DiabetesIntro({ go }) {
 }
 
 export function Diabetes1({ go, setupData, setSetupData }) {
-  const options = ['Type 1 Diabetes', 'Type 2 Diabetes', 'Prediabetes', 'Healthy Lifestyle'];
+  const options = ['Type 1 Diabetes', 'Type 2 Diabetes', 'Prediabetes'];
   return (
     <StepFrame go={go} step={1} total={3} title="What is your health condition?" subtitle="Choose the option that best describes you" prev="diab0" next="diab2">
       <View style={styles.sectionCard}>
@@ -798,20 +800,86 @@ export function SetupGenerating({ go }) {
   );
 }
 
-export function SetupGeneratingComplete({ go }) {
+const splitFullName = (fullName = '') => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' ') || '',
+  };
+};
+
+const buildSetupProfile = (setupData = {}) => {
+  const { firstName, lastName } = splitFullName(setupData.name || '');
+
+  return {
+    firstName,
+    lastName,
+    fullName: setupData.name || '',
+    region: setupData.region || '',
+    gender: setupData.gender || '',
+    age: setupData.age ?? null,
+    currentWeight: setupData.weight ?? null,
+    weightUnit: setupData.weightUnit || 'kg',
+    height: setupData.height ?? null,
+    heightUnit: setupData.heightUnit || 'cm',
+    diabetesType: setupData.diabetesType || '',
+    healthStatus: setupData.diabetesType || '',
+    onMedication: setupData.onMedication || '',
+    diagnosedDuration: setupData.diagnosedDuration || '',
+    checkFrequency: setupData.checkFrequency || '',
+    level: setupData.level || '',
+    glucoseUnit: setupData.glucoseUnit || '',
+    emergencyContactName: setupData.emergencyContactName || '',
+    caregiverPhone: setupData.caregiverPhone || '',
+    readinessLevel: setupData.readinessLevel || '',
+    onboardingStep: 8,
+    isOnboardingComplete: true,
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export function SetupGeneratingComplete({ go, setupData }) {
   const { isCompactLayout } = useSetupLayoutFlags();
+  const [error, setError] = React.useState(null);
+
+  const handleStartJourney = async () => {
+    setError(null);
+    const user = auth.currentUser;
+    if (!user) {
+      go && go('Login');
+      return;
+    }
+
+    try {
+      await setDoc(doc(db, 'users', user.uid), buildSetupProfile(setupData), { merge: true });
+      go && go('MainApp');
+    } catch (err) {
+      console.error('Error saving setup profile:', err);
+      setError('Failed to save your profile. Please check your connection and try again.');
+    }
+  };
+
   return (
     <AnimatedScreen>
       <View style={styles.rootCenter}>
         <View style={[styles.completeBadgeOuter, isCompactLayout && styles.completeBadgeOuterCompact]}>
           <View style={[styles.completeBadge, isCompactLayout && styles.completeBadgeCompact]}>
-            <Ionicons name="checkmark" size={58} color="#FFF" />
+            <Ionicons name={error ? "alert-circle" : "checkmark"} size={58} color={error ? "#EF4444" : "#FFF"} />
           </View>
         </View>
-        <Text style={[styles.centerTitle, styles.completeTitle, isCompactLayout && styles.centerTitleCompact]}>All Set!</Text>
-        <Text style={[styles.centerText, styles.completeSubtext, isCompactLayout && styles.centerTextCompact]}>Your plan is ready. Let's begin your Reversia journey.</Text>
+        <Text style={[styles.centerTitle, styles.completeTitle, isCompactLayout && styles.centerTitleCompact]}>
+          {error ? 'Unable to Continue' : 'All Set!'}
+        </Text>
+        <Text style={[styles.centerText, styles.completeSubtext, isCompactLayout && styles.centerTextCompact]}>
+          {error ? error : 'Your plan is ready. Let\'s begin your Reversia journey.'}
+        </Text>
+        {error && (
+          <Text style={[styles.centerText, { color: '#666', marginBottom: 20, fontSize: 12 }]}>
+            Tap "Try Again" to retry.
+          </Text>
+        )}
         <View style={[styles.completeButtonWrap, isCompactLayout && styles.completeButtonWrapCompact]}>
-          <PurpleButton label="Start Journey" onPress={() => go('MainApp')} />
+          <PurpleButton label={error ? "Try Again" : "Start Journey"} onPress={handleStartJourney} />
         </View>
       </View>
     </AnimatedScreen>
