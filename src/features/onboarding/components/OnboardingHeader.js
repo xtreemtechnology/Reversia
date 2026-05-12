@@ -1,7 +1,7 @@
 // src/features/onboarding/components/OnboardingHeader.js
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export const OnboardingHeader = ({ onBack }) => (
   <View style={styles.header}>
@@ -14,9 +14,9 @@ export const OnboardingHeader = ({ onBack }) => (
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 10,
   },

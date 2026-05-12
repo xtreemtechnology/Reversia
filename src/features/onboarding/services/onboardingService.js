@@ -3,21 +3,27 @@
  * Onboarding Service - Handles all Firestore operations for user setup
  */
 
-import { auth, db } from '../../../config/firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from "../../../config/firebase";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 
 /**
  * Save user's name to Firestore
  */
 export const saveName = async (name) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
-  return setDoc(doc(db, "users", user.uid), {
-    displayName: name.trim(),
-    onboardingStep: 1,
-    updatedAt: new Date().toISOString(),
-  }, { merge: true });
+  return setDoc(
+    doc(db, "users", user.uid),
+    {
+      displayName: name.trim(),
+      onboardingStep: 1,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
 };
 
 /**
@@ -25,7 +31,9 @@ export const saveName = async (name) => {
  */
 export const saveGender = async (gender) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -40,7 +48,9 @@ export const saveGender = async (gender) => {
  */
 export const saveAge = async (age) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -53,9 +63,11 @@ export const saveAge = async (age) => {
 /**
  * Save user's weight
  */
-export const saveWeight = async (weight, unit = 'kg') => {
+export const saveWeight = async (weight, unit = "kg") => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -69,9 +81,11 @@ export const saveWeight = async (weight, unit = 'kg') => {
 /**
  * Save user's height
  */
-export const saveHeight = async (height, unit = 'cm') => {
+export const saveHeight = async (height, unit = "cm") => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -87,7 +101,9 @@ export const saveHeight = async (height, unit = 'cm') => {
  */
 export const saveHealthGoal = async (goal) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -102,7 +118,9 @@ export const saveHealthGoal = async (goal) => {
  */
 export const saveHealthStatus = async (status) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -117,7 +135,9 @@ export const saveHealthStatus = async (status) => {
  */
 export const saveReadiness = async (readiness) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {
@@ -139,7 +159,9 @@ export const saveReadinessLevel = async (readinessLevel) => {
  */
 export const completeOnboarding = async () => {
   const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
   const userRef = doc(db, "users", user.uid);
   return updateDoc(userRef, {

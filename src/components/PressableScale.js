@@ -1,7 +1,14 @@
-import React, { useRef } from 'react';
-import { Animated, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useRef } from "react";
+import { Animated, TouchableWithoutFeedback, View } from "react-native";
 
-export default function PressableScale({ children, onPress, style, activeScale = 0.96, duration = 100, disabled }) {
+export default function PressableScale({
+  children,
+  onPress,
+  style,
+  activeScale = 0.96,
+  duration = 100,
+  disabled,
+}) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (toValue) => {

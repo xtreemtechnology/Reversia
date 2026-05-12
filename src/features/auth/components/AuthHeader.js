@@ -1,10 +1,12 @@
 // src/features/auth/components/AuthHeader.js
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export const AuthHeader = ({ onBack, showBack = true }) => {
-  if (!showBack) return <View style={styles.spacer} />;
+  if (!showBack) {
+    return <View style={styles.spacer} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -23,7 +25,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   spacer: {
     height: 16,

@@ -3,25 +3,30 @@
  * Auth Service - Handles all Firebase authentication operations
  */
 
-import { auth, db } from '../../../config/firebase';
+import { auth, db } from "../../../config/firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendEmailVerification,
-  fetchSignInMethodsForEmail,
   updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+} from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 /**
  * Sign in user with email and password
  */
 export const signIn = async (email, password) => {
-  if (!email || !password) throw new Error('Email and password are required');
-  
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
+
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
     return userCredential.user;
   } catch (error) {
     throw error;
@@ -31,42 +36,56 @@ export const signIn = async (email, password) => {
 /**
  * Sign up new user with email and password
  */
-export const signUp = async (email, password, displayName = '') => {
-  if (!email || !password) throw new Error('Email and password are required');
-  
-  try {
-    // Check if email already exists
-    const methods = await fetchSignInMethodsForEmail(auth, email.trim());
-    if (methods && methods.length > 0) {
-      throw new Error('EMAIL_EXISTS');
-    }
+export const signUp = async (email, password, displayName = "") => {
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
 
+  try {
     // Create user account
-    const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-    
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
+
     if (userCredential.user) {
       // Update display name if provided
       if (displayName) {
         await updateProfile(userCredential.user, { displayName });
       }
-      
+
       // Send verification email
       await sendEmailVerification(userCredential.user);
-      
+
       // Create user document in Firestore
-      const userRef = doc(db, 'users', userCredential.user.uid);
-      await setDoc(userRef, {
-        email: email.trim(),
-        displayName: displayName || '',
-        createdAt: new Date().toISOString(),
-        emailVerified: false,
-        onboardingStep: 0,
-      }, { merge: true });
+      const userRef = doc(db, "users", userCredential.user.uid);
+      await setDoc(
+        userRef,
+        {
+          email: email.trim(),
+          displayName: displayName || "",
+          createdAt: new Date().toISOString(),
+          emailVerified: false,
+          onboardingStep: 0,
+        },
+        { merge: true }
+      );
+      return userCredential.user;
     }
-    
-    return userCredential.user;
+
+    throw new Error("User creation failed");
   } catch (error) {
-    throw error;
+    // Ensure thrown error preserves a code property so UI error mappers can
+    // map it to a friendly message. Also log for debugging.
+    console.error("authService.signUp error:", {
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack,
+    });
+    const wrapped = new Error(error.message || "Sign up failed");
+    wrapped.code = error.code || error.message || "auth/unknown";
+    throw wrapped;
   }
 };
 
@@ -74,11 +93,13 @@ export const signUp = async (email, password, displayName = '') => {
  * Send password reset email
  */
 export const sendPasswordReset = async (email) => {
-  if (!email) throw new Error('Email is required');
-  
+  if (!email) {
+    throw new Error("Email is required");
+  }
+
   try {
     await sendPasswordResetEmail(auth, email.trim());
-    return { success: true, message: 'Password reset email sent' };
+    return { success: true, message: "Password reset email sent" };
   } catch (error) {
     throw error;
   }
@@ -115,8 +136,10 @@ export const isEmailVerified = () => {
  */
 export const resendEmailVerification = async () => {
   const user = auth.currentUser;
-  if (!user) throw new Error('No user signed in');
-  
+  if (!user) {
+    throw new Error("No user signed in");
+  }
+
   try {
     await sendEmailVerification(user);
     return { success: true };

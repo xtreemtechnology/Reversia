@@ -3,7 +3,7 @@
  * Custom hook for managing meal history state
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 export const useMealHistory = () => {
   const [meals, setMeals] = useState([]);
@@ -11,15 +11,17 @@ export const useMealHistory = () => {
   const [error, setError] = useState(null);
 
   const addMeal = useCallback((meal) => {
-    setMeals(prev => [meal, ...prev]);
+    setMeals((prev) => [meal, ...prev]);
   }, []);
 
   const removeMeal = useCallback((mealId) => {
-    setMeals(prev => prev.filter(m => m.id !== mealId));
+    setMeals((prev) => prev.filter((m) => m.id !== mealId));
   }, []);
 
   const updateMeal = useCallback((mealId, updates) => {
-    setMeals(prev => prev.map(m => m.id === mealId ? { ...m, ...updates } : m));
+    setMeals((prev) =>
+      prev.map((m) => (m.id === mealId ? { ...m, ...updates } : m))
+    );
   }, []);
 
   const clearHistory = useCallback(() => {

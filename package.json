@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
@@ -40,5 +42,13 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/eslint-parser": "^7.28.6",
+    "@react-native-community/eslint-config": "^3.2.0",
+    "babel-preset-expo": "^55.0.21",
+    "eslint": "^8.57.1",
+    "prettier": "^2.8.8"
+  }
 }

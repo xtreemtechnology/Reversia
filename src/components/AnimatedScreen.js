@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet } from "react-native";
 
 export default function AnimatedScreen({ children, style, delay = 0 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -25,7 +25,13 @@ export default function AnimatedScreen({ children, style, delay = 0 }) {
   }, [delay, fadeAnim, translateAnim]);
 
   return (
-    <Animated.View style={[styles.container, style, { opacity: fadeAnim, transform: [{ translateY: translateAnim }] }]}>
+    <Animated.View
+      style={[
+        styles.container,
+        style,
+        { opacity: fadeAnim, transform: [{ translateY: translateAnim }] },
+      ]}
+    >
       {children}
     </Animated.View>
   );

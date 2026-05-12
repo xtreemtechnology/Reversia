@@ -1,27 +1,26 @@
 // App.js - Updated with Onboarding
-import React, { useEffect, useState } from 'react';
-import { View, Text, StatusBar } from 'react-native';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import OnboardingNavigator from './src/screens/onboarding/OnboardingNavigator';
-import ErrorBoundary from './src/components/ErrorBoundary';
-import HomeScreen from './src/screens/HomeScreen';
-import InlineSplash from './src/components/InlineSplash';
-import { auth } from './src/config/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-
-function MainApp(props) {
-  return <HomeScreen {...props} />;
-}
+import React, { useEffect, useState } from "react";
+import { StatusBar } from "react-native";
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import ThemeProvider, { useTheme } from "./src/theme/ThemeProvider";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import AppNavigator from "./src/navigation/AppNavigator";
+import ErrorBoundary from "./src/components/ErrorBoundary";
+import InlineSplash from "./src/components/InlineSplash";
+import { auth } from "./src/config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { ROUTES } from "./src/navigation/routeNames";
 
 const navigationRef = createNavigationContainerRef();
-const NAVIGATION_STATE_KEY = 'NAVIGATION_STATE_V1';
+const NAVIGATION_STATE_KEY = "NAVIGATION_STATE_V1";
 
 export default function App() {
   const [initialState, setInitialState] = useState();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
-  const [mountedAt, setMountedAt] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -30,11 +29,26 @@ export default function App() {
     const restoreNavigationState = async () => {
       const hasOnboardingRoute = (state) => {
         const check = (node) => {
-          if (!node) return false;
-          if (Array.isArray(node)) return node.some(check);
-          if (node.name && (node.name.includes('Onboarding') || node.name.includes('AccountSetup') || node.name.includes('OnboardingStart'))) return true;
-          if (node.routes && Array.isArray(node.routes)) return node.routes.some(check);
-          if (node.state) return check(node.state);
+          if (!node) {
+            return false;
+          }
+          if (Array.isArray(node)) {
+            return node.some(check);
+          }
+          if (
+            node.name &&
+            (node.name.includes("Onboarding") ||
+              node.name.includes("AccountSetup") ||
+              node.name.includes("OnboardingStart"))
+          ) {
+            return true;
+          }
+          if (node.routes && Array.isArray(node.routes)) {
+            return node.routes.some(check);
+          }
+          if (node.state) {
+            return check(node.state);
+          }
           return false;
         };
         return check(state);
@@ -57,8 +71,10 @@ export default function App() {
                 // If onboarding-related routes exist in the saved state, check local flag
                 // If onboarding was completed locally, it's safe to restore; otherwise drop it.
                 try {
-                  const localFlag = await AsyncStorage.getItem('ONBOARDING_COMPLETE');
-                  if (localFlag === 'true') {
+                  const localFlag = await AsyncStorage.getItem(
+                    "ONBOARDING_COMPLETE"
+                  );
+                  if (localFlag === "true") {
                     setInitialState(parsed);
                   } else {
                     await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
@@ -81,7 +97,9 @@ export default function App() {
       } catch (error) {
         // ignore AsyncStorage errors
       } finally {
-        if (timeoutId) clearTimeout(timeoutId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         if (mounted) {
           setIsNavigationReady(true);
         }
@@ -99,47 +117,72 @@ export default function App() {
 
     return () => {
       mounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
   useEffect(() => {
-    // Only check initial auth state on app start to decide where to route.
-    // Avoid reacting to every auth state change to prevent jumping out of onboarding.
-    const unsub = onAuthStateChanged(auth, (user) => {
+    // Check initial auth state and only react once on startup.
+    let handled = false;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (handled) {
+        return;
+      }
+      handled = true;
+
       if (user && navigationRef.isReady()) {
         try {
-          navigationRef.navigate('MainApp');
+          navigationRef.navigate(ROUTES.ROOT.MAIN_APP);
         } catch (e) {
           // ignore navigation errors during startup
         }
       }
-      // Unsubscribe after the initial trigger so we don't navigate on subsequent auth changes
-      unsub();
     });
-    return () => { try { unsub && unsub(); } catch {} };
+
+    return () => {
+      try {
+        unsubscribe && unsubscribe();
+      } catch {}
+    };
   }, []);
 
   return (
     <SafeAreaProvider>
-      <>
-        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
-        {isNavigationReady ? (
-          <NavigationContainer
-            ref={navigationRef}
-            initialState={initialState}
-            onStateChange={(state) => {
-              AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch(() => {});
-            }}
-          >
-            <ErrorBoundary>
-              <OnboardingNavigator MainAppComponent={MainApp} />
-            </ErrorBoundary>
-          </NavigationContainer>
-        ) : (
-          <InlineSplash />
-        )}
-      </>
+      <ThemeProvider>
+        <>
+          <ThemeAwareStatusBar />
+          {isNavigationReady ? (
+            <NavigationContainer
+              ref={navigationRef}
+              initialState={initialState}
+              onStateChange={(state) => {
+                AsyncStorage.setItem(
+                  NAVIGATION_STATE_KEY,
+                  JSON.stringify(state)
+                ).catch(() => {});
+              }}
+            >
+              <ErrorBoundary>
+                <AppNavigator />
+              </ErrorBoundary>
+            </NavigationContainer>
+          ) : (
+            <InlineSplash />
+          )}
+        </>
+      </ThemeProvider>
     </SafeAreaProvider>
+  );
+}
+
+function ThemeAwareStatusBar() {
+  const { theme, colors } = useTheme();
+  return (
+    <StatusBar
+      barStyle={theme === "dark" ? "light-content" : "dark-content"}
+      backgroundColor={colors.background}
+    />
   );
 }

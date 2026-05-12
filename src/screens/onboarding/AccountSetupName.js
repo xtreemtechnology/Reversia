@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,24 +8,27 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
-} from 'react-native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 
 // 1. FIREBASE IMPORTS
-import { auth, db } from '../../config/firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from "../../config/firebase";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { useTheme } from "../../theme/ThemeProvider";
 
 export default function AccountSetupName({ navigation }) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   // Initializing with an empty string so the user can type their own name
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleContinue = async () => {
     setError(null);
     if (name.trim().length < 2) {
-      setError('Please enter your real name to continue.');
+      setError("Please enter your real name to continue.");
       return;
     }
 
@@ -35,13 +38,17 @@ export default function AccountSetupName({ navigation }) {
       if (user) {
         // 2. SAVE NAME TO FIRESTORE
         // We use merge: true so we don't overwrite other data if it exists
-        await setDoc(doc(db, "users", user.uid), {
-          displayName: name.trim(),
-          onboardingStep: 1,
-          updatedAt: new Date().toISOString(),
-        }, { merge: true });
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            displayName: name.trim(),
+            onboardingStep: 1,
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
 
-        navigation.navigate('AccountSetupGender');
+        navigation.navigate("AccountSetupGender");
       }
     } catch (error) {
       console.log("Error saving name:", error);
@@ -53,14 +60,17 @@ export default function AccountSetupName({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         {/* Header with Back Button Only */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.skipButton} />
         </View>
@@ -83,7 +93,7 @@ export default function AccountSetupName({ navigation }) {
               value={name}
               onChangeText={setName}
               placeholder="Enter your name"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.muted}
               textAlign="center"
               autoFocus={true}
               autoCapitalize="words"
@@ -100,17 +110,22 @@ export default function AccountSetupName({ navigation }) {
 
         {/* Bottom Continue Button */}
         <View style={styles.footer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.continueButton, loading && { opacity: 0.7 }]}
             onPress={handleContinue}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.background} />
             ) : (
               <>
                 <Text style={styles.continueText}>Continue</Text>
-                <AntDesign name="arrowright" size={20} color="#FFF" style={styles.icon} />
+                <AntDesign
+                  name="arrowright"
+                  size={20}
+                  color={colors.background}
+                  style={styles.icon}
+                />
               </>
             )}
           </TouchableOpacity>
@@ -120,109 +135,110 @@ export default function AccountSetupName({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  flex: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  backButton: {
-    padding: 8,
-  },
-  skipButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  skipText: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingTop: 40,
-  },
-  progressText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    marginBottom: 20,
-    fontWeight: '600',
-  },
-  progressActive: {
-    color: '#825CFF',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#825CFF',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 50,
-  },
-  inputContainer: {
-    width: '100%',
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 1,
-    borderColor: '#825CFF',
-    justifyContent: 'center',
-    paddingHorizontal: 25,
-  },
-  input: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
-  },
-  errorBox: {
-    width: '100%',
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: '#FEE2E2',
-  },
-  errorText: {
-    color: '#B91C1C',
-    textAlign: 'center',
-  },
-  footer: {
-    paddingHorizontal: 25,
-    paddingBottom: 40,
-  },
-  continueButton: {
-    backgroundColor: '#825CFF',
-    height: 65,
-    borderRadius: 35,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-  },
-  continueText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  icon: {
-    marginLeft: 10,
-  },
-});
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
+    backButton: {
+      padding: 8,
+    },
+    skipButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    skipText: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: "500",
+    },
+    content: {
+      flex: 1,
+      alignItems: "center",
+      paddingHorizontal: 30,
+      paddingTop: 40,
+    },
+    progressText: {
+      fontSize: 16,
+      color: colors.muted,
+      marginBottom: 20,
+      fontWeight: "600",
+    },
+    progressActive: {
+      color: colors.primary,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "700",
+      color: colors.primary,
+      textAlign: "center",
+      marginBottom: 15,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.muted,
+      textAlign: "center",
+      lineHeight: 22,
+      marginBottom: 50,
+    },
+    inputContainer: {
+      width: "100%",
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      justifyContent: "center",
+      paddingHorizontal: 25,
+    },
+    input: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    errorBox: {
+      width: "100%",
+      marginTop: 16,
+      padding: 12,
+      borderRadius: 14,
+      backgroundColor: "#FEE2E2",
+    },
+    errorText: {
+      color: "#B91C1C",
+      textAlign: "center",
+    },
+    footer: {
+      paddingHorizontal: 25,
+      paddingBottom: 40,
+    },
+    continueButton: {
+      backgroundColor: colors.primary,
+      height: 65,
+      borderRadius: 35,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+    },
+    continueText: {
+      color: colors.background,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    icon: {
+      marginLeft: 10,
+    },
+  });

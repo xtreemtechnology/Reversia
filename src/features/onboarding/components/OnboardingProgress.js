@@ -1,6 +1,6 @@
 // src/features/onboarding/components/OnboardingProgress.js
-import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import React from "react";
+import { Text, StyleSheet } from "react-native";
 
 export const OnboardingProgress = ({ current, total = 8 }) => (
   <Text style={styles.progressText}>
@@ -11,11 +11,11 @@ export const OnboardingProgress = ({ current, total = 8 }) => (
 const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginBottom: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   progressActive: {
-    color: '#7C3AED',
+    color: "#7C3AED",
   },
 });

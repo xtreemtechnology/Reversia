@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,29 +8,35 @@ import {
   ScrollView,
   ActivityIndicator,
   useWindowDimensions,
-} from 'react-native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { useTheme } from "../../theme/ThemeProvider";
 
 // 1. FIREBASE IMPORTS
-import { auth, db } from '../../config/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from "../../config/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
-const TICK_SPACING = 20; 
+const TICK_SPACING = 20;
 
 export default function AccountSetupHeight({ navigation }) {
+  const { colors } = useTheme();
   const [height, setHeight] = useState(170); // Default to average height
-  const [unit, setUnit] = useState('cm');
+  const [unit, setUnit] = useState("cm");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const scrollRef = useRef(null);
   const { width: screenWidth } = useWindowDimensions();
+  const styles = getStyles(colors);
   const toggleWidth = Math.min(160, Math.max(120, screenWidth - 160));
   const valueBoxWidth = Math.min(240, Math.max(170, screenWidth - 110));
-  const rulerPadding = Math.max(8, screenWidth / 2 - (TICK_SPACING / 2));
+  const rulerPadding = Math.max(8, screenWidth / 2 - TICK_SPACING / 2);
 
-  const minVal = unit === 'cm' ? 100 : 3;
-  const maxVal = unit === 'cm' ? 250 : 8;
-  const rulerTicks = Array.from({ length: maxVal - minVal + 1 }, (_, i) => i + minVal);
+  const minVal = unit === "cm" ? 100 : 3;
+  const maxVal = unit === "cm" ? 250 : 8;
+  const rulerTicks = Array.from(
+    { length: maxVal - minVal + 1 },
+    (_, i) => i + minVal
+  );
 
   // 2. INITIAL POSITION
   useEffect(() => {
@@ -48,28 +54,28 @@ export default function AccountSetupHeight({ navigation }) {
     try {
       const user = auth.currentUser;
       if (user) {
-        const userRef = doc(db, "users", user.uid);
+        const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
           height: height,
           heightUnit: unit,
           onboardingStep: 5,
           updatedAt: new Date().toISOString(),
         });
-        navigation.navigate('AccountSetupGoal');
+        navigation.navigate("AccountSetupGoal");
       }
     } catch (error) {
-      console.log("Error saving height:", error);
-      setError("Could not save height. Please check your connection.");
+      console.log('Error saving height:', error);
+      setError('Could not save height. Please check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
   const toggleUnit = (newUnit) => {
-    if (newUnit === unit) return;
+    if (newUnit === unit) {return;}
 
     let newHeight;
-    if (newUnit === 'ft') {
+    if (newUnit === "ft") {
       newHeight = Math.round(height / 30.48);
     } else {
       newHeight = Math.round(height * 30.48);
@@ -78,17 +84,21 @@ export default function AccountSetupHeight({ navigation }) {
     setUnit(newUnit);
     setHeight(newHeight);
 
-    const currentMin = newUnit === 'cm' ? 100 : 3;
+    const currentMin = newUnit === "cm" ? 100 : 3;
     const offset = (newHeight - currentMin) * TICK_SPACING;
     scrollRef.current?.scrollTo({ x: offset, animated: true });
   };
 
   const handleScroll = (event) => {
     const xOffset = event.nativeEvent.contentOffset.x;
-    const currentMin = unit === 'cm' ? 100 : 3;
+    const currentMin = unit === "cm" ? 100 : 3;
     const newHeight = Math.round(xOffset / TICK_SPACING) + currentMin;
-    
-    if (newHeight !== height && newHeight >= currentMin && newHeight <= maxVal) {
+
+
+      newHeight !== height &&
+      newHeight >= currentMin &&
+      newHeight <= maxVal
+    ) {
       setHeight(newHeight);
     }
   };
@@ -96,7 +106,10 @@ export default function AccountSetupHeight({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.skipButton} />
@@ -109,49 +122,76 @@ export default function AccountSetupHeight({ navigation }) {
 
         <Text style={styles.title}>What is your height?</Text>
         <Text style={styles.subtitle}>
-          Height is important for calculating your BMI and personalized activity goals.
+          Height is important for calculating your BMI and personalized activity
+          goals.
         </Text>
 
         <View style={[styles.toggleContainer, { width: toggleWidth }]}>
-          <TouchableOpacity 
-            style={[styles.toggleTab, unit === 'ft' && styles.activeTab]} 
-            onPress={() => toggleUnit('ft')}
+          <TouchableOpacity
+            style={[styles.toggleTab, unit === "ft" && styles.activeTab]}
+            onPress={() => toggleUnit("ft")}
           >
-            <Text style={[styles.toggleText, unit === 'ft' && styles.activeToggleText]}>ft</Text>
+            <Text
+              style={[
+                styles.toggleText,
+                unit === "ft" && styles.activeToggleText,
+              ]}
+            >
+              ft
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.toggleTab, unit === 'cm' && styles.activeTab]} 
-            onPress={() => toggleUnit('cm')}
+          <TouchableOpacity
+            style={[styles.toggleTab, unit === "cm" && styles.activeTab]}
+            onPress={() => toggleUnit("cm")}
           >
-            <Text style={[styles.toggleText, unit === 'cm' && styles.activeToggleText]}>cm</Text>
+            <Text
+              style={[
+                styles.toggleText,
+                unit === "cm" && styles.activeToggleText,
+              ]}
+            >
+              cm
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.valueDisplayContainer}>
-          <AntDesign name="caretleft" size={24} color="#825CFF" style={styles.indicatorArrow} />
+          <AntDesign
+            name="caretleft"
+            size={24}
+            color="#825CFF"
+            style={styles.indicatorArrow}
+          />
           <View style={[styles.valueBox, { minWidth: valueBoxWidth }]}>
-            <Text style={styles.valueText}>{height} <Text style={{fontSize: 20}}>{unit}</Text></Text>
+            <Text style={styles.valueText}>
+              {height} <Text style={{ fontSize: 20 }}>{unit}</Text>
+            </Text>
           </View>
         </View>
 
         <View style={styles.rulerContainer}>
-          <ScrollView 
+          <ScrollView
             ref={scrollRef}
-            horizontal 
+            horizontal
             showsHorizontalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             snapToInterval={TICK_SPACING}
             decelerationRate="fast"
-            contentContainerStyle={[styles.rulerScroll, { paddingHorizontal: rulerPadding }]}
+            contentContainerStyle={[
+              styles.rulerScroll,
+              { paddingHorizontal: rulerPadding },
+            ]}
           >
             {rulerTicks.map((tick) => (
               <View key={tick} style={styles.tickWrapper}>
-                <View style={[
-                  styles.tickLine, 
-                  tick % 5 === 0 ? styles.longTick : styles.shortTick,
-                  tick === height && styles.activeTickLine
-                ]} />
+                <View
+                  style={[
+                    styles.tickLine,
+                    tick % 5 === 0 ? styles.longTick : styles.shortTick,
+                    tick === height && styles.activeTickLine,
+                  ]}
+                />
                 {tick % 5 === 0 && <Text style={styles.tickLabel}>{tick}</Text>}
               </View>
             ))}
@@ -166,7 +206,7 @@ export default function AccountSetupHeight({ navigation }) {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.continueButton, loading && { opacity: 0.7 }]}
           onPress={handleContinue}
           disabled={loading}
@@ -176,7 +216,12 @@ export default function AccountSetupHeight({ navigation }) {
           ) : (
             <>
               <Text style={styles.continueText}>Continue</Text>
-              <AntDesign name="arrowright" size={20} color="#FFF" style={styles.icon} />
+              <AntDesign
+                name="arrowright"
+                size={20}
+                color="#FFF"
+                style={styles.icon}
+              />
             </>
           )}
         </TouchableOpacity>
@@ -185,48 +230,106 @@ export default function AccountSetupHeight({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 10 },
-  backButton: { padding: 8 },
-  skipButton: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB' },
-  skipText: { fontSize: 14, color: '#000', fontWeight: '500' },
-  content: { flex: 1, alignItems: 'center', paddingTop: 40 },
-  progressText: { fontSize: 16, color: '#9CA3AF', marginBottom: 20, fontWeight: '600' },
-  progressActive: { color: '#825CFF' },
-  title: { fontSize: 32, fontWeight: '700', color: '#825CFF', textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', paddingHorizontal: 40, marginBottom: 30 },
-  toggleContainer: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 25, height: 45, padding: 4, marginBottom: 30 },
-  toggleTab: { flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 20 },
-  activeTab: { backgroundColor: '#825CFF' },
-  toggleText: { fontSize: 16, color: '#9CA3AF', fontWeight: '600' },
-  activeToggleText: { color: '#FFFFFF' },
-  valueDisplayContainer: { alignItems: 'center', marginBottom: 20 },
-  indicatorArrow: { transform: [{ rotate: '270deg' }], marginBottom: 5 },
-  valueBox: { backgroundColor: '#F3FFFA', paddingHorizontal: 40, paddingVertical: 15, borderRadius: 20, alignItems: 'center' },
-  valueText: { fontSize: 48, fontWeight: '700', color: '#825CFF' },
-  rulerContainer: { width: '100%', height: 120 },
-  rulerScroll: {},
-  tickWrapper: { width: TICK_SPACING, alignItems: 'center' },
-  tickLine: { width: 2, backgroundColor: '#E5E7EB', borderRadius: 1 },
-  shortTick: { height: 25 },
-  longTick: { height: 45, backgroundColor: '#D1D5DB' },
-  activeTickLine: { backgroundColor: '#825CFF', width: 3 },
-  tickLabel: { marginTop: 10, fontSize: 14, color: '#9CA3AF', fontWeight: '600' },
-  errorBox: {
-    width: '100%',
-    marginTop: 16,
-    marginBottom: 8,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: '#FEE2E2',
-  },
-  errorText: {
-    color: '#B91C1C',
-    textAlign: 'center',
-  },
-  footer: { paddingHorizontal: 25, paddingBottom: 40 },
-  continueButton: { backgroundColor: '#825CFF', height: 65, borderRadius: 35, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  continueText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
-  icon: { marginLeft: 10 },
-});
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
+    backButton: { padding: 8 },
+    skipButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    skipText: { fontSize: 14, color: colors.text, fontWeight: "500" },
+    content: { flex: 1, alignItems: "center", paddingTop: 40 },
+    progressText: {
+      fontSize: 16,
+      color: colors.muted,
+      marginBottom: 20,
+      fontWeight: "600",
+    },
+    progressActive: { color: colors.primary },
+    title: {
+      fontSize: 32,
+      fontWeight: "700",
+      color: colors.primary,
+      textAlign: "center",
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.text,
+      textAlign: "center",
+      paddingHorizontal: 40,
+      marginBottom: 30,
+    },
+    toggleContainer: {
+      flexDirection: "row",
+      backgroundColor: colors.card,
+      borderRadius: 25,
+      height: 45,
+      padding: 4,
+      marginBottom: 30,
+    },
+    toggleTab: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 20,
+    },
+    activeTab: { backgroundColor: colors.primary },
+    toggleText: { fontSize: 16, color: colors.muted, fontWeight: "600" },
+    activeToggleText: { color: colors.background },
+    valueDisplayContainer: { alignItems: "center", marginBottom: 20 },
+    indicatorArrow: { transform: [{ rotate: "270deg" }], marginBottom: 5 },
+    valueBox: {
+      backgroundColor: colors.background === "#FFFFFF" ? "#F3FFFA" : "#3E4D47",
+      paddingHorizontal: 40,
+      paddingVertical: 15,
+      borderRadius: 20,
+      alignItems: "center",
+    },
+    valueText: { fontSize: 48, fontWeight: "700", color: colors.primary },
+    rulerContainer: { width: "100%", height: 120 },
+    rulerScroll: {},
+    tickWrapper: { width: TICK_SPACING, alignItems: "center" },
+    tickLine: { width: 2, backgroundColor: colors.border, borderRadius: 1 },
+    shortTick: { height: 25 },
+    longTick: { height: 45, backgroundColor: colors.muted },
+    activeTickLine: { backgroundColor: colors.primary, width: 3 },
+    tickLabel: {
+      marginTop: 10,
+      fontSize: 14,
+      color: colors.muted,
+      fontWeight: "600",
+    },
+    errorBox: {
+      width: "100%",
+      marginTop: 16,
+      marginBottom: 8,
+      padding: 12,
+      borderRadius: 14,
+      backgroundColor: "#FEE2E2",
+    },
+    errorText: {
+      color: "#B91C1C",
+      textAlign: "center",
+    },
+    footer: { paddingHorizontal: 25, paddingBottom: 40 },
+    continueButton: {
+      backgroundColor: colors.primary,
+      height: 65,
+      borderRadius: 35,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    continueText: { color: colors.background, fontSize: 18, fontWeight: "700" },
+    icon: { marginLeft: 10 },
+  });
