@@ -83,7 +83,6 @@ export default function AccountSetupName({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
 const getStyles = (colors) =>
   StyleSheet.create({
     container: {
