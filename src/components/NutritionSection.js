@@ -1,54 +1,100 @@
 // src/components/NutritionSection.js
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CircularProgressBase } from 'react-native-circular-progress-indicator';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { CircularProgressBase } from "react-native-circular-progress-indicator";
+import { shadowStyle } from "../utils/shadows";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function NutritionSection({ calories, macros }) {
+  const { colors } = useTheme();
   const percentComplete = (calories.consumed / calories.target) * 100;
-  
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Nutrition Summary</Text>
-      
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
+        Nutrition Summary
+      </Text>
+
       <View style={styles.circularContainer}>
         <CircularProgressBase
           value={percentComplete}
           radius={70}
-          activeStrokeColor={'#6366f1'}
-          inActiveStrokeColor={'#e5e7eb'}
+          activeStrokeColor={colors.primary}
+          inActiveStrokeColor={colors.border}
           activeStrokeWidth={12}
           inActiveStrokeWidth={12}
-          progressValueStyle={styles.progressValue}
-          valueSuffix={'%'}
+          progressValueStyle={{ color: colors.text }}
+          valueSuffix={"%"}
         >
           <View>
-            <Text style={styles.caloriesConsumed}>{calories.consumed}</Text>
-            <Text style={styles.caloriesUnit}>calories</Text>
-            <Text style={styles.caloriesTarget}>of {calories.target}</Text>
+            <Text style={[styles.caloriesConsumed, { color: colors.text }]}>
+              {calories.consumed}
+            </Text>
+            <Text style={[styles.caloriesUnit, { color: colors.muted }]}>
+              calories
+            </Text>
+            <Text style={[styles.caloriesTarget, { color: colors.muted }]}>
+              of {calories.target}
+            </Text>
           </View>
         </CircularProgressBase>
       </View>
-      
+
       <View style={styles.macrosContainer}>
-        <MacroBar label="Protein" consumed={macros.protein.consumed} target={macros.protein.target} color="#6366f1" />
-        <MacroBar label="Carbs" consumed={macros.carbs.consumed} target={macros.carbs.target} color="#f59e0b" />
-        <MacroBar label="Fat" consumed={macros.fat.consumed} target={macros.fat.target} color="#10b981" />
+        <MacroBar
+          label="Protein"
+          consumed={macros.protein.consumed}
+          target={macros.protein.target}
+          color={colors.primary}
+          colors={colors}
+        />
+        <MacroBar
+          label="Carbs"
+          consumed={macros.carbs.consumed}
+          target={macros.carbs.target}
+          color="#f59e0b"
+          colors={colors}
+        />
+        <MacroBar
+          label="Fat"
+          consumed={macros.fat.consumed}
+          target={macros.fat.target}
+          color="#10b981"
+          colors={colors}
+        />
       </View>
     </View>
   );
 }
 
-function MacroBar({ label, consumed, target, color }) {
+function MacroBar({ label, consumed, target, color, colors }) {
   const percentage = (consumed / target) * 100;
-  
+
   return (
     <View style={styles.macroBar}>
       <View style={styles.macroHeader}>
-        <Text style={styles.macroLabel}>{label}</Text>
-        <Text style={styles.macroValue}>{consumed}g / {target}g</Text>
+        <Text style={[styles.macroLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.macroValue, { color: colors.muted }]}>
+          {consumed}g / {target}g
+        </Text>
       </View>
-      <View style={styles.progressBarBackground}>
-        <View style={[styles.progressBarFill, { width: `${percentage}%`, backgroundColor: color }]} />
+      <View
+        style={[
+          styles.progressBarBackground,
+          { backgroundColor: colors.border },
+        ]}
+      >
+        <View
+          style={[
+            styles.progressBarFill,
+            { width: `${percentage}%`, backgroundColor: color },
+          ]}
+        />
       </View>
     </View>
   );
@@ -56,42 +102,45 @@ function MacroBar({ label, consumed, target, color }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     marginHorizontal: 20,
     marginVertical: 12,
     padding: 20,
     borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    ...shadowStyle({
+      color: "#000",
+      offsetY: 2,
+      opacity: 0.05,
+      radius: 8,
+      elevation: 2,
+    }),
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 16,
   },
   circularContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   caloriesConsumed: {
     fontSize: 32,
-    fontWeight: '800',
-    color: '#111827',
-    textAlign: 'center',
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
   },
   caloriesUnit: {
     fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
   },
   caloriesTarget: {
     fontSize: 12,
-    color: '#9ca3af',
-    textAlign: 'center',
+    color: "#9ca3af",
+    textAlign: "center",
   },
   macrosContainer: {
     gap: 16,
@@ -100,26 +149,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   macroHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   macroLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#4b5563',
+    fontWeight: "600",
+    color: "#4b5563",
   },
   macroValue: {
     fontSize: 13,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: "#f3f4f6",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBarFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 4,
   },
 });

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Reversia",
     "slug": "DiabetesApp",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/Reversia-Logo.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.xtreemtech.reversia"
+      "bundleIdentifier": "com.xtreemtech.reversia",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.xtreemtech.reversia",
