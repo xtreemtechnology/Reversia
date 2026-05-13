@@ -19,16 +19,11 @@
       "autoIncrement": true,
       "channel": "production",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./android-key.json"
-      },
-      "ios": {}
-    }
+    "production": {}
   }
 }

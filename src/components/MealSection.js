@@ -1,51 +1,41 @@
 // src/components/MealSection.js
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import MealCard from "./MealCard";
-import { useTheme } from "../theme/ThemeProvider";
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import MealCard from './MealCard';
 
 export default function MealSection() {
-  const { colors } = useTheme();
   const meals = [
     {
-      name: "Breakfast",
+      name: 'Breakfast',
       calories: 420,
-      time: "8:30 AM",
+      time: '8:30 AM',
       recommended: false,
-      items: "Oatmeal with berries",
+      items: 'Oatmeal with berries',
     },
     {
-      name: "Lunch",
+      name: 'Lunch',
       calories: 580,
-      time: "12:45 PM",
+      time: '12:45 PM',
       recommended: true,
-      items: "Grilled chicken salad with quinoa",
+      items: 'Grilled chicken salad with quinoa',
     },
     {
-      name: "Dinner",
+      name: 'Dinner',
       calories: 620,
-      time: "7:00 PM",
+      time: '7:00 PM',
       recommended: false,
-      items: "Planned for later",
+      items: 'Planned for later',
     },
   ];
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Today's Meals
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
-          Log meals to track carb intake
-        </Text>
+        <Text style={styles.title}>Today's Meals</Text>
+        <Text style={styles.subtitle}>Log meals to track carb intake</Text>
       </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
-      >
+      
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollView}>
         {meals.map((meal, index) => (
           <MealCard key={index} {...meal} />
         ))}
@@ -64,13 +54,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 13,
-    color: "#6b7280",
+    color: '#6b7280',
   },
   scrollView: {
     paddingLeft: 20,

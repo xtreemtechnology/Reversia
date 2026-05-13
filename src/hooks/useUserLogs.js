@@ -1,13 +1,7 @@
-import { useState, useEffect } from "react";
-import { db, auth } from "../config/firebase";
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState, useEffect } from 'react';
+import { db, auth } from '../config/firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
   const [logs, setLogs] = useState([]);
@@ -32,27 +26,25 @@ export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
       setLoading(true);
 
       const q = query(
-        collection(db, "users", user.uid, "logs"),
-        orderBy("timestamp", "desc"),
+        collection(db, 'users', user.uid, 'logs'),
+        orderBy('timestamp', 'desc'),
         limit(maxLimit)
       );
 
-      if (unsubscribeFromLogs) {
-        unsubscribeFromLogs();
-      }
+      if (unsubscribeFromLogs) unsubscribeFromLogs();
       unsubscribeFromLogs = onSnapshot(
         q,
         (snapshot) => {
-          const fetchedLogs = snapshot.docs.map((doc) => ({
+          const fetchedLogs = snapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data(),
+            ...doc.data()
           }));
           setLogs(fetchedLogs);
           setError(null);
           setLoading(false);
         },
         (err) => {
-          console.error("useUserLogs snapshot error", err);
+          console.error('useUserLogs snapshot error', err);
           setError(err);
           setLoading(false);
         }
@@ -60,9 +52,7 @@ export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
     });
 
     return () => {
-      if (unsubscribeFromLogs) {
-        unsubscribeFromLogs();
-      }
+      if (unsubscribeFromLogs) unsubscribeFromLogs();
       authUnsub();
     };
   }, [maxLimit, refreshTrigger]);

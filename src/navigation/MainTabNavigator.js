@@ -1,237 +1,111 @@
-// src/navigation/MainTabNavigator.js
-import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  Text,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../theme/ThemeProvider";
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import HomeScreen from "../features/home/screens/HomeScreen";
-import LogScreen from "../features/log/screens/LogScreen";
-import ScanScreen from "../features/scan/screens/ScanScreen";
-import MealPlanScreen from "../features/meals/screens/MealPlanScreen";
-import ProfileScreen from "../features/profile/screens/ProfileScreen";
+// Import the screens for your tabs
+import HomeScreen from '../screens/HomeScreen';
+import LogScreen from '../screens/LogScreen';
+import ScanScreen from '../screens/ScanScreen';
+import MealPlanScreen from '../screens/MealPlanScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const TAB_BAR_HEIGHT = 62; // visible bar height (icon + label)
-const SCAN_BTN_HEIGHT = 60; // center scan button diameter
-const ANDROID_EXTRA_PAD = 12; // breathing room above Android system nav
-const IOS_LABEL_PAD = 4;
-
 export default function MainTabNavigator() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-
-  // On Android, insets.bottom can be 0 with gesture nav or ~24 with 3-button nav.
-  // We always add a minimum extra padding so the bar never touches the system bar.
-  const androidBottom = Math.max(insets.bottom, ANDROID_EXTRA_PAD);
-  const iosBottom = insets.bottom; // iOS safe area is reliable
-
-  const tabBarHeight = Platform.select({
-    android: TAB_BAR_HEIGHT + androidBottom,
-    ios: TAB_BAR_HEIGHT + iosBottom,
-  });
-
-  const tabBarPaddingBottom = Platform.select({
-    android: androidBottom,
-    ios: iosBottom + IOS_LABEL_PAD,
-  });
+  const bottomOffset = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : insets.bottom;
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: styles.label,
-        tabBarStyle: {
-          ...styles.tabBar,
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
-          height: tabBarHeight,
-          paddingBottom: tabBarPaddingBottom,
-          paddingTop: 10,
-        },
-        tabBarIcon: ({ focused, color }) => {
-          const s = 24;
-          switch (route.name) {
-            case "Home":
-              return (
-                <Ionicons
-                  name={focused ? "home" : "home-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Log":
-              return (
-                <MaterialCommunityIcons
-                  name={focused ? "plus-circle" : "plus-circle-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Scan":
-              return null; // custom button below
-            case "Meal":
-              return (
-                <MaterialCommunityIcons
-                  name={
-                    focused ? "silverware-fork-knife" : "silverware-fork-knife"
-                  }
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Profile":
-              return (
-                <Ionicons
-                  name={focused ? "person" : "person-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            default:
-              return null;
+        tabBarActiveTintColor: '#825CFF',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: [styles.tabBar, { bottom: bottomOffset, height: (Platform.OS === 'ios' ? 88 : 60) + bottomOffset, paddingBottom: (Platform.OS === 'ios' ? 30 : 8) + bottomOffset }],
+        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarIcon: ({ focused, color, size }) => {
+          if (route.name === 'Home') {
+            return <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />;
+          } else if (route.name === 'Log') {
+            return <MaterialCommunityIcons name={focused ? 'plus-circle' : 'plus-circle-outline'} size={size} color={color} />;
+          } else if (route.name === 'Scan') {
+            return null;
+          } else if (route.name === 'Meal') {
+            return <MaterialCommunityIcons name="silverware-fork-knife" size={size} color={color} />;
+          } else if (route.name === 'Profile') {
+            return <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />;
           }
         },
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: "Home" }}
-      />
-      <Tab.Screen
-        name="Log"
-        component={LogScreen}
-        options={{ tabBarLabel: "Log" }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Log" component={LogScreen} />
       <Tab.Screen
         name="Scan"
         component={ScanScreen}
         options={{
-          tabBarLabel: "",
-          tabBarButton: (props) => (
-            <ScanTabButton {...props} bottomPad={tabBarPaddingBottom} />
-          ),
+          tabBarLabel: '',
+          tabBarButton: (props) => {
+            const { onPress, onLongPress, accessibilityRole, accessibilityState, testID } = props;
+            return (
+              <TouchableOpacity
+                onPress={onPress}
+                onLongPress={onLongPress}
+                accessibilityRole={accessibilityRole}
+                accessibilityState={accessibilityState}
+                testID={testID}
+                style={styles.scanButtonWrap}
+              >
+                <View style={styles.scanButton}>
+                  <Ionicons name="scan" size={24} color="#FFF" />
+                </View>
+              </TouchableOpacity>
+            );
+          },
         }}
       />
-      <Tab.Screen
-        name="Meal"
-        component={MealPlanScreen}
-        options={{ tabBarLabel: "Meals" }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ tabBarLabel: "Profile" }}
-      />
+      <Tab.Screen name="Meal" component={MealPlanScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
-// ─── Custom Scan (centre) Button ──────────────────────────────────────────────
-// Positioned at the center of the tab bar without excessive lift
-function ScanTabButton({
-  onPress,
-  onLongPress,
-  accessibilityRole,
-  accessibilityState,
-  testID,
-  bottomPad,
-}) {
-  const { colors } = useTheme();
-
-  // Lift button so it sits centered on the tab bar, overlapping slightly
-  const liftAmount = -(SCAN_BTN_HEIGHT / 2 - TAB_BAR_HEIGHT / 2);
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      onLongPress={onLongPress}
-      accessibilityRole={accessibilityRole}
-      accessibilityState={accessibilityState}
-      testID={testID}
-      style={[styles.scanWrap, { top: liftAmount }]}
-      activeOpacity={0.85}
-    >
-      <View
-        style={[
-          styles.scanRing,
-          { backgroundColor: colors.card, shadowColor: colors.primary },
-        ]}
-      >
-        <View style={[styles.scanBtn, { backgroundColor: colors.primary }]}>
-          <Ionicons name="scan" size={24} color="#FFF" />
-        </View>
-      </View>
-      <Text style={[styles.scanLabel, { color: colors.primary }]}>Scan</Text>
-    </TouchableOpacity>
-  );
-}
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   tabBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    position: 'absolute',
+    paddingTop: 10,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    // Shadow
-    elevation: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    borderTopColor: '#F3F4F6',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
-
-  label: {
-    fontSize: 11,
-    fontWeight: "600",
-    marginTop: 2,
+  tabBarLabel: {
+    fontSize: 12,
+    fontWeight: '600',
   },
-
-  // ── Scan button ──
-  scanWrap: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    // Don't add paddingBottom here — it shifts the label position
+  scanButtonWrap: {
+    top: -18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  scanRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    // White ring acts as a border that hides the tab bar line underneath
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 8,
-  },
-  scanBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scanLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    marginTop: 3,
-    marginBottom: Platform.OS === "android" ? 6 : 2,
+  scanButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#825CFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#825CFF',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
 });
