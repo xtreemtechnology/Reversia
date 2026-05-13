@@ -1,5 +1,5 @@
 // src/components/ProductCard.js
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,41 +7,50 @@ import {
   TouchableOpacity,
   Image,
   Animated,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { shadowStyle } from "../utils/shadows";
 
-export default function ProductCard({ title, description, price, benefitText, onBuyPress }) {
+export default function ProductCard({
+  title,
+  description,
+  price,
+  benefitText,
+  onBuyPress,
+}) {
   const scaleValue = new Animated.Value(1);
-  
+
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.98,
       useNativeDriver: true,
     }).start();
   };
-  
+
   const handlePressOut = () => {
     Animated.spring(scaleValue, {
       toValue: 1,
       useNativeDriver: true,
     }).start();
   };
-  
+
   return (
-    <Animated.View style={[styles.container, { transform: [{ scale: scaleValue }] }]}>
+    <Animated.View
+      style={[styles.container, { transform: [{ scale: scaleValue }] }]}
+    >
       <View style={styles.imagePlaceholder}>
         <Ionicons name="medical-outline" size={48} color="#6366f1" />
       </View>
-      
+
       <View style={styles.content}>
         <View style={styles.benefitBadge}>
           <Ionicons name="star" size={12} color="#f59e0b" />
           <Text style={styles.benefitText}>{benefitText}</Text>
         </View>
-        
+
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
-        
+
         <View style={styles.footer}>
           <Text style={styles.price}>{price}</Text>
           <TouchableOpacity
@@ -61,74 +70,76 @@ export default function ProductCard({ title, description, price, benefitText, on
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    flexDirection: "row",
+    backgroundColor: "#ffffff",
     marginHorizontal: 20,
     marginVertical: 8,
     padding: 16,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    ...shadowStyle({
+      color: "#000",
+      offsetY: 4,
+      opacity: 0.08,
+      radius: 12,
+      elevation: 4,
+    }),
   },
   imagePlaceholder: {
     width: 80,
     height: 80,
     borderRadius: 16,
-    backgroundColor: '#eef2ff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#eef2ff",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   content: {
     flex: 1,
   },
   benefitBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     marginBottom: 8,
   },
   benefitText: {
     fontSize: 11,
-    color: '#f59e0b',
-    fontWeight: '600',
+    color: "#f59e0b",
+    fontWeight: "600",
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 4,
   },
   description: {
     fontSize: 13,
-    color: '#6b7280',
+    color: "#6b7280",
     marginBottom: 12,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   price: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#6366f1',
+    fontWeight: "700",
+    color: "#6366f1",
   },
   buyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#6366f1',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#6366f1",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
     gap: 8,
   },
   buyButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
+    color: "#ffffff",
+    fontWeight: "600",
     fontSize: 13,
   },
 });

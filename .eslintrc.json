@@ -1,0 +1,20 @@
+{
+  "root": true,
+  "extends": ["@react-native-community", "prettier"],
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": true,
+    "babelOptions": {
+      "configFile": "./babel.config.js"
+    }
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "jest": true
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "quotes": "off"
+  }
+}
