@@ -18,40 +18,41 @@ import moment from "moment";
 import { getButtonAccessibility } from "../../../utils/accessibility";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-const logCards = [
+const getLogCards = (isDark) => [
   {
     title: "Glucose",
     subtitle: "Record a reading",
     icon: "water",
-    color: "#DBEAFE",
-    iconColor: "#3B82F6",
+    color: isDark ? "rgba(34, 66, 47, 0.15)" : "rgba(34, 66, 47, 0.08)",
+    iconColor: "#22422F",
   },
   {
     title: "Meal",
     subtitle: "Add food and carbs",
     icon: "food-apple",
-    color: "#DCFCE7",
+    color: isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)",
     iconColor: "#10B981",
   },
   {
     title: "Water",
     subtitle: "Track hydration",
     icon: "cup-water",
-    color: "#E0F2FE",
-    iconColor: "#0EA5E9",
+    color: isDark ? "rgba(2, 132, 199, 0.15)" : "rgba(2, 132, 199, 0.08)",
+    iconColor: "#0284C7",
   },
   {
     title: "Exercise",
     subtitle: "Log activity",
     icon: "run",
-    color: "#FCE7F3",
-    iconColor: "#EC4899",
+    color: isDark ? "rgba(236, 161, 67, 0.15)" : "rgba(236, 161, 67, 0.08)",
+    iconColor: "#ECA143",
   },
 ];
 
 export default function LogScreen({ navigation }) {
   const { colors, theme } = useTheme();
   const isDark = theme === "dark";
+  const logCards = getLogCards(isDark);
   const [refreshToken, setRefreshToken] = useState(0);
   const { width: screenWidth } = useWindowDimensions();
   const isNarrow = screenWidth < 640;
@@ -109,9 +110,9 @@ export default function LogScreen({ navigation }) {
     switch (type) {
       case "glucose":
         return {
-          dotColor: "#3B82F6",
+          dotColor: "#22422F",
           label: "Glucose reading",
-          statusColor: "#3B82F6",
+          statusColor: "#22422F",
         };
       case "meal":
         return {
@@ -121,15 +122,15 @@ export default function LogScreen({ navigation }) {
         };
       case "water":
         return {
-          dotColor: "#0EA5E9",
+          dotColor: "#0284C7",
           label: "Hydration",
-          statusColor: "#0EA5E9",
+          statusColor: "#0284C7",
         };
       default:
         return {
-          dotColor: "#825CFF",
+          dotColor: "#ECA143",
           label: "Activity",
-          statusColor: "#825CFF",
+          statusColor: "#ECA143",
         };
     }
   };
@@ -532,20 +533,20 @@ const getStyles = (colors) =>
     },
     heroCard: {
       flexDirection: "row",
-      backgroundColor: colors.background === "#FFFFFF" ? "#F8FAFF" : "#2D2A42",
+      backgroundColor: colors.background === "#FFFFFF" ? "#F8F6F0" : "#1C2621",
       borderRadius: 24,
       padding: 18,
       marginBottom: 24,
       elevation: 1,
       borderWidth: 1,
-      borderColor: colors.background === "#FFFFFF" ? "#E7E9FF" : "#4A4563",
+      borderColor: colors.background === "#FFFFFF" ? "#EBE7DD" : "#2C3B33",
     },
     heroIconWrap: {
       width: 52,
       height: 52,
       borderRadius: 16,
       backgroundColor:
-        colors.background === "#FFFFFF" ? "#ECEBFF" : "rgba(130,92,255,0.24)",
+        colors.background === "#FFFFFF" ? "rgba(34, 66, 47, 0.08)" : "rgba(34, 66, 47, 0.20)",
       justifyContent: "center",
       alignItems: "center",
       marginRight: 14,

@@ -17,21 +17,21 @@ const ThemeContext = createContext({
 });
 
 const light = {
-  background: "#F8FAFC",
+  background: "#F8F6F0",
   card: "#FFFFFF",
-  text: "#0F172A",
-  muted: "#6B7280",
-  border: "#E5E7EB",
-  primary: "#825CFF",
+  text: "#22422F",
+  muted: "#627A6E",
+  border: "#EBE7DD",
+  primary: "#22422F",
 };
 
 const dark = {
-  background: "#0B1220",
-  card: "#0F172A",
-  text: "#E6EEF7",
-  muted: "#94A3B8",
-  border: "#1F2937",
-  primary: "#8B5CF6",
+  background: "#121A16",
+  card: "#1C2621",
+  text: "#E6EFEA",
+  muted: "#8CA397",
+  border: "#2C3B33",
+  primary: "#22422F",
 };
 
 export function ThemeProvider({ children }) {

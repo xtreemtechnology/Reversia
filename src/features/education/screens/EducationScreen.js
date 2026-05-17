@@ -33,7 +33,7 @@ export default function EducationScreen() {
       duration: "3 min read",
       category: "Fundamentals",
       status: "Completed",
-      color: "#825CFF",
+      color: "#22422F",
       icon: "key-variant",
     },
     {
@@ -51,7 +51,7 @@ export default function EducationScreen() {
       duration: "4 min read",
       category: "Nutrition",
       status: "Locked",
-      color: "#F59E0B",
+      color: "#ECA143",
       icon: "shield-check",
     },
   ];
