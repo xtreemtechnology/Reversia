@@ -91,6 +91,7 @@ export default function AIInsightModal({ visible, onClose, userData = {} }) {
 
           <Text style={[styles.recommendationLabel, { color: colors.text }]}>
             Recommended Actions
+          </Text>
 
           <View style={styles.actionRow}>
             <View

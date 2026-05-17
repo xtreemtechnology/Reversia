@@ -37,6 +37,8 @@ import ActivityStack from "../features/activity/navigation";
 
 // Profile feature stack (modular navigator)
 import ProfileStack from "../features/profile/navigation";
+// Notifications
+import NotificationsScreen from "../features/notifications/screens/NotificationsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -146,6 +148,9 @@ export default function AppStackNavigator() {
         component={SettingsStack}
         options={{ gestureEnabled: false }}
       />
+
+      {/* Notifications center */}
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
       {/* ─── MEALS STACK (modular feature navigator) ─── */}
       <Stack.Screen

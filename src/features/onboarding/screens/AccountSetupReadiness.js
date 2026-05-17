@@ -109,15 +109,6 @@ export default function AccountSetupReadiness({ navigation }) {
                   </View>
                   <Text style={styles.optionDesc}>{item.desc}</Text>
                 </View>
-
-
-                  style={[
-                    styles.radioCircle,
-                    isSelected && styles.radioSelected,
-                  ]}
-                >
-                  {isSelected && <View style={styles.radioInner} />}
-                </View>
               </TouchableOpacity>
             );
           })}

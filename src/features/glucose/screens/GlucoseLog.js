@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { showNotification } from "../../../components/Notification";
 import { useGlucoseLogs } from "../hooks/useGlucoseLogs";
 import { addGlucoseEntry } from "../services/glucoseService";
 import { useTheme } from "../../../theme/ThemeProvider";
@@ -22,7 +23,7 @@ export default function GlucoseLog() {
   const handleAdd = async () => {
     const num = parseFloat(value);
     if (isNaN(num)) {
-      Alert.alert("Invalid value", "Enter a valid mg/dL value");
+      showNotification({ type: "warning", title: "Invalid value", message: "Enter a valid mg/dL value" });
       return;
     }
     setSaving(true);
@@ -31,7 +32,7 @@ export default function GlucoseLog() {
       setValue("");
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Could not save glucose");
+      showNotification({ type: "error", title: "Error", message: "Could not save glucose" });
     } finally {
       setSaving(false);
     }

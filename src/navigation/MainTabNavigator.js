@@ -21,8 +21,8 @@ import ProfileScreen from "../features/profile/screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const TAB_BAR_HEIGHT = 62; // visible bar height (icon + label)
-const SCAN_BTN_HEIGHT = 60; // center scan button diameter
+const TAB_BAR_HEIGHT = 68; // visible bar height (icon + label)
+const SCAN_BTN_HEIGHT = 64; // center scan button diameter
 const ANDROID_EXTRA_PAD = 12; // breathing room above Android system nav
 const IOS_LABEL_PAD = 4;
 
@@ -50,9 +50,11 @@ export default function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: styles.label,
+        tabBarItemStyle: styles.tabItem,
         tabBarStyle: {
           ...styles.tabBar,
           backgroundColor: colors.card,
@@ -60,9 +62,12 @@ export default function MainTabNavigator() {
           height: tabBarHeight,
           paddingBottom: tabBarPaddingBottom,
           paddingTop: 10,
+          marginHorizontal: 12,
+          marginBottom: 10,
+          borderRadius: 28,
         },
         tabBarIcon: ({ focused, color }) => {
-          const s = 24;
+          const s = 23;
           switch (route.name) {
             case "Home":
               return (
@@ -122,7 +127,7 @@ export default function MainTabNavigator() {
         options={{
           tabBarLabel: "",
           tabBarButton: (props) => (
-            <ScanTabButton {...props} bottomPad={tabBarPaddingBottom} />
+            <ScanTabButton {...props} />
           ),
         }}
       />
@@ -148,12 +153,11 @@ function ScanTabButton({
   accessibilityRole,
   accessibilityState,
   testID,
-  bottomPad,
 }) {
   const { colors } = useTheme();
 
   // Lift button so it sits centered on the tab bar, overlapping slightly
-  const liftAmount = -(SCAN_BTN_HEIGHT / 2 - TAB_BAR_HEIGHT / 2);
+  const liftAmount = -(SCAN_BTN_HEIGHT / 2 - TAB_BAR_HEIGHT / 2) - 2;
 
   return (
     <TouchableOpacity
@@ -172,7 +176,7 @@ function ScanTabButton({
         ]}
       >
         <View style={[styles.scanBtn, { backgroundColor: colors.primary }]}>
-          <Ionicons name="scan" size={24} color="#FFF" />
+          <Ionicons name="scan" size={26} color="#FFF" />
         </View>
       </View>
       <Text style={[styles.scanLabel, { color: colors.primary }]}>Scan</Text>
@@ -188,18 +192,21 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderTopWidth: 1,
-    // Shadow
-    elevation: 12,
+    elevation: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
   },
 
   label: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     marginTop: 2,
+  },
+
+  tabItem: {
+    paddingTop: 4,
   },
 
   // ── Scan button ──
@@ -210,26 +217,25 @@ const styles = StyleSheet.create({
     // Don't add paddingBottom here — it shifts the label position
   },
   scanRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     justifyContent: "center",
     alignItems: "center",
-    // White ring acts as a border that hides the tab bar line underneath
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
   scanBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
   },
   scanLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     marginTop: 3,
     marginBottom: Platform.OS === "android" ? 6 : 2,

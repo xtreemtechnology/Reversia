@@ -15,6 +15,8 @@ import { OnboardingProgress } from "../components/OnboardingProgress";
 import { ContinueButton } from "../components/ContinueButton";
 import { ErrorBox } from "../components/ErrorBox";
 import { saveName } from "../services/onboardingService";
+import { auth } from "../../../config/firebase";
+import ROUTES from "../../../navigation/routeNames";
 import { useTheme } from "../../../theme/ThemeProvider";
 
 export default function AccountSetupName({ navigation }) {
@@ -28,6 +30,13 @@ export default function AccountSetupName({ navigation }) {
     setError(null);
     if (name.trim().length < 2) {
       setError("Please enter your real name to continue.");
+      return;
+    }
+
+    // Ensure user is authenticated before attempting to save to Firestore
+    if (!auth.currentUser) {
+      setError("Please sign in to continue.");
+      navigation.navigate(ROUTES.ROOT.AUTH, { screen: ROUTES.AUTH.LOGIN });
       return;
     }
 
@@ -83,52 +92,51 @@ export default function AccountSetupName({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
 const getStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    paddingHorizontal: 30,
-    paddingTop: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: colors.primary,
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.muted,
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 50,
-  },
-  inputContainer: {
-    width: "100%",
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    justifyContent: "center",
-    paddingHorizontal: 25,
-  },
-  input: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  footer: {
-    paddingHorizontal: 25,
-    paddingBottom: 40,
-  },
+    flex: {
+      flex: 1,
+    },
+    content: {
+      flex: 1,
+      alignItems: "center",
+      paddingHorizontal: 30,
+      paddingTop: 40,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "700",
+      color: colors.primary,
+      textAlign: "center",
+      marginBottom: 15,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.muted,
+      textAlign: "center",
+      lineHeight: 22,
+      marginBottom: 50,
+    },
+    inputContainer: {
+      width: "100%",
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      justifyContent: "center",
+      paddingHorizontal: 25,
+    },
+    input: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    footer: {
+      paddingHorizontal: 25,
+      paddingBottom: 40,
+    },
   });

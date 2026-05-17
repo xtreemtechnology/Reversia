@@ -11,12 +11,30 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppNavigator from "./src/navigation/AppNavigator";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import InlineSplash from "./src/components/InlineSplash";
+import { NotificationHost } from "./src/components/Notification";
+import { ConfirmHost } from "./src/components/Confirm";
 import { auth } from "./src/config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { ROUTES } from "./src/navigation/routeNames";
 
 const navigationRef = createNavigationContainerRef();
 const NAVIGATION_STATE_KEY = "NAVIGATION_STATE_V1";
+const ROOT_ROUTE_NAMES = new Set([
+  ROUTES.ROOT.ONBOARDING_FLOW,
+  ROUTES.ROOT.AUTH_STACK,
+  ROUTES.ROOT.AUTH,
+  ROUTES.ROOT.MAIN_APP,
+  ROUTES.APP.MAIN_APP,
+]);
+
+function isRestorableNavigationState(state) {
+  if (!state || !Array.isArray(state.routes) || state.routes.length === 0) {
+    return false;
+  }
+
+  const rootRoute = state.routes[0];
+  return !!rootRoute?.name && ROOT_ROUTE_NAMES.has(rootRoute.name);
+}
 
 export default function App() {
   const [initialState, setInitialState] = useState();
@@ -61,19 +79,26 @@ export default function App() {
           try {
             const parsed = JSON.parse(saved);
 
+            if (!isRestorableNavigationState(parsed)) {
+              await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
+              return;
+            }
+
             // If a user is already signed in, avoid restoring an onboarding route
             // which would kick them back into onboarding on refresh.
             const user = auth?.currentUser;
             if (user && parsed) {
+              const localFlag = await AsyncStorage.getItem("ONBOARDING_COMPLETE");
               const containsOnboarding = hasOnboardingRoute(parsed);
+              const rootName = parsed?.routes?.[0]?.name;
+              const pointsToMainApp =
+                rootName === ROUTES.ROOT.MAIN_APP ||
+                rootName === ROUTES.APP.MAIN_APP;
 
               if (containsOnboarding) {
                 // If onboarding-related routes exist in the saved state, check local flag
                 // If onboarding was completed locally, it's safe to restore; otherwise drop it.
                 try {
-                  const localFlag = await AsyncStorage.getItem(
-                    "ONBOARDING_COMPLETE"
-                  );
                   if (localFlag === "true") {
                     setInitialState(parsed);
                   } else {
@@ -83,6 +108,9 @@ export default function App() {
                   // on any AsyncStorage failure be conservative and remove the saved state
                   await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
                 }
+              } else if (pointsToMainApp && localFlag !== "true") {
+                // If onboarding is incomplete, do not restore a saved main app route.
+                await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
               } else {
                 setInitialState(parsed);
               }
@@ -133,11 +161,20 @@ export default function App() {
       handled = true;
 
       if (user && navigationRef.isReady()) {
-        try {
-          navigationRef.navigate(ROUTES.ROOT.MAIN_APP);
-        } catch (e) {
-          // ignore navigation errors during startup
-        }
+        // Only bypass onboarding if it was completed previously.
+        AsyncStorage.getItem("ONBOARDING_COMPLETE")
+          .then((flag) => {
+            if (flag === "true") {
+              try {
+                navigationRef.navigate(ROUTES.ROOT.MAIN_APP);
+              } catch (e) {
+                // ignore navigation errors during startup
+              }
+            }
+          })
+          .catch(() => {
+            // ignore storage errors and keep current onboarding flow
+          });
       }
     });
 
@@ -171,6 +208,8 @@ export default function App() {
           ) : (
             <InlineSplash />
           )}
+          <NotificationHost />
+          <ConfirmHost />
         </>
       </ThemeProvider>
     </SafeAreaProvider>

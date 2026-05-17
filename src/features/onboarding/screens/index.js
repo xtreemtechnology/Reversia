@@ -1,4 +1,6 @@
 export { default as AccountSetupName } from "./AccountSetupName";
+export { default as OnboardingSplashScreen } from "./OnboardingSplashScreen";
+export { default as OnboardingStartScreen } from "./OnboardingStartScreen";
 export { default as AccountSetupAge } from "./AccountSetupAge";
 export { default as AccountSetupGender } from "./AccountSetupGender";
 export { default as AccountSetupHeight } from "./AccountSetupHeight";

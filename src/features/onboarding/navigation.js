@@ -1,6 +1,8 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ROUTES } from "../../navigation/routeNames";
+import OnboardingSplashScreen from "./screens/OnboardingSplashScreen";
+import OnboardingStartScreen from "./screens/OnboardingStartScreen";
 
 // Import onboarding screens
 import AccountSetupName from "./screens/AccountSetupName";
@@ -21,9 +23,20 @@ const Stack = createNativeStackNavigator();
  */
 export default function OnboardingFeatureStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={ROUTES.ONBOARDING.SPLASH}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen
-        name={ROUTES.ONBOARDING.ACCOUNT_SETUP_NAME}
+        name={ROUTES.ONBOARDING.SPLASH}
+        component={OnboardingSplashScreen}
+      />
+      <Stack.Screen
+        name={ROUTES.ONBOARDING.START}
+        component={OnboardingStartScreen}
+      />
+      <Stack.Screen
+        name="AccountSetupName"
         component={AccountSetupName}
       />
       <Stack.Screen name="AccountSetupAge" component={AccountSetupAge} />
@@ -40,7 +53,7 @@ export default function OnboardingFeatureStack() {
         component={AccountSetupReadiness}
       />
       <Stack.Screen
-        name={ROUTES.ONBOARDING.ACCOUNT_SETUP_COMPLETE}
+        name="AccountSetupComplete"
         component={AccountSetupComplete}
       />
     </Stack.Navigator>

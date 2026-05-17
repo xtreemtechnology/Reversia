@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation, route }) {
     setLoading(true);
     try {
       await signIn(email, password);
-      navigation.replace("MainApp");
+      navigation.navigate(ROUTES.ROOT.MAIN_APP);
     } catch (err) {
       const friendlyError = handleAuthError(err);
       setError(friendlyError.message);

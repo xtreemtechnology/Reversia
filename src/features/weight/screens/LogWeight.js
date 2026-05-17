@@ -10,6 +10,7 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
+import { showNotification } from "../../../components/Notification";
 import { useWeightLogs } from "../hooks/useWeightLogs";
 import { addWeightEntry } from "../services/weightService";
 import { useTheme } from "../../../theme/ThemeProvider";
@@ -23,7 +24,7 @@ export default function LogWeight() {
   const handleAdd = async () => {
     const num = parseFloat(value);
     if (isNaN(num) || num <= 0) {
-      Alert.alert("Invalid weight", "Enter a valid weight in kg");
+      showNotification({ type: "warning", title: "Invalid weight", message: "Enter a valid weight in kg" });
       return;
     }
     setSaving(true);
@@ -32,7 +33,7 @@ export default function LogWeight() {
       setValue("");
     } catch (err) {
       console.error("Weight save error", err);
-      Alert.alert("Error", "Could not save weight");
+      showNotification({ type: "error", title: "Error", message: "Could not save weight" });
     } finally {
       setSaving(false);
     }

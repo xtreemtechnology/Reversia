@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthButton } from "../components/AuthButton";
+import ROUTES from "../../../navigation/routeNames";
 
 import { auth } from "../../../config/firebase";
 
@@ -17,7 +18,9 @@ export default function EmailVerificationSuccess({ navigation }) {
 
   const handleGetStarted = () => {
     if (auth.currentUser?.emailVerified) {
-      navigation.navigate("OnboardingStart");
+      navigation.navigate(ROUTES.ROOT.ONBOARDING_FLOW, {
+        screen: ROUTES.ONBOARDING.START,
+      });
     } else {
       setStatusMessage(
         "Your email isn't verified yet. Please check your inbox and tap the link."

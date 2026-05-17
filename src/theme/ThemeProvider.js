@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../config/firebase";
 import useSettings from "../features/settings/hooks/useSettings";
 
@@ -40,6 +41,24 @@ export function ThemeProvider({ children }) {
   const { settings } = useSettings(userId);
   const [localTheme, setLocalTheme] = useState(null);
   const [userSettingsTheme, setUserSettingsTheme] = useState(null);
+  const THEME_KEY = "APP_THEME";
+
+  // Load persisted local theme (for unauthenticated or fallback)
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const t = await AsyncStorage.getItem(THEME_KEY);
+        if (mounted && t) setLocalTheme(t);
+      } catch (e) {
+        // ignore
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Sync theme from settings when userId becomes available
   useEffect(() => {
@@ -57,6 +76,11 @@ export function ThemeProvider({ children }) {
   const setTheme = async (theme) => {
     try {
       setLocalTheme(theme);
+      try {
+        await AsyncStorage.setItem(THEME_KEY, theme);
+      } catch (e) {
+        // ignore
+      }
       // Update Firestore if user is authenticated
       if (userId) {
         const settingsService = require("../features/settings/services/settingsService");

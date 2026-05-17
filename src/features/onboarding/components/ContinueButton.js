@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export const ContinueButton = ({
   onPress,
@@ -24,8 +24,8 @@ export const ContinueButton = ({
     ) : (
       <>
         <Text style={styles.text}>{label}</Text>
-        <AntDesign
-          name="arrowright"
+        <Ionicons
+          name="chevron-forward"
           size={20}
           color="#FFF"
           style={styles.icon}
