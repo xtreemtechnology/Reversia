@@ -44,62 +44,50 @@ import { useUserLogs } from "../../../hooks/useUserLogs";
 const buildColours = (colors, isDark) => ({
   BG: colors.background,
   CARD: colors.card,
-  CARD_ALT: isDark ? CARD_ALT_DARK : CARD_ALT_LIGHT,
+  CARD_ALT: isDark ? "#1C2621" : "#F8F6F0",
   BORDER: colors.border,
   TEXT: colors.text,
   MUTED: colors.muted,
-  PURPLE: colors.primary,
-  PURPLE_LIGHT: isDark ? "rgba(167,139,250,0.18)" : PURPLE_LIGHT_BG,
-  PURPLE_MID: isDark ? "rgba(167,139,250,0.12)" : PURPLE_MID_BG,
+  PURPLE: "#22422F",
+  PURPLE_LIGHT: isDark ? "rgba(34, 66, 47, 0.15)" : "rgba(34, 66, 47, 0.08)",
+  PURPLE_MID: isDark ? "rgba(34, 66, 47, 0.12)" : "rgba(34, 66, 47, 0.06)",
   GREEN: "#10B981",
-  AMBER: "#F59E0B",
+  AMBER: "#ECA143",
   BLUE: "#0284C7",
   RED: "#EF4444",
-  ICON_SLEEP: isDark ? "rgba(167,139,250,0.22)" : PURPLE_MID_BG,
-  ICON_FOOD: isDark ? "rgba(217,119,6,0.22)" : "#FEF3C7",
-  ICON_RUN: isDark ? "rgba(2,132,199,0.22)" : "#E0F2FE",
-  ICON_BMI: isDark ? "rgba(5,150,105,0.22)" : "#D1FAE5",
-  PROGRESS_FILL: isDark ? "#A78BFA" : colors.primary,
+  ICON_SLEEP: isDark ? "rgba(34, 66, 47, 0.20)" : "rgba(34, 66, 47, 0.08)",
+  ICON_FOOD: isDark ? "rgba(236, 161, 67, 0.20)" : "rgba(236, 161, 67, 0.08)",
+  ICON_RUN: isDark ? "rgba(2, 132, 199, 0.20)" : "rgba(2, 132, 199, 0.08)",
+  ICON_BMI: isDark ? "rgba(16, 185, 129, 0.20)" : "rgba(16, 185, 129, 0.08)",
+  PROGRESS_FILL: isDark ? "#E6EFEA" : "#22422F",
   WHITE: "#FFFFFF",
-  ACCENT_BLUE: isDark ? "#60A5FA" : "#60A5FA",
-  ACCENT_LIME: isDark ? "#86EFAC" : "#86EFAC",
-  ACCENT_VIOLET: isDark ? "#818CF8" : "#818CF8",
-  ACCENT_PURPLE2: isDark ? "#8B5CF6" : "#8B5CF6",
-  ACCENT_ORANGE: isDark ? "#C2410C" : "#C2410C",
-  ACCENT_GREEN2: isDark ? "#059669" : "#059669",
-  ACCENT_GREEN_DARK: isDark ? "#166534" : "#166534",
-  ACCENT_BLUE2: isDark ? "#1D4ED8" : "#1D4ED8",
-  ACCENT_DEEP_PURPLE: isDark ? "#6D28D9" : "#6D28D9",
-  ACCENT_AMBER: isDark ? "#D97706" : "#D97706",
+  ACCENT_BLUE: isDark ? "#60A5FA" : "#0284C7",
+  ACCENT_LIME: isDark ? "#86EFAC" : "#10B981",
+  ACCENT_VIOLET: isDark ? "#818CF8" : "#7C3AED",
+  ACCENT_PURPLE2: isDark ? "#A78BFA" : "#7C3AED",
+  ACCENT_ORANGE: isDark ? "#FB923C" : "#ECA143",
+  ACCENT_GREEN2: isDark ? "#6EE7B7" : "#10B981",
+  ACCENT_GREEN_DARK: isDark ? "#A7F3D0" : "#059669",
+  ACCENT_BLUE2: isDark ? "#60A5FA" : "#0284C7",
+  ACCENT_DEEP_PURPLE: isDark ? "#A78BFA" : "#7C3AED",
+  ACCENT_AMBER: isDark ? "#FCD34D" : "#ECA143",
 });
 
 // Dark-safe icon backgrounds for the Quick Access grid
 const gridIconBg = (key, isDark) => {
   const map = {
-    academy: isDark ? "rgba(139, 92,246,0.20)" : PURPLE_LIGHTER_BG,
-    mealScan: isDark ? "rgba(194, 65, 12,0.20)" : AMBER_LIGHT_BG,
-    glucose: isDark ? "rgba(124, 58,237,0.20)" : PURPLE_MID_BG,
-    bodyComp: isDark ? "rgba(  5,150,105,0.20)" : GREEN_LIGHT_BG,
-    healthSync: isDark ? "rgba(  2,132,199,0.20)" : BLUE_LIGHT_BG,
-    meals: isDark ? "rgba( 22,101, 52,0.20)" : GREEN_PALE_BG,
-    exercise: isDark ? "rgba( 29, 78,216,0.20)" : BLUE_PALE_BG,
+    academy: isDark ? "rgba(34, 66, 47, 0.25)" : "rgba(34, 66, 47, 0.06)",
+    mealScan: isDark ? "rgba(236, 161, 67, 0.20)" : "rgba(236, 161, 67, 0.08)",
+    glucose: isDark ? "rgba(34, 66, 47, 0.20)" : "rgba(34, 66, 47, 0.08)",
+    bodyComp: isDark ? "rgba(16, 185, 129, 0.20)" : "rgba(16, 185, 129, 0.08)",
+    healthSync: isDark ? "rgba(2, 132, 199, 0.20)" : "rgba(2, 132, 199, 0.08)",
+    meals: isDark ? "rgba(34, 66, 47, 0.20)" : "rgba(34, 66, 47, 0.08)",
+    exercise: isDark ? "rgba(2, 132, 199, 0.20)" : "rgba(2, 132, 199, 0.08)",
   };
-  return map[key] || (isDark ? "rgba(255,255,255,0.08)" : NEUTRAL_LIGHT_BG);
+  return map[key] || (isDark ? "rgba(255,255,255,0.08)" : "rgba(34, 66, 47, 0.05)");
 };
 
 const MACRO_TARGETS = { protein: 120, carbs: 275, fats: 80 };
-
-const CARD_ALT_DARK = "#263248";
-const CARD_ALT_LIGHT = "#F8FAFC";
-const PURPLE_LIGHT_BG = "#F3E8FF";
-const PURPLE_MID_BG = "#EDE9FE";
-const PURPLE_LIGHTER_BG = "#FEF3FF";
-const AMBER_LIGHT_BG = "#FEF3C7";
-const BLUE_LIGHT_BG = "#E0F2FE";
-const GREEN_LIGHT_BG = "#D1FAE5";
-const GREEN_PALE_BG = "#F0FDF4";
-const BLUE_PALE_BG = "#EFF6FF";
-const NEUTRAL_LIGHT_BG = "#F3F4F6";
 
 const SKELETON_STYLES = {
   headerRow: {
