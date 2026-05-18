@@ -1,4 +1,3 @@
-// src/features/onboarding/screens/AccountSetupComplete.js
 import React from "react";
 import {
   View,

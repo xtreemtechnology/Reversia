@@ -23,7 +23,11 @@ export default function GlucoseLog() {
   const handleAdd = async () => {
     const num = parseFloat(value);
     if (isNaN(num)) {
-      showNotification({ type: "warning", title: "Invalid value", message: "Enter a valid mg/dL value" });
+      showNotification({
+        type: "warning",
+        title: "Invalid value",
+        message: "Enter a valid mg/dL value",
+      });
       return;
     }
     setSaving(true);
@@ -32,7 +36,11 @@ export default function GlucoseLog() {
       setValue("");
     } catch (err) {
       console.error(err);
-      showNotification({ type: "error", title: "Error", message: "Could not save glucose" });
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "Could not save glucose",
+      });
     } finally {
       setSaving(false);
     }

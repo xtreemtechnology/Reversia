@@ -7,7 +7,12 @@ export function subscribeConfirm(cb) {
   };
 }
 
-export function confirm({ title = "Confirm", message = "", confirmText = "OK", cancelText = "Cancel" } = {}) {
+export function confirm({
+  title = "Confirm",
+  message = "",
+  confirmText = "OK",
+  cancelText = "Cancel",
+} = {}) {
   if (!_subscriber) {
     // no subscriber: fallback to resolved false
     return Promise.resolve(false);

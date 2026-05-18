@@ -14,14 +14,29 @@ export default function ConfirmHost() {
 
   if (!req) return null;
 
-  const { title, message, confirmText = "OK", cancelText = "Cancel", resolve } = req;
+  const {
+    title,
+    message,
+    confirmText = "OK",
+    cancelText = "Cancel",
+    resolve,
+  } = req;
 
   return (
     <Modal transparent visible animationType="fade">
       <View style={styles.backdrop}>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          {message ? <Text style={[styles.message, { color: colors.muted }]}>{message}</Text> : null}
+          {message ? (
+            <Text style={[styles.message, { color: colors.muted }]}>
+              {message}
+            </Text>
+          ) : null}
           <View style={styles.actions}>
             <TouchableOpacity
               style={[styles.btn, { borderColor: colors.border }]}
@@ -39,7 +54,9 @@ export default function ConfirmHost() {
                 resolve(true);
               }}
             >
-              <Text style={{ color: colors.background, fontWeight: "700" }}>{confirmText}</Text>
+              <Text style={{ color: colors.background, fontWeight: "700" }}>
+                {confirmText}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -64,7 +81,17 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: "800" },
   message: { marginTop: 8, fontSize: 14 },
-  actions: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 8 },
-  btn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1 },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 16,
+    gap: 8,
+  },
+  btn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   btnPrimary: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
 });

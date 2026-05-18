@@ -307,11 +307,19 @@ export default function ProfileScreen({ navigation }) {
                         updatedAt: new Date().toISOString(),
                       };
                       await updateProfile(updates);
-                      showNotification({ type: "success", title: "Saved", message: "Profile updated" });
+                      showNotification({
+                        type: "success",
+                        title: "Saved",
+                        message: "Profile updated",
+                      });
                       setEditVisible(false);
                     } catch (err) {
                       console.error("Inline save failed", err);
-                      showNotification({ type: "error", title: "Error", message: err?.message || "Failed to save profile" });
+                      showNotification({
+                        type: "error",
+                        title: "Error",
+                        message: err?.message || "Failed to save profile",
+                      });
                     }
                   }}
                   style={styles.modalSaveBtn}
@@ -529,10 +537,19 @@ export default function ProfileScreen({ navigation }) {
                 try {
                   setSendingVerification(true);
                   await sendEmailVerification(auth.currentUser);
-                  showNotification({ type: "success", title: "Verification sent", message: "Check your inbox for the verification email." });
+                  showNotification({
+                    type: "success",
+                    title: "Verification sent",
+                    message: "Check your inbox for the verification email.",
+                  });
                 } catch (err) {
                   console.error("Resend verification failed", err);
-                  showNotification({ type: "error", title: "Error", message: err?.message || "Unable to send verification email" });
+                  showNotification({
+                    type: "error",
+                    title: "Error",
+                    message:
+                      err?.message || "Unable to send verification email",
+                  });
                 } finally {
                   setSendingVerification(false);
                 }
@@ -587,10 +604,14 @@ export default function ProfileScreen({ navigation }) {
               try {
                 const theme = val ? "dark" : "light";
                 await setTheme(theme);
-                } catch (err) {
-                  console.error("Update appearance failed", err);
-                  showNotification({ type: "error", title: "Error", message: err?.message || "Unable to update appearance" });
-                }
+              } catch (err) {
+                console.error("Update appearance failed", err);
+                showNotification({
+                  type: "error",
+                  title: "Error",
+                  message: err?.message || "Unable to update appearance",
+                });
+              }
             }}
             iconColor={colors.text}
             colors={colors}
@@ -617,7 +638,11 @@ export default function ProfileScreen({ navigation }) {
               }
             } catch (err) {
               console.error("Sign out failed", err);
-              showNotification({ type: "error", title: "Error", message: "Unable to sign out" });
+              showNotification({
+                type: "error",
+                title: "Error",
+                message: "Unable to sign out",
+              });
             }
           }}
         >

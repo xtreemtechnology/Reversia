@@ -290,13 +290,25 @@ const getStyles = (colors, isDark) =>
       marginRight: 8,
       borderRadius: 14,
     },
-    activeTab: { backgroundColor: isDark ? "rgba(130,92,255,0.16)" : "#F3E8FF" },
+    activeTab: {
+      backgroundColor: isDark ? "rgba(130,92,255,0.16)" : "#F3E8FF",
+    },
     tabText: { fontSize: 14, fontWeight: "700", color: colors.muted },
     activeTabText: { color: colors.primary },
     content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 112 },
     header: { marginBottom: 20 },
-    title: { fontSize: 30, fontWeight: "800", color: colors.text, lineHeight: 34 },
-    subtitle: { fontSize: 14, color: colors.muted, lineHeight: 21, marginTop: 6 },
+    title: {
+      fontSize: 30,
+      fontWeight: "800",
+      color: colors.text,
+      lineHeight: 34,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.muted,
+      lineHeight: 21,
+      marginTop: 6,
+    },
     featuredCard: {
       height: 224,
       marginBottom: 24,

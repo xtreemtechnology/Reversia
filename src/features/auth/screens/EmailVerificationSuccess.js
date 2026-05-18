@@ -19,7 +19,7 @@ export default function EmailVerificationSuccess({ navigation }) {
   const handleGetStarted = () => {
     if (auth.currentUser?.emailVerified) {
       navigation.navigate(ROUTES.ROOT.ONBOARDING_FLOW, {
-        screen: ROUTES.ONBOARDING.START,
+        screen: ROUTES.ONBOARDING.WELCOME,
       });
     } else {
       setStatusMessage(

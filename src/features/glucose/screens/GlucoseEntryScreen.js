@@ -17,8 +17,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTheme } from "../../../theme/ThemeProvider";
 
 export default function GlucoseEntryScreen({ navigation }) {
-  const { colors, theme } = useTheme();
-  const isDark = theme === "dark";
+  const { colors } = useTheme();
   const styles = getStyles(colors);
 
   const [glucose, setGlucose] = useState("98");
@@ -35,19 +34,27 @@ export default function GlucoseEntryScreen({ navigation }) {
 
   // Helper to produce subtle badge background from a hex color
   const hexToRgba = (hex, alpha = 0.12) => {
-    const h = hex.replace("#", "");
-    const bigint = parseInt(
-      h.length === 3
-        ? h
+    const normalized = hex.replace("#", "");
+    const fullHex =
+      normalized.length === 3
+        ? normalized
             .split("")
-            .map((c) => c + c)
+            .map((char) => char + char)
             .join("")
-        : h,
-      16
-    );
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
+        : normalized;
+
+    if (fullHex.length !== 6) {
+      return `rgba(0, 0, 0, ${alpha})`;
+    }
+
+    const r = parseInt(fullHex.slice(0, 2), 16);
+    const g = parseInt(fullHex.slice(2, 4), 16);
+    const b = parseInt(fullHex.slice(4, 6), 16);
+
+    if ([r, g, b].some(Number.isNaN)) {
+      return `rgba(0, 0, 0, ${alpha})`;
+    }
+
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
@@ -108,9 +115,9 @@ export default function GlucoseEntryScreen({ navigation }) {
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        style={styles.flexOne}
       >
-        <View style={{ flex: 1, paddingBottom: 90 }}>
+        <View style={styles.contentWrap}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons name="close" size={28} color={colors.text} />
@@ -121,7 +128,7 @@ export default function GlucoseEntryScreen({ navigation }) {
             <TouchableOpacity
               style={[
                 styles.saveBtn,
-                loading && { opacity: 0.7 },
+                loading && styles.saveBtnLoading,
                 { backgroundColor: colors.primary },
               ]}
               onPress={handleSave}
@@ -193,7 +200,7 @@ export default function GlucoseEntryScreen({ navigation }) {
                       style={[
                         styles.chipText,
                         selectedState === state
-                          ? { color: "#FFF" }
+                          ? styles.activeChipText
                           : { color: colors.muted },
                       ]}
                     >
@@ -211,9 +218,7 @@ export default function GlucoseEntryScreen({ navigation }) {
                   Why this matters
                 </Text>
               </View>
-              <Text
-                style={[styles.tipText, { color: colors.text, opacity: 0.85 }]}
-              >
+              <Text style={[styles.tipText, { color: colors.text }]}>
                 Keeping your blood sugar between 70-140 mg/dL helps minimize
                 long-term inflammation and protects your energy levels.
               </Text>
@@ -226,9 +231,7 @@ export default function GlucoseEntryScreen({ navigation }) {
                   { backgroundColor: hexToRgba("#EF4444", 0.08) },
                 ]}
               >
-                <Text style={[styles.messageText, { color: "#B91C1C" }]}>
-                  {message}
-                </Text>
+                <Text style={styles.messageText}>{message}</Text>
               </View>
             )}
           </ScrollView>
@@ -241,6 +244,8 @@ export default function GlucoseEntryScreen({ navigation }) {
 const getStyles = (colors) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    flexOne: { flex: 1 },
+    contentWrap: { flex: 1, paddingBottom: 90 },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -256,6 +261,7 @@ const getStyles = (colors) =>
       paddingVertical: 10,
       borderRadius: 14,
     },
+    saveBtnLoading: { opacity: 0.7 },
     saveText: { color: colors.background, fontWeight: "700" },
     content: { padding: 24 },
     inputContainer: {

@@ -16,7 +16,9 @@ export async function deleteUserData(uid, options = {}) {
     try {
       const colRef = collection(db, "users", uid, sub);
       const snap = await getDocs(colRef);
-      const deletes = snap.docs.map((d) => deleteDoc(doc(db, "users", uid, sub, d.id)));
+      const deletes = snap.docs.map((d) =>
+        deleteDoc(doc(db, "users", uid, sub, d.id))
+      );
       await Promise.allSettled(deletes);
     } catch (e) {
       // swallow per-subcollection errors but continue

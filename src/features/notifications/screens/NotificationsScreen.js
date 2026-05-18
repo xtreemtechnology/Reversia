@@ -96,10 +96,16 @@ export default function NotificationsScreen({ navigation }) {
     >
       <View style={styles.itemBody}>
         <Text style={styles.title}>{item.title || "Notification"}</Text>
-        {item.message ? <Text style={styles.message}>{item.message}</Text> : null}
+        {item.message ? (
+          <Text style={styles.message}>{item.message}</Text>
+        ) : null}
       </View>
       <View style={styles.meta}>
-        <Text style={styles.time}>{item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString() : ""}</Text>
+        <Text style={styles.time}>
+          {item.createdAt?.toDate
+            ? item.createdAt.toDate().toLocaleString()
+            : ""}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -125,11 +131,23 @@ export default function NotificationsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+  },
   headerTitle: { fontSize: 20, fontWeight: "800", color: "#111827" },
   markAllBtn: { padding: 8 },
   markAllText: { color: "#2563EB", fontWeight: "700" },
-  item: { padding: 12, borderRadius: 12, marginBottom: 12, backgroundColor: "#FFFFFF", flexDirection: "row", alignItems: "center" },
+  item: {
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+  },
   unread: { borderLeftWidth: 4, borderLeftColor: "#EF4444" },
   read: { opacity: 0.7 },
   itemBody: { flex: 1 },

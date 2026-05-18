@@ -1,69 +1,53 @@
 import React, { useState } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";
 import { shared } from "../styles/shared";
 import ROUTES from "../../../navigation/routeNames";
 import BackBtn from "../components/OnboardingHeader";
 import StepDots from "../components/OnboardingProgress";
 import PrimaryBtn from "../components/ContinueButton";
-import ErrorMsg from "../components/ErrorBox";
 
-export default function AccountSetupHealthStatus({ navigation }) {
+export default function AccountSetupActivity({ navigation }) {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const statuses = [
+  const levels = [
     {
-      id: "type2",
-      label: "Type 2 Diabetes",
-      icon: "diabetes",
-      desc: "Diagnosed by a doctor",
+      id: "sedentary",
+      label: "Sedentary",
+      desc: "Desk job, little movement",
+      icon: "sofa-outline",
+      steps: "<3,000 steps",
     },
     {
-      id: "pre",
-      label: "Prediabetes",
-      icon: "alert-circle-outline",
-      desc: "Blood sugar slightly elevated",
+      id: "lightly",
+      label: "Lightly Active",
+      desc: "Light walks, some chores",
+      icon: "walk",
+      steps: "3–6,000 steps",
     },
     {
-      id: "high",
-      label: "High Blood Sugar Concerns",
-      icon: "trending-up",
-      desc: "Not yet diagnosed",
+      id: "moderately",
+      label: "Moderately Active",
+      desc: "Regular exercise 3× week",
+      icon: "run",
+      steps: "6–10,000 steps",
     },
     {
-      id: "prevent",
-      label: "Just Want Prevention",
-      icon: "shield-check-outline",
-      desc: "Currently healthy",
-    },
-    {
-      id: "not_sure",
-      label: "Not Sure Yet",
-      icon: "help-circle-outline",
-      desc: "Need a proper check-up",
+      id: "very",
+      label: "Very Active",
+      desc: "Daily intense exercise",
+      icon: "bike",
+      steps: "10,000+ steps",
     },
   ];
 
   const handleContinue = async () => {
-    if (!selected) {
-      setError("Please select an option to continue.");
-      return;
-    }
-    setError(null);
+    if (!selected) return;
     setLoading(true);
     try {
-      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_ACTIVITY);
-    } catch {
-      setError("Could not save your status. Please check your connection.");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_READINESS);
     } finally {
       setLoading(false);
     }
@@ -71,25 +55,22 @@ export default function AccountSetupHealthStatus({ navigation }) {
 
   return (
     <SafeAreaView style={shared.safeArea}>
-      <ScrollView
-        contentContainerStyle={shared.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={shared.content}>
         <BackBtn onPress={() => navigation.goBack()} />
-        <StepDots current={7} />
-        <Text style={shared.eyebrow}>Step 7 of 11</Text>
-        <Text style={shared.heading}>Current health{"\n"}status?</Text>
+        <StepDots current={8} />
+        <Text style={shared.eyebrow}>Step 8 of 11</Text>
+        <Text style={shared.heading}>How active are{"\n"}you daily?</Text>
         <Text style={shared.subheading}>
-          Helps us calibrate your glucose targets and advice.
+          This sets your step goals and calorie burn estimates.
         </Text>
 
         <View style={{ gap: 10 }}>
-          {statuses.map((s) => {
-            const sel = selected === s.id;
+          {levels.map((l) => {
+            const sel = selected === l.id;
             return (
               <TouchableOpacity
-                key={s.id}
-                onPress={() => setSelected(s.id)}
+                key={l.id}
+                onPress={() => setSelected(l.id)}
                 activeOpacity={0.8}
                 style={[
                   {
@@ -97,8 +78,7 @@ export default function AccountSetupHealthStatus({ navigation }) {
                     alignItems: "center",
                     gap: 14,
                     backgroundColor: T.CARD,
-                    paddingHorizontal: 18,
-                    paddingVertical: 16,
+                    padding: 16,
                     borderRadius: 18,
                     borderWidth: 1.5,
                     borderColor: T.BORDER,
@@ -113,19 +93,19 @@ export default function AccountSetupHealthStatus({ navigation }) {
                 <View
                   style={[
                     {
-                      width: 44,
-                      height: 44,
-                      borderRadius: 14,
+                      width: 50,
+                      height: 50,
+                      borderRadius: 16,
                       backgroundColor: T.BG,
                       alignItems: "center",
                       justifyContent: "center",
                     },
-                    sel && { backgroundColor: "rgba(34,66,47,0.12)" },
+                    sel && { backgroundColor: "rgba(34,66,47,0.14)" },
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name={s.icon}
-                    size={22}
+                    name={l.icon}
+                    size={24}
                     color={sel ? T.PRIMARY : T.MUTED}
                   />
                 </View>
@@ -141,24 +121,35 @@ export default function AccountSetupHealthStatus({ navigation }) {
                       sel && { color: T.PRIMARY },
                     ]}
                   >
-                    {s.label}
+                    {l.label}
                   </Text>
-                  <Text style={{ fontSize: 12, color: T.MUTED }}>{s.desc}</Text>
+                  <Text style={{ fontSize: 12, color: T.MUTED }}>{l.desc}</Text>
                 </View>
-                {sel && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={22}
-                    color={T.PRIMARY}
-                  />
-                )}
+                <View
+                  style={[
+                    {
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      borderRadius: 12,
+                      backgroundColor: T.BG,
+                    },
+                    sel && { backgroundColor: "rgba(34,66,47,0.12)" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      { fontSize: 11, fontWeight: "700", color: T.MUTED },
+                      sel && { color: T.PRIMARY },
+                    ]}
+                  >
+                    {l.steps}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
         </View>
-
-        <ErrorMsg error={error} />
-      </ScrollView>
+      </View>
 
       <View style={shared.footer}>
         <PrimaryBtn

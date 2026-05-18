@@ -1,56 +1,58 @@
-// src/features/onboarding/components/ContinueButton.js
-import React from "react";
-import {
-  TouchableOpacity,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import React, { useRef, useEffect } from "react";
+import { Animated, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { shared } from "../styles/shared";
+import T from "../../../theme/tokens";
 
-export const ContinueButton = ({
+const ActivityIndicatorDot = () => {
+  const spin = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 900,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [spin]);
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+  return (
+    <Animated.View style={{ transform: [{ rotate }] }}>
+      <Ionicons name="reload" size={20} color={T.WHITE} />
+    </Animated.View>
+  );
+};
+
+export const PrimaryBtn = ({
+  label = "Continue",
   onPress,
   loading = false,
   disabled = false,
-  label = "Continue",
 }) => (
   <TouchableOpacity
-    style={[styles.button, (loading || disabled) && { opacity: 0.7 }]}
     onPress={onPress}
     disabled={loading || disabled}
+    activeOpacity={0.85}
+    style={[shared.primaryBtn, (loading || disabled) && { opacity: 0.5 }]}
   >
     {loading ? (
-      <ActivityIndicator color="#FFF" />
+      <ActivityIndicatorDot />
     ) : (
       <>
-        <Text style={styles.text}>{label}</Text>
+        <Text style={shared.primaryBtnText}>{label}</Text>
         <Ionicons
           name="chevron-forward"
-          size={20}
-          color="#FFF"
-          style={styles.icon}
+          size={18}
+          color={T.WHITE}
+          style={{ marginLeft: 6 }}
         />
       </>
     )}
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: "#7C3AED",
-    height: 65,
-    borderRadius: 35,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  text: {
-    color: "#FFF",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  icon: {
-    marginLeft: 10,
-  },
-});
+export const ContinueButton = PrimaryBtn;
+export default PrimaryBtn;

@@ -1,97 +1,145 @@
-// src/features/onboarding/screens/AccountSetupGoal.js
 import React, { useState } from "react";
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-} from "react-native";
-import {
-  Ionicons,
   MaterialCommunityIcons,
   FontAwesome5,
+  Ionicons,
 } from "@expo/vector-icons";
-import { OnboardingHeader } from "../components/OnboardingHeader";
-import { OnboardingProgress } from "../components/OnboardingProgress";
-import { ContinueButton } from "../components/ContinueButton";
-import { saveHealthGoal } from "../services/onboardingService";
-import { useTheme } from "../../../theme/ThemeProvider";
+import T from "../../../theme/tokens";
+import { shared } from "../styles/shared";
+import ROUTES from "../../../navigation/routeNames";
+import BackBtn from "../components/OnboardingHeader";
+import StepDots from "../components/OnboardingProgress";
+import PrimaryBtn from "../components/ContinueButton";
 
 export default function AccountSetupGoal({ navigation }) {
-  const { colors } = useTheme();
-  const styles = getStyles(colors);
-  const [selectedGoal, setSelectedGoal] = useState("prevent");
+  const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const goals = [
     {
       id: "reverse",
       title: "Reverse Diabetes Naturally",
-      icon: <MaterialCommunityIcons name="leaf" size={28} color="#FF5C5C" />,
+      desc: "Lower HbA1c through food, movement & sleep",
+      icon: "leaf",
+      iconLib: "mci",
+      accent: "#EF4444",
+      bg: "#FEF2F2",
     },
     {
       id: "prevent",
       title: "Prevent Diabetes Early",
-      icon: <FontAwesome5 name="dumbbell" size={24} color={colors.primary} />,
+      desc: "Build habits before it becomes a problem",
+      icon: "dumbbell",
+      iconLib: "fa5",
+      accent: T.PRIMARY,
+      bg: T.PRIMARY_LIGHT,
     },
     {
       id: "healthy",
       title: "Stay Healthy Daily",
-      icon: <Ionicons name="heart" size={28} color="#3AB0FF" />,
+      desc: "Maintain energy, weight and glucose balance",
+      icon: "heart-pulse",
+      iconLib: "mci",
+      accent: "#0284C7",
+      bg: "#EFF6FF",
     },
   ];
 
   const handleContinue = async () => {
+    if (!selected) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      await saveHealthGoal(selectedGoal);
-      navigation.navigate("AccountSetupHealthStatus");
-    } catch (error) {
-      console.error("Error saving goal:", error);
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_HEALTH_STATUS);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <OnboardingHeader onBack={() => navigation.goBack()} />
-      <View style={styles.content}>
-        <OnboardingProgress current={6} />
-        <Text style={styles.title}>What is your main goal?</Text>
-        <Text style={styles.subtitle}>
-          We'll tailor your Reversia protocol to match this priority.
+    <SafeAreaView style={shared.safeArea}>
+      <View style={shared.content}>
+        <BackBtn onPress={() => navigation.goBack()} />
+        <StepDots current={6} />
+        <Text style={shared.eyebrow}>Step 6 of 11</Text>
+        <Text style={shared.heading}>What's your{"\n"}main goal?</Text>
+        <Text style={shared.subheading}>
+          We'll tailor your entire Reversia protocol around this.
         </Text>
 
-        <View style={styles.listContainer}>
-          {goals.map((item) => {
-            const isSelected = selectedGoal === item.id;
+        <View style={{ gap: 12 }}>
+          {goals.map((g) => {
+            const sel = selected === g.id;
+            const Icon =
+              g.iconLib === "fa5" ? (
+                <FontAwesome5
+                  name={g.icon}
+                  size={22}
+                  color={sel ? g.accent : T.MUTED}
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name={g.icon}
+                  size={26}
+                  color={sel ? g.accent : T.MUTED}
+                />
+              );
             return (
               <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.7}
-                onPress={() => setSelectedGoal(item.id)}
-                style={[styles.goalCard, isSelected && styles.selectedCard]}
-                disabled={loading}
+                key={g.id}
+                onPress={() => setSelected(g.id)}
+                activeOpacity={0.8}
+                style={[
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    backgroundColor: T.CARD,
+                    padding: 18,
+                    borderRadius: 20,
+                    borderWidth: 1.5,
+                    borderColor: T.BORDER,
+                  },
+                  sel && {
+                    borderColor: g.accent,
+                    borderWidth: 2.5,
+                    backgroundColor: g.bg,
+                  },
+                ]}
               >
-                <View style={styles.goalInfo}>
-                  <View style={styles.iconWrapper}>{item.icon}</View>
+                <View
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: sel ? g.accent + "20" : T.BG,
+                  }}
+                >
+                  {Icon}
+                </View>
+                <View style={{ flex: 1 }}>
                   <Text
                     style={[
-                      styles.goalLabel,
-                      isSelected && styles.selectedLabel,
+                      {
+                        fontSize: 15,
+                        fontWeight: "800",
+                        color: T.TEXT,
+                        marginBottom: 3,
+                      },
+                      sel && { color: g.accent },
                     ]}
                   >
-                    {item.title}
+                    {g.title}
                   </Text>
+                  <Text style={{ fontSize: 12, color: T.MUTED }}>{g.desc}</Text>
                 </View>
-
-                {isSelected && (
+                {sel && (
                   <Ionicons
                     name="checkmark-circle"
                     size={24}
-                    color={colors.primary}
+                    color={g.accent}
                   />
                 )}
               </TouchableOpacity>
@@ -100,69 +148,13 @@ export default function AccountSetupGoal({ navigation }) {
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <ContinueButton onPress={handleContinue} loading={loading} />
+      <View style={shared.footer}>
+        <PrimaryBtn
+          onPress={handleContinue}
+          loading={loading}
+          disabled={!selected}
+        />
       </View>
     </SafeAreaView>
   );
 }
-
-const getStyles = (colors) =>
-  StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    content: { flex: 1, paddingHorizontal: 25, paddingTop: 40 },
-    title: {
-      fontSize: 32,
-      fontWeight: "700",
-      color: colors.primary,
-      textAlign: "center",
-      marginBottom: 15,
-    },
-    subtitle: {
-      fontSize: 15,
-      color: colors.muted,
-      textAlign: "center",
-      lineHeight: 22,
-      marginBottom: 40,
-      paddingHorizontal: 20,
-    },
-    listContainer: { width: "100%" },
-    goalCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      backgroundColor: colors.card,
-      padding: 20,
-      borderRadius: 20,
-      marginBottom: 15,
-      borderWidth: 1,
-      borderColor: colors.border,
-      shadowColor: colors.text,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 8,
-      elevation: 2,
-    },
-    selectedCard: {
-      borderColor: colors.primary,
-      backgroundColor: "#F3F0FF",
-      borderWidth: 2,
-    },
-    goalInfo: { flexDirection: "row", alignItems: "center" },
-    iconWrapper: {
-      width: 50,
-      height: 50,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 15,
-    },
-    goalLabel: {
-      fontSize: 17,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    selectedLabel: {
-      color: colors.primary,
-    },
-    footer: { paddingHorizontal: 25, paddingBottom: 40 },
-  });

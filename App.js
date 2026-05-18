@@ -56,8 +56,7 @@ export default function App() {
           if (
             node.name &&
             (node.name.includes("Onboarding") ||
-              node.name.includes("AccountSetup") ||
-              node.name.includes("OnboardingStart"))
+              node.name.includes("AccountSetup"))
           ) {
             return true;
           }

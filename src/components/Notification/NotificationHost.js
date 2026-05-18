@@ -80,7 +80,12 @@ export default function NotificationHost() {
         { top: insets.top || 0, transform: [{ translateY: anim }] },
       ]}
     >
-      <View style={[styles.container, { backgroundColor: bg, borderColor: colors.border }]}> 
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: bg, borderColor: colors.border },
+        ]}
+      >
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => {
@@ -93,11 +98,17 @@ export default function NotificationHost() {
           }}
           style={styles.content}
         >
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {current.title || capitalize(current.type)}
           </Text>
           {current.message ? (
-            <Text style={[styles.message, { color: colors.text }]} numberOfLines={2}>
+            <Text
+              style={[styles.message, { color: colors.text }]}
+              numberOfLines={2}
+            >
               {current.message}
             </Text>
           ) : null}

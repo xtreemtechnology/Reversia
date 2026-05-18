@@ -1,4 +1,3 @@
-// src/features/onboarding/screens/AccountSetupName.js
 import React, { useState } from "react";
 import {
   View,
@@ -43,7 +42,7 @@ export default function AccountSetupName({ navigation }) {
     setLoading(true);
     try {
       await saveName(name);
-      navigation.navigate("AccountSetupGender");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_GENDER);
     } catch (err) {
       console.error("Error saving name:", err);
       setError("We couldn't save your name. Please check your connection.");
@@ -77,7 +76,7 @@ export default function AccountSetupName({ navigation }) {
               textAlign="center"
               autoFocus={true}
               autoCapitalize="words"
-              disabled={loading}
+              editable={!loading}
             />
           </View>
 

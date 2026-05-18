@@ -12,17 +12,19 @@ The auth feature demonstrates a **clean separation of concerns** using hooks:
 ## Why This Pattern?
 
 ### 1. **UI State vs. Business Logic**
+
 - Form state (`useLoginForm`) is isolated from auth state (`useAuth`)
 - Screens are pure UI — they don't handle logic
 - Hooks handle logic — they're reusable and testable
 
 ### 2. **Composability**
+
 ```javascript
 // A screen can use multiple hooks for different concerns
 export default function LoginScreen() {
   const form = useLoginForm();
   const { signIn, isLoading, error } = useAuth();
-  
+
   // UI logic only
   const handlePress = async () => {
     if (form.validateForm()) {
@@ -33,6 +35,7 @@ export default function LoginScreen() {
 ```
 
 ### 3. **Reusability**
+
 - `useLoginForm` can be used in a modal, drawer, or full screen
 - `useAuth` is used app-wide for auth state
 - Each hook focuses on one responsibility
@@ -42,22 +45,24 @@ export default function LoginScreen() {
 ## Hook Reference
 
 ### useAuth()
+
 **Manages authentication state and user session**
 
 ```javascript
 const {
-  user,              // Current Firebase user object
-  isLoading,         // Loading state during auth operations
-  error,             // Last error message
-  isAuthenticated,   // Boolean: !!user
-  signIn,            // (email, password) => Promise<user>
-  signUp,            // (email, password, displayName) => Promise<user>
-  signOut,           // () => Promise<void>
+  user, // Current Firebase user object
+  isLoading, // Loading state during auth operations
+  error, // Last error message
+  isAuthenticated, // Boolean: !!user
+  signIn, // (email, password) => Promise<user>
+  signUp, // (email, password, displayName) => Promise<user>
+  signOut, // () => Promise<void>
   sendPasswordReset, // (email) => Promise<{success, message}>
 } = useAuth();
 ```
 
 **Example:**
+
 ```javascript
 export default function AuthenticatedApp() {
   const { user, isLoading, isAuthenticated, signOut } = useAuth();
@@ -77,22 +82,24 @@ export default function AuthenticatedApp() {
 ---
 
 ### useLoginForm()
+
 **Manages login form state and validation**
 
 ```javascript
 const {
-  email,        // Current email value
-  password,     // Current password value
-  errors,       // Object: { email?: string, password?: string }
-  setEmail,     // (value) => void
-  setPassword,  // (value) => void
-  isValid,      // Boolean: all fields valid and no errors
+  email, // Current email value
+  password, // Current password value
+  errors, // Object: { email?: string, password?: string }
+  setEmail, // (value) => void
+  setPassword, // (value) => void
+  isValid, // Boolean: all fields valid and no errors
   validateForm, // () => boolean (runs all validations)
-  reset,        // () => void (clears form and errors)
+  reset, // () => void (clears form and errors)
 } = useLoginForm();
 ```
 
 **Example:**
+
 ```javascript
 export default function LoginScreen() {
   const form = useLoginForm();
@@ -129,7 +136,7 @@ export default function LoginScreen() {
       <Button
         disabled={!form.isValid || isLoading}
         onPress={handleLogin}
-        title={isLoading ? 'Signing in...' : 'Sign In'}
+        title={isLoading ? "Signing in..." : "Sign In"}
       />
     </View>
   );
@@ -139,28 +146,30 @@ export default function LoginScreen() {
 ---
 
 ### useSignUpForm()
+
 **Manages signup form state and validation**
 
 ```javascript
 const {
-  email,              // Email input value
-  password,           // Password input value
-  confirmPassword,    // Password confirmation value
-  displayName,        // Display name input value
-  agreedToTerms,      // Boolean: terms agreement checkbox
-  errors,             // Validation error messages
-  setEmail,           // (value) => void
-  setPassword,        // (value) => void
+  email, // Email input value
+  password, // Password input value
+  confirmPassword, // Password confirmation value
+  displayName, // Display name input value
+  agreedToTerms, // Boolean: terms agreement checkbox
+  errors, // Validation error messages
+  setEmail, // (value) => void
+  setPassword, // (value) => void
   setConfirmPassword, // (value) => void
-  setDisplayName,     // (value) => void
-  setAgreedToTerms,   // (value) => void
-  isValid,            // Boolean: all fields valid, terms agreed
-  validateForm,       // () => boolean
-  reset,              // () => void
+  setDisplayName, // (value) => void
+  setAgreedToTerms, // (value) => void
+  isValid, // Boolean: all fields valid, terms agreed
+  validateForm, // () => boolean
+  reset, // () => void
 } = useSignUpForm();
 ```
 
 **Validations included:**
+
 - Email: required, valid format
 - Display Name: required, 2+ characters
 - Password: required, 8+ characters, uppercase letter, number
@@ -170,24 +179,27 @@ const {
 ---
 
 ### usePasswordReset()
+
 **Manages password reset flow**
 
 ```javascript
 const {
-  email,        // Email input value
-  setEmail,     // (value) => void
-  isLoading,    // Loading state during send
-  error,        // Error message if failed
-  success,      // Boolean: email sent successfully
-  resetPassword,// () => Promise<boolean>
-  reset,        // () => void (clear form)
+  email, // Email input value
+  setEmail, // (value) => void
+  isLoading, // Loading state during send
+  error, // Error message if failed
+  success, // Boolean: email sent successfully
+  resetPassword, // () => Promise<boolean>
+  reset, // () => void (clear form)
 } = usePasswordReset();
 ```
 
 **Example:**
+
 ```javascript
 export default function ForgotPasswordScreen() {
-  const { email, setEmail, isLoading, error, success, resetPassword } = usePasswordReset();
+  const { email, setEmail, isLoading, error, success, resetPassword } =
+    usePasswordReset();
 
   const handleReset = async () => {
     const success = await resetPassword();
@@ -205,12 +217,12 @@ export default function ForgotPasswordScreen() {
         onChangeText={setEmail}
         placeholder="Enter your email"
       />
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+      {error && <Text style={{ color: "red" }}>{error}</Text>}
 
       <Button
         disabled={isLoading}
         onPress={handleReset}
-        title={isLoading ? 'Sending...' : 'Send Reset Email'}
+        title={isLoading ? "Sending..." : "Send Reset Email"}
       />
     </View>
   );
@@ -224,6 +236,7 @@ export default function ForgotPasswordScreen() {
 Apply this same pattern to **Meals**, **Glucose**, **Activity**, etc.:
 
 ### Structure
+
 ```
 features/<feature>/
 ├── hooks/
@@ -244,14 +257,17 @@ features/<feature>/
 ### Hook Rules
 
 1. **One responsibility per hook**
+
    - ❌ `useMeals()` with fetching + filtering + sorting + deleting
    - ✅ `useMeals()`, `useMealFilter()`, `useMealDelete()` separately
 
 2. **Screens are pure UI**
+
    - ❌ Screens with API calls
    - ✅ Screens use hooks for logic
 
 3. **Services handle external calls**
+
    - ❌ Firebase calls in hooks
    - ✅ Hooks call services, services call Firebase
 
@@ -266,14 +282,14 @@ features/<feature>/
 Each hook is independent and testable:
 
 ```javascript
-import { renderHook, act } from '@testing-library/react-native';
-import { useLoginForm } from './useLoginForm';
+import { renderHook, act } from "@testing-library/react-native";
+import { useLoginForm } from "./useLoginForm";
 
-test('validates email format', () => {
+test("validates email format", () => {
   const { result } = renderHook(() => useLoginForm());
 
   act(() => {
-    result.current.setEmail('invalid-email');
+    result.current.setEmail("invalid-email");
   });
 
   act(() => {
@@ -289,6 +305,7 @@ test('validates email format', () => {
 ## Best Practices
 
 ### ✅ Do's
+
 - Use hooks for all business logic
 - Keep screens as pure UI renderers
 - Extract validation into form hooks
@@ -296,6 +313,7 @@ test('validates email format', () => {
 - Separate concerns: form state vs. app state vs. services
 
 ### ❌ Don'ts
+
 - Don't put API calls directly in screens
 - Don't mix form state with business logic
 - Don't create giant "god hooks" doing everything

@@ -19,7 +19,15 @@ export function notify(notification) {
   }
 }
 
-export function showNotification({ type = "info", title = "", message = "", duration = 4000, action, persistToServer = true, targetUserId } = {}) {
+export function showNotification({
+  type = "info",
+  title = "",
+  message = "",
+  duration = 4000,
+  action,
+  persistToServer = true,
+  targetUserId,
+} = {}) {
   const id = String(Date.now()) + Math.random().toString(36).slice(2, 8);
   const payload = { id, type, title, message, duration, action };
 
@@ -29,7 +37,8 @@ export function showNotification({ type = "info", title = "", message = "", dura
   // Persist to Firestore for server-backed notifications and unread counts
   if (persistToServer) {
     try {
-      const uid = targetUserId || (auth && auth.currentUser && auth.currentUser.uid);
+      const uid =
+        targetUserId || (auth && auth.currentUser && auth.currentUser.uid);
       if (uid) {
         // write but don't await (fire-and-forget)
         addDoc(collection(db, "users", uid, "notifications"), {

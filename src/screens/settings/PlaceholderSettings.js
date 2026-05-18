@@ -1,14 +1,25 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../theme/ThemeProvider";
 import { auth } from "../../config/firebase";
-import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import {
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import { confirm } from "../../components/Confirm";
 import { showNotification } from "../../components/Notification";
 import { deleteUserData } from "../../utils/accountDeletion";
-
 
 const PlaceholderScreen = ({ navigation, title }) => (
   <SafeAreaView style={styles.container}>
@@ -91,7 +102,11 @@ export function DeleteAccount({ navigation }) {
         throw err;
       }
 
-      showNotification({ type: "success", title: "Account deleted", message: "Your account has been permanently deleted." });
+      showNotification({
+        type: "success",
+        title: "Account deleted",
+        message: "Your account has been permanently deleted.",
+      });
       try {
         await auth.signOut();
       } catch {}
@@ -121,12 +136,22 @@ export function DeleteAccount({ navigation }) {
         console.warn("Failed to delete user data after reauth", e);
       }
       await deleteUser(user);
-      showNotification({ type: "success", title: "Account deleted", message: "Your account has been permanently deleted." });
-      try { await auth.signOut(); } catch {}
+      showNotification({
+        type: "success",
+        title: "Account deleted",
+        message: "Your account has been permanently deleted.",
+      });
+      try {
+        await auth.signOut();
+      } catch {}
       setShowReauth(false);
     } catch (e) {
       console.error("Reauth failed", e);
-      showNotification({ type: "error", title: "Reauthentication failed", message: e?.message || "Unable to reauthenticate" });
+      showNotification({
+        type: "error",
+        title: "Reauthentication failed",
+        message: e?.message || "Unable to reauthenticate",
+      });
     } finally {
       setLoading(false);
       setReauthPassword("");
@@ -134,48 +159,124 @@ export function DeleteAccount({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Delete Account</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Delete Account
+        </Text>
         <View style={{ width: 28 }} />
       </View>
 
       <View style={styles.content}>
-        <View style={[styles.placeholder, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <View
+          style={[
+            styles.placeholder,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Ionicons name="trash" size={60} color="#F87171" />
-          <Text style={[styles.placeholderText, { color: colors.text }]}>Delete your account</Text>
-          <Text style={[styles.placeholderDesc, { color: colors.muted, textAlign: 'center' }]}>This will permanently delete your account and all associated data. You may need to reauthenticate before deletion.</Text>
+          <Text style={[styles.placeholderText, { color: colors.text }]}>
+            Delete your account
+          </Text>
+          <Text
+            style={[
+              styles.placeholderDesc,
+              { color: colors.muted, textAlign: "center" },
+            ]}
+          >
+            This will permanently delete your account and all associated data.
+            You may need to reauthenticate before deletion.
+          </Text>
 
           <TouchableOpacity
             onPress={handleDelete}
             disabled={loading}
-            style={{ marginTop: 18, backgroundColor: '#EF4444', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10 }}
+            style={{
+              marginTop: 18,
+              backgroundColor: "#EF4444",
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderRadius: 10,
+            }}
           >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Delete account</Text>}
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: "#fff", fontWeight: "700" }}>
+                Delete account
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
 
       <Modal visible={showReauth} transparent animationType="fade">
-        <SafeAreaView style={[styles.container, { justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }]}>
-          <View style={[styles.placeholder, { marginHorizontal: 20, padding: 18, backgroundColor: colors.card, borderColor: colors.border }]}> 
-            <Text style={[styles.placeholderText, { color: colors.text }]}>Re-enter password to continue</Text>
+        <SafeAreaView
+          style={[
+            styles.container,
+            { justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <View
+            style={[
+              styles.placeholder,
+              {
+                marginHorizontal: 20,
+                padding: 18,
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.placeholderText, { color: colors.text }]}>
+              Re-enter password to continue
+            </Text>
             <TextInput
               value={reauthPassword}
               onChangeText={setReauthPassword}
               placeholder="Password"
               secureTextEntry
-              style={{ marginTop: 12, borderWidth: 1, borderColor: colors.border, padding: 10, borderRadius: 8, color: colors.text, backgroundColor: colors.background }}
+              style={{
+                marginTop: 12,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: 10,
+                borderRadius: 8,
+                color: colors.text,
+                backgroundColor: colors.background,
+              }}
             />
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 14, gap: 8 }}>
-              <TouchableOpacity onPress={() => setShowReauth(false)} style={{ paddingHorizontal: 12, paddingVertical: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                marginTop: 14,
+                gap: 8,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setShowReauth(false)}
+                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+              >
                 <Text style={{ color: colors.text }}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleReauth} style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.primary, borderRadius: 8 }}>
-                <Text style={{ color: colors.background, fontWeight: '700' }}>Confirm</Text>
+              <TouchableOpacity
+                onPress={handleReauth}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  backgroundColor: colors.primary,
+                  borderRadius: 8,
+                }}
+              >
+                <Text style={{ color: colors.background, fontWeight: "700" }}>
+                  Confirm
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

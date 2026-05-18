@@ -21,10 +21,61 @@ import ProfileScreen from "../features/profile/screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const TAB_BAR_HEIGHT = 68; // visible bar height (icon + label)
+const TAB_BAR_HEIGHT = 74; // visible bar height (icon + label)
 const SCAN_BTN_HEIGHT = 64; // center scan button diameter
 const ANDROID_EXTRA_PAD = 12; // breathing room above Android system nav
 const IOS_LABEL_PAD = 4;
+
+function HomeTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <Ionicons name={focused ? "home" : "home-outline"} size={s} color={color} />
+  );
+}
+
+function LogTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <MaterialCommunityIcons
+      name={focused ? "plus-circle" : "plus-circle-outline"}
+      size={s}
+      color={color}
+    />
+  );
+}
+
+function MealTabIcon({ color }) {
+  const s = 26;
+
+  return (
+    <MaterialCommunityIcons
+      name="silverware-fork-knife"
+      size={s}
+      color={color}
+    />
+  );
+}
+
+function ProfileTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <Ionicons
+      name={focused ? "person" : "person-outline"}
+      size={s}
+      color={color}
+    />
+  );
+}
+
+const TAB_ICON_COMPONENTS = {
+  Home: HomeTabIcon,
+  Log: LogTabIcon,
+  Meal: MealTabIcon,
+  Profile: ProfileTabIcon,
+};
 
 export default function MainTabNavigator() {
   const insets = useSafeAreaInsets();
@@ -55,60 +106,19 @@ export default function MainTabNavigator() {
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.tabItem,
+        tabBarIconStyle: styles.icon,
         tabBarStyle: {
           ...styles.tabBar,
           backgroundColor: colors.card,
           borderTopColor: colors.border,
           height: tabBarHeight,
           paddingBottom: tabBarPaddingBottom,
-          paddingTop: 10,
+          paddingTop: 12,
           marginHorizontal: 12,
           marginBottom: 10,
           borderRadius: 28,
         },
-        tabBarIcon: ({ focused, color }) => {
-          const s = 23;
-          switch (route.name) {
-            case "Home":
-              return (
-                <Ionicons
-                  name={focused ? "home" : "home-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Log":
-              return (
-                <MaterialCommunityIcons
-                  name={focused ? "plus-circle" : "plus-circle-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Scan":
-              return null; // custom button below
-            case "Meal":
-              return (
-                <MaterialCommunityIcons
-                  name={
-                    focused ? "silverware-fork-knife" : "silverware-fork-knife"
-                  }
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Profile":
-              return (
-                <Ionicons
-                  name={focused ? "person" : "person-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            default:
-              return null;
-          }
-        },
+        tabBarIcon: TAB_ICON_COMPONENTS[route.name] ?? null,
       })}
     >
       <Tab.Screen
@@ -126,9 +136,7 @@ export default function MainTabNavigator() {
         component={ScanScreen}
         options={{
           tabBarLabel: "",
-          tabBarButton: (props) => (
-            <ScanTabButton {...props} />
-          ),
+          tabBarButton: ScanTabButton,
         }}
       />
       <Tab.Screen
@@ -200,13 +208,19 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 10,
-    fontWeight: "600",
-    marginTop: 2,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 3,
   },
 
   tabItem: {
-    paddingTop: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 2,
+  },
+
+  icon: {
+    marginBottom: 0,
   },
 
   // ── Scan button ──

@@ -1,0 +1,88 @@
+import { StyleSheet } from "react-native";
+import T from "../../../theme/tokens";
+
+export const shared = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: T.BG },
+  safeArea: { flex: 1, backgroundColor: T.BG },
+  content: { flex: 1, paddingHorizontal: 24, paddingTop: 16 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: T.CARD,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  dotsRow: {
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 32,
+    alignSelf: "flex-start",
+  },
+  dot: { height: 6, borderRadius: 3 },
+  dotEmpty: { width: 6, backgroundColor: T.BORDER },
+  dotFilled: { width: 16, backgroundColor: T.MUTED },
+  dotActive: { width: 22, backgroundColor: T.PRIMARY },
+  primaryBtn: {
+    backgroundColor: T.PRIMARY,
+    height: 58,
+    borderRadius: 29,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  primaryBtnText: {
+    color: T.WHITE,
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FEE2E2",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    marginTop: 16,
+  },
+  errorText: { color: T.RED, fontSize: 13, fontWeight: "600", flex: 1 },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: T.MUTED,
+    marginBottom: 8,
+  },
+  heading: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: T.TEXT,
+    letterSpacing: -0.5,
+    lineHeight: 36,
+    marginBottom: 10,
+  },
+  subheading: {
+    fontSize: 15,
+    color: T.MUTED,
+    lineHeight: 22,
+    marginBottom: 36,
+  },
+  footer: { paddingHorizontal: 24, paddingBottom: 36 },
+  card: {
+    backgroundColor: T.CARD,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    padding: 18,
+  },
+});
+
+export default shared;

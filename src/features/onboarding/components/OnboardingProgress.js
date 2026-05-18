@@ -1,8 +1,23 @@
-// src/features/onboarding/components/OnboardingProgress.js
 import React from "react";
-import { Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { shared } from "../styles/shared";
 
-export const OnboardingProgress = ({ current, total = 8 }) => (
+export const StepDots = ({ current, total = 11 }) => (
+  <View style={shared.dotsRow}>
+    {Array.from({ length: total }).map((_, i) => (
+      <View
+        key={i}
+        style={[
+          shared.dot,
+          i < current ? shared.dotFilled : shared.dotEmpty,
+          i === current - 1 && shared.dotActive,
+        ]}
+      />
+    ))}
+  </View>
+);
+
+export const OnboardingProgress = ({ current, total = 11 }) => (
   <Text style={styles.progressText}>
     <Text style={styles.progressActive}>{current}</Text> / {total}
   </Text>
@@ -19,3 +34,5 @@ const styles = StyleSheet.create({
     color: "#7C3AED",
   },
 });
+
+export default StepDots;

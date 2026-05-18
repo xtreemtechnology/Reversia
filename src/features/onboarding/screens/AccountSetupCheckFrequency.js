@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";
 import { shared } from "../styles/shared";
@@ -13,57 +7,23 @@ import ROUTES from "../../../navigation/routeNames";
 import BackBtn from "../components/OnboardingHeader";
 import StepDots from "../components/OnboardingProgress";
 import PrimaryBtn from "../components/ContinueButton";
-import ErrorMsg from "../components/ErrorBox";
 
-export default function AccountSetupHealthStatus({ navigation }) {
+export default function AccountSetupCheckFrequency({ navigation }) {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const statuses = [
-    {
-      id: "type2",
-      label: "Type 2 Diabetes",
-      icon: "diabetes",
-      desc: "Diagnosed by a doctor",
-    },
-    {
-      id: "pre",
-      label: "Prediabetes",
-      icon: "alert-circle-outline",
-      desc: "Blood sugar slightly elevated",
-    },
-    {
-      id: "high",
-      label: "High Blood Sugar Concerns",
-      icon: "trending-up",
-      desc: "Not yet diagnosed",
-    },
-    {
-      id: "prevent",
-      label: "Just Want Prevention",
-      icon: "shield-check-outline",
-      desc: "Currently healthy",
-    },
-    {
-      id: "not_sure",
-      label: "Not Sure Yet",
-      icon: "help-circle-outline",
-      desc: "Need a proper check-up",
-    },
+  const options = [
+    { id: "multiple_daily", label: "Multiple times a day", icon: "clock-fast" },
+    { id: "once_daily", label: "Once a day", icon: "clock-outline" },
+    { id: "weekly", label: "A few times a week", icon: "calendar-week" },
+    { id: "rarely", label: "Rarely or never", icon: "calendar-question" },
   ];
 
   const handleContinue = async () => {
-    if (!selected) {
-      setError("Please select an option to continue.");
-      return;
-    }
-    setError(null);
+    if (!selected) return;
     setLoading(true);
     try {
-      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_ACTIVITY);
-    } catch {
-      setError("Could not save your status. Please check your connection.");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_COMPLETE);
     } finally {
       setLoading(false);
     }
@@ -71,25 +31,24 @@ export default function AccountSetupHealthStatus({ navigation }) {
 
   return (
     <SafeAreaView style={shared.safeArea}>
-      <ScrollView
-        contentContainerStyle={shared.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={shared.content}>
         <BackBtn onPress={() => navigation.goBack()} />
-        <StepDots current={7} />
-        <Text style={shared.eyebrow}>Step 7 of 11</Text>
-        <Text style={shared.heading}>Current health{"\n"}status?</Text>
+        <StepDots current={10} />
+        <Text style={shared.eyebrow}>Step 10 of 11</Text>
+        <Text style={shared.heading}>
+          How often do you{"\n"}check your glucose?
+        </Text>
         <Text style={shared.subheading}>
-          Helps us calibrate your glucose targets and advice.
+          We'll set reminder frequency to match your habits.
         </Text>
 
         <View style={{ gap: 10 }}>
-          {statuses.map((s) => {
-            const sel = selected === s.id;
+          {options.map((o) => {
+            const sel = selected === o.id;
             return (
               <TouchableOpacity
-                key={s.id}
-                onPress={() => setSelected(s.id)}
+                key={o.id}
+                onPress={() => setSelected(o.id)}
                 activeOpacity={0.8}
                 style={[
                   {
@@ -124,27 +83,19 @@ export default function AccountSetupHealthStatus({ navigation }) {
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name={s.icon}
+                    name={o.icon}
                     size={22}
                     color={sel ? T.PRIMARY : T.MUTED}
                   />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={[
-                      {
-                        fontSize: 15,
-                        fontWeight: "700",
-                        color: T.TEXT,
-                        marginBottom: 2,
-                      },
-                      sel && { color: T.PRIMARY },
-                    ]}
-                  >
-                    {s.label}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: T.MUTED }}>{s.desc}</Text>
-                </View>
+                <Text
+                  style={[
+                    { fontSize: 15, fontWeight: "700", color: T.TEXT, flex: 1 },
+                    sel && { color: T.PRIMARY },
+                  ]}
+                >
+                  {o.label}
+                </Text>
                 {sel && (
                   <Ionicons
                     name="checkmark-circle"
@@ -156,9 +107,7 @@ export default function AccountSetupHealthStatus({ navigation }) {
             );
           })}
         </View>
-
-        <ErrorMsg error={error} />
-      </ScrollView>
+      </View>
 
       <View style={shared.footer}>
         <PrimaryBtn
