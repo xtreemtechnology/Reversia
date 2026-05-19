@@ -19,13 +19,14 @@ import ROUTES from "../../../navigation/routeNames";
 const TICK_SPACING = 20;
 const MIN_AGE = 18;
 const MAX_AGE = 99;
+const INITIAL_AGE = 27;
 
 export default function AccountSetupAge({ navigation }) {
   const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const rulerPadding = Math.max(8, screenWidth / 2 - TICK_SPACING / 2);
-  const [selectedAge, setSelectedAge] = useState(27);
+  const [selectedAge, setSelectedAge] = useState(INITIAL_AGE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const scrollRef = useRef(null);
@@ -37,7 +38,7 @@ export default function AccountSetupAge({ navigation }) {
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      const initialOffset = (selectedAge - MIN_AGE) * TICK_SPACING;
+      const initialOffset = (INITIAL_AGE - MIN_AGE) * TICK_SPACING;
       scrollRef.current?.scrollTo({ x: initialOffset, animated: false });
     }, 100);
     return () => clearTimeout(timer);

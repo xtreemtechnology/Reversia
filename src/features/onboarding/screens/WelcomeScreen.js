@@ -30,7 +30,7 @@ export default function WelcomeScreen({ navigation }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fade, slideY]);
 
   const pills = [
     "Blood Sugar Tracking",

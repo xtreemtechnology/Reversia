@@ -1,4 +1,9 @@
-import React, { useState } from "react";
+/**
+ * LogScreen.js — fully self-contained redesign
+ * Keeps: useUserLogs hook, navigation params, moment, getButtonAccessibility
+ */
+
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,705 +11,823 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  useWindowDimensions,
   Modal,
   Image,
   TouchableWithoutFeedback,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import moment from "moment";
 import { getButtonAccessibility } from "../../../utils/accessibility";
-import { useTheme } from "../../../theme/ThemeProvider";
 
-const getLogCards = (isDark) => [
-  {
-    title: "Glucose",
-    subtitle: "Record a reading",
-    icon: "water",
-    color: isDark ? "rgba(34, 66, 47, 0.15)" : "rgba(34, 66, 47, 0.08)",
-    iconColor: "#22422F",
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const T = {
+  BG: "#F2F0E8",
+  CARD: "#FFFFFF",
+  PRIMARY: "#22422F",
+  PRIMARY_LIGHT: "rgba(34,66,47,0.08)",
+  AMBER: "#ECA143",
+  AMBER_LIGHT: "rgba(236,161,67,0.10)",
+  MUTED: "#7A8F82",
+  TEXT: "#1A2E22",
+  BORDER: "#E8E4D8",
+  SAGE: "#DCE8DF",
+  WHITE: "#FFFFFF",
+  GREEN: "#10B981",
+  RED: "#EF4444",
+  BLUE: "#0284C7",
+  PURPLE: "#7C3AED",
+};
+
+// ─── Log type config ──────────────────────────────────────────────────────────
+const LOG_CONFIG = {
+  glucose: {
+    label: "Glucose",
+    icon: "water-percent",
+    color: T.PRIMARY,
+    bg: T.PRIMARY_LIGHT,
+    unit: "mg/dL",
+    screen: "GlucoseEntry",
   },
-  {
-    title: "Meal",
-    subtitle: "Add food and carbs",
+  meal: {
+    label: "Meal",
     icon: "food-apple",
-    color: isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)",
-    iconColor: "#10B981",
+    color: T.GREEN,
+    bg: "rgba(16,185,129,0.10)",
+    unit: "",
+    screen: "MealEntry",
   },
-  {
-    title: "Water",
-    subtitle: "Track hydration",
+  water: {
+    label: "Water",
     icon: "cup-water",
-    color: isDark ? "rgba(2, 132, 199, 0.15)" : "rgba(2, 132, 199, 0.08)",
-    iconColor: "#0284C7",
+    color: T.BLUE,
+    bg: "rgba(2,132,199,0.10)",
+    unit: "glasses",
+    screen: "WaterEntry",
   },
-  {
-    title: "Exercise",
-    subtitle: "Log activity",
+  exercise: {
+    label: "Exercise",
     icon: "run",
-    color: isDark ? "rgba(236, 161, 67, 0.15)" : "rgba(236, 161, 67, 0.08)",
-    iconColor: "#ECA143",
+    color: T.AMBER,
+    bg: T.AMBER_LIGHT,
+    unit: "min",
+    screen: "ExerciseEntry",
+  },
+  sleep: {
+    label: "Sleep",
+    icon: "sleep",
+    color: T.PURPLE,
+    bg: "rgba(124,58,237,0.10)",
+    unit: "hrs",
+    screen: "SleepEntry",
+  },
+};
+
+// Quick-log cards shown in the grid
+const LOG_CARDS = [
+  {
+    type: "glucose",
+    title: "Glucose",
+    subtitle: "Blood sugar reading",
+    emoji: "💉",
+  },
+  { type: "meal", title: "Meal", subtitle: "Food & carbs", emoji: "🥗" },
+  { type: "water", title: "Water", subtitle: "Hydration tracker", emoji: "💧" },
+  {
+    type: "exercise",
+    title: "Exercise",
+    subtitle: "Activity log",
+    emoji: "🏃",
   },
 ];
 
+// ─── Animated log card ────────────────────────────────────────────────────────
+const LogCard = ({ item, onPress }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const cfg = LOG_CONFIG[item.type] || LOG_CONFIG.glucose;
+
+  const pressIn = () =>
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      tension: 200,
+      friction: 10,
+    }).start();
+  const pressOut = () =>
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 200,
+      friction: 10,
+    }).start();
+
+  return (
+    <Animated.View style={[{ transform: [{ scale }] }, logCardStyles.wrap]}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        activeOpacity={1}
+        style={logCardStyles.card}
+        {...getButtonAccessibility(`log${item.title}`)}
+      >
+        {/* Icon */}
+        <View style={[logCardStyles.iconWrap, { backgroundColor: cfg.bg }]}>
+          <MaterialCommunityIcons name={cfg.icon} size={26} color={cfg.color} />
+        </View>
+
+        {/* Text */}
+        <Text style={logCardStyles.cardTitle}>{item.title}</Text>
+        <Text style={logCardStyles.cardSub}>{item.subtitle}</Text>
+
+        {/* Emoji badge */}
+        <View style={logCardStyles.emojiBadge}>
+          <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
+        </View>
+
+        {/* Add icon */}
+        <View style={[logCardStyles.addBtn, { backgroundColor: cfg.color }]}>
+          <Ionicons name="add" size={14} color={T.WHITE} />
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const logCardStyles = StyleSheet.create({
+  wrap: { width: "48%" },
+  card: {
+    backgroundColor: T.CARD,
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    minHeight: 148,
+    position: "relative",
+  },
+  iconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: T.TEXT,
+    marginBottom: 4,
+  },
+  cardSub: { fontSize: 12, color: T.MUTED, lineHeight: 17 },
+  emojiBadge: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: T.BG,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addBtn: {
+    position: "absolute",
+    bottom: 14,
+    right: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+// ─── Recent log row ───────────────────────────────────────────────────────────
+const RecentRow = ({ item, onPress }) => {
+  const cfg = LOG_CONFIG[item.type] || LOG_CONFIG.glucose;
+  const timeStr = item.timestamp
+    ? moment(item.timestamp.toDate()).format("h:mm A")
+    : "Just now";
+  const dateStr = item.timestamp
+    ? moment(item.timestamp.toDate()).format("MMM D")
+    : "Today";
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={recentStyles.row}
+      {...getButtonAccessibility("expandButton", "deepLink")}
+    >
+      {/* Left accent bar */}
+      <View style={[recentStyles.accentBar, { backgroundColor: cfg.color }]} />
+
+      {/* Icon */}
+      <View style={[recentStyles.iconWrap, { backgroundColor: cfg.bg }]}>
+        <MaterialCommunityIcons name={cfg.icon} size={18} color={cfg.color} />
+      </View>
+
+      {/* Info */}
+      <View style={recentStyles.info}>
+        <Text style={recentStyles.label}>{cfg.label}</Text>
+        <Text style={recentStyles.value} numberOfLines={1}>
+          {item.value} {item.unit || cfg.unit}
+          {item.period ? `  ·  ${item.period}` : ""}
+          {item.meal ? `  ·  ${item.meal}` : ""}
+        </Text>
+      </View>
+
+      {/* Time */}
+      <View style={recentStyles.timeWrap}>
+        <Text style={recentStyles.time}>{timeStr}</Text>
+        <Text style={recentStyles.date}>{dateStr}</Text>
+      </View>
+
+      <Ionicons name="chevron-forward" size={14} color={T.BORDER} />
+    </TouchableOpacity>
+  );
+};
+
+const recentStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: T.CARD,
+    borderRadius: 18,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    overflow: "hidden",
+  },
+  accentBar: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
+  },
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+  info: { flex: 1 },
+  label: { fontSize: 13, fontWeight: "800", color: T.TEXT, marginBottom: 3 },
+  value: { fontSize: 12, color: T.MUTED },
+  timeWrap: { alignItems: "flex-end" },
+  time: { fontSize: 12, fontWeight: "700", color: T.TEXT },
+  date: { fontSize: 10, color: T.MUTED, marginTop: 2 },
+});
+
+// ─── Meal detail bottom sheet ─────────────────────────────────────────────────
+const MealSheet = ({ log, onClose }) => (
+  <Modal visible={!!log} animationType="slide" transparent>
+    <TouchableWithoutFeedback onPress={onClose}>
+      <View style={sheetStyles.backdrop}>
+        <TouchableWithoutFeedback onPress={() => {}}>
+          <View style={sheetStyles.sheet}>
+            {/* Handle */}
+            <View style={sheetStyles.handle} />
+
+            {/* Header */}
+            <View style={sheetStyles.header}>
+              <View>
+                <Text style={sheetStyles.eyebrow}>MEAL LOG</Text>
+                <Text style={sheetStyles.title}>{log?.value || "Meal"}</Text>
+              </View>
+              <TouchableOpacity onPress={onClose} style={sheetStyles.closeBtn}>
+                <Ionicons name="close" size={18} color={T.TEXT} />
+              </TouchableOpacity>
+            </View>
+
+            {log && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {log.imageUri && (
+                  <Image
+                    source={{ uri: log.imageUri }}
+                    style={sheetStyles.image}
+                    resizeMode="cover"
+                  />
+                )}
+
+                {/* Stats row */}
+                <View style={sheetStyles.statsRow}>
+                  {[
+                    {
+                      label: "Calories",
+                      val: log.calories ? `${log.calories} kcal` : "—",
+                    },
+                    { label: "Serving", val: log.servingSize || "—" },
+                    { label: "Period", val: log.meal || log.period || "—" },
+                  ].map((s) => (
+                    <View key={s.label} style={sheetStyles.statBox}>
+                      <Text style={sheetStyles.statVal}>{s.val}</Text>
+                      <Text style={sheetStyles.statLabel}>{s.label}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Logged time */}
+                <View style={sheetStyles.timeRow}>
+                  <MaterialCommunityIcons
+                    name="clock-outline"
+                    size={15}
+                    color={T.MUTED}
+                  />
+                  <Text style={sheetStyles.timeText}>
+                    Logged{" "}
+                    {log.timestamp
+                      ? moment(log.timestamp.toDate()).format(
+                          "MMM D [at] h:mm A"
+                        )
+                      : "just now"}
+                  </Text>
+                </View>
+              </ScrollView>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </View>
+    </TouchableWithoutFeedback>
+  </Modal>
+);
+
+const sheetStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(26,46,34,0.4)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: T.CARD,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: "75%",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: T.BORDER,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: T.MUTED,
+    letterSpacing: 1.4,
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: T.TEXT,
+    letterSpacing: -0.3,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: T.BG,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
+  },
+  image: { width: "100%", height: 180, borderRadius: 20, marginBottom: 16 },
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 16,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: T.BG,
+    borderRadius: 16,
+    padding: 14,
+    alignItems: "center",
+  },
+  statVal: { fontSize: 15, fontWeight: "800", color: T.TEXT, marginBottom: 4 },
+  statLabel: { fontSize: 11, color: T.MUTED, fontWeight: "600" },
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: T.BG,
+    padding: 14,
+    borderRadius: 14,
+  },
+  timeText: { fontSize: 13, color: T.MUTED, fontWeight: "600" },
+});
+
+// ─── Today's streak / summary strip ──────────────────────────────────────────
+const TodaySummary = ({ logs }) => {
+  const today = moment().format("YYYY-MM-DD");
+  const todayLogs = logs.filter((l) =>
+    l.timestamp
+      ? moment(l.timestamp.toDate()).format("YYYY-MM-DD") === today
+      : true
+  );
+  const types = [...new Set(todayLogs.map((l) => l.type))];
+
+  const stats = [
+    {
+      label: "Logged today",
+      val: String(todayLogs.length),
+      icon: "clipboard-check-outline",
+      color: T.PRIMARY,
+    },
+    {
+      label: "Types tracked",
+      val: `${types.length}/4`,
+      icon: "view-grid-outline",
+      color: T.AMBER,
+    },
+    {
+      label: "Last log",
+      val: todayLogs[0]?.timestamp
+        ? moment(todayLogs[0].timestamp.toDate()).format("h:mm A")
+        : "None",
+      icon: "clock-outline",
+      color: T.BLUE,
+    },
+  ];
+
+  return (
+    <View style={summaryStyles.card}>
+      {stats.map((s, i) => (
+        <React.Fragment key={s.label}>
+          {i > 0 && <View style={summaryStyles.divider} />}
+          <View style={summaryStyles.stat}>
+            <MaterialCommunityIcons
+              name={s.icon}
+              size={18}
+              color={s.color}
+              style={{ marginBottom: 6 }}
+            />
+            <Text style={summaryStyles.val}>{s.val}</Text>
+            <Text style={summaryStyles.label}>{s.label}</Text>
+          </View>
+        </React.Fragment>
+      ))}
+    </View>
+  );
+};
+
+const summaryStyles = StyleSheet.create({
+  card: {
+    flexDirection: "row",
+    backgroundColor: T.CARD,
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+  divider: { width: 1, height: 40, backgroundColor: T.BORDER },
+  stat: { alignItems: "center", flex: 1 },
+  val: { fontSize: 18, fontWeight: "800", color: T.TEXT, marginBottom: 2 },
+  label: {
+    fontSize: 10,
+    color: T.MUTED,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+});
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
 export default function LogScreen({ navigation }) {
-  const { colors, theme } = useTheme();
-  const isDark = theme === "dark";
-  const logCards = getLogCards(isDark);
   const [refreshToken, setRefreshToken] = useState(0);
-  const { width: screenWidth } = useWindowDimensions();
-  const isNarrow = screenWidth < 640;
-  const gridCardWidth = isNarrow ? "100%" : "48%";
-  const styles = getStyles(colors);
-  const modalStyles = getModalStyles(colors);
-  // Fetch real-time logs from Firestore
+  const [selectedLog, setSelectedLog] = useState(null);
   const { logs, loading, error } = useUserLogs(15, refreshToken);
 
-  const handleLogPress = (title) => {
-    switch (title) {
-      case "Glucose":
-        navigation.navigate("GlucoseEntry");
-        break;
-      case "Meal":
-        navigation.navigate("MealEntry");
-        break;
-      case "Water":
-        navigation.navigate("WaterEntry");
-        break;
-      case "Exercise":
-        navigation.navigate("ExerciseEntry");
-        break;
-      default:
-        break;
-    }
-  };
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("en-GB", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
 
-  const [selectedLog, setSelectedLog] = useState(null);
+  const handleLogPress = (type) => {
+    const cfg = LOG_CONFIG[type];
+    if (cfg?.screen) navigation.navigate(cfg.screen);
+  };
 
   const openRecent = (item) => {
     if (item.type === "meal") {
       setSelectedLog(item);
       return;
     }
-    // fallback: navigate to appropriate entry screen
-    if (item.type === "glucose") return navigation.navigate("GlucoseEntry");
-    if (item.type === "water") return navigation.navigate("WaterEntry");
-    return navigation.navigate("ExerciseEntry");
-  };
-
-  const handleRetry = () => {
-    setRefreshToken((value) => value + 1);
-  };
-
-  const logAccessibilityKey = {
-    Glucose: "logGlucose",
-    Meal: "logMeal",
-    Water: "logWater",
-    Exercise: "logExercise",
-  };
-
-  // Dynamic style helper
-  const getLogConfig = (type) => {
-    switch (type) {
-      case "glucose":
-        return {
-          dotColor: "#22422F",
-          label: "Glucose reading",
-          statusColor: "#22422F",
-        };
-      case "meal":
-        return {
-          dotColor: "#10B981",
-          label: "Meal log",
-          statusColor: "#10B981",
-        };
-      case "water":
-        return {
-          dotColor: "#0284C7",
-          label: "Hydration",
-          statusColor: "#0284C7",
-        };
-      default:
-        return {
-          dotColor: "#ECA143",
-          label: "Activity",
-          statusColor: "#ECA143",
-        };
-    }
+    const cfg = LOG_CONFIG[item.type];
+    if (cfg?.screen) navigation.navigate(cfg.screen);
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={styles.screen}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <View style={styles.header}>
           <View>
-            <Text style={[styles.kicker, { color: colors.muted }]}>
-              Quick logging
-            </Text>
-            <Text style={[styles.title, { color: colors.text }]}>
-              Log Section
-            </Text>
+            <Text style={styles.eyebrow}>Quick logging</Text>
+            <Text style={styles.title}>Log</Text>
+            <Text style={styles.dateStr}>{dateStr}</Text>
           </View>
-          <View
-            style={[
-              styles.iconBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-            accessibilityElementsHidden
+          <TouchableOpacity
+            style={styles.calBtn}
+            onPress={() => navigation.navigate("LogHistory")}
           >
-            <Ionicons name="calendar-outline" size={22} color={colors.text} />
-          </View>
+            <Ionicons name="time-outline" size={20} color={T.PRIMARY} />
+          </TouchableOpacity>
         </View>
 
-        {/* Hero Card */}
-        <View
-          style={[
-            styles.heroCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <View
-            style={[
-              styles.heroIconWrap,
-              { backgroundColor: isDark ? "rgba(130,92,255,0.24)" : "#ECEBFF" },
-            ]}
+        {/* ── Today's summary strip ── */}
+        {!loading && logs.length > 0 && <TodaySummary logs={logs} />}
+
+        {/* ── Hero motivation card ── */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroLeft}>
+            <View style={styles.heroIconWrap}>
+              <MaterialCommunityIcons
+                name="lightning-bolt"
+                size={24}
+                color={T.PRIMARY}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroTitle}>Track Your Reversal</Text>
+              <Text style={styles.heroBody}>
+                Consistent logging is the fastest way to master your insulin
+                response.
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.heroBtn}
+            onPress={() => navigation.navigate("GlucoseEntry")}
           >
             <MaterialCommunityIcons
-              name="lightning-bolt"
-              size={28}
-              color={colors.primary}
+              name="water-percent"
+              size={14}
+              color={T.WHITE}
             />
-          </View>
-          <View style={styles.heroTextWrap}>
-            <Text style={[styles.heroTitle, { color: colors.text }]}>
-              Track Your Reversal
-            </Text>
-            <Text style={[styles.heroText, { color: colors.muted }]}>
-              Consistent logging is the fastest way to master your insulin
-              response.
-            </Text>
-          </View>
+            <Text style={styles.heroBtnText}>Log Glucose</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          What do you want to log?
-        </Text>
-
-        {/* Grid of Log Options */}
+        {/* ── Log grid ── */}
+        <Text style={styles.sectionLabel}>What do you want to log?</Text>
         <View style={styles.grid}>
-          {logCards.map((item) => (
-            <TouchableOpacity
-              key={item.title}
-              style={[
-                styles.gridCard,
-                {
-                  width: gridCardWidth,
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                },
-              ]}
-              onPress={() => handleLogPress(item.title)}
-              {...getButtonAccessibility(logAccessibilityKey[item.title])}
-            >
-              <View
-                style={[
-                  styles.cardIcon,
-                  {
-                    backgroundColor: isDark
-                      ? `${item.iconColor}24`
-                      : item.color,
-                  },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name={item.icon}
-                  size={26}
-                  color={item.iconColor}
-                />
-              </View>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>
-                {item.title}
-              </Text>
-              <Text style={[styles.cardSubtitle, { color: colors.muted }]}>
-                {item.subtitle}
-              </Text>
-              <Ionicons
-                name="add-circle"
-                size={20}
-                color={colors.border}
-                style={styles.cardAddIcon}
-              />
-            </TouchableOpacity>
+          {LOG_CARDS.map((item) => (
+            <LogCard
+              key={item.type}
+              item={item}
+              onPress={() => handleLogPress(item.type)}
+            />
           ))}
         </View>
 
-        {/* Recent Activity List */}
+        {/* ── Recent logs ── */}
         <View style={styles.recentHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Recent Logs
-          </Text>
+          <Text style={styles.sectionLabel}>Recent Logs</Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("LogHistory")}
             {...getButtonAccessibility("expandButton", "deepLink")}
           >
             {loading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="small" color={T.PRIMARY} />
             ) : (
-              <Text style={[styles.seeAll, { color: colors.primary }]}>
-                See All
-              </Text>
+              <Text style={styles.seeAll}>See All</Text>
             )}
           </TouchableOpacity>
         </View>
 
-        {error ? (
-          <View
-            style={[
-              styles.errorBox,
-              {
-                backgroundColor: isDark ? "#4C1D1D" : "#FEF2F2",
-                borderColor: isDark ? "#7F1D1D" : "#FECACA",
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.errorText,
-                { color: isDark ? "#FCA5A5" : "#B91C1C" },
-              ]}
-            >
-              Error loading logs: {error.message || String(error)}
+        {/* Error */}
+        {error && (
+          <View style={styles.errorBox}>
+            <Ionicons name="alert-circle-outline" size={16} color={T.RED} />
+            <Text style={styles.errorText}>
+              {error.message || "Could not load logs."}
             </Text>
             <TouchableOpacity
-              style={[
-                styles.retryBtn,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: isDark ? "#B91C1C" : "#FCA5A5",
-                },
-              ]}
-              onPress={handleRetry}
-              {...getButtonAccessibility("confirmButton")}
+              onPress={() => setRefreshToken((v) => v + 1)}
+              style={styles.retryBtn}
             >
-              <Text
-                style={[
-                  styles.retryText,
-                  { color: isDark ? "#FCA5A5" : "#B91C1C" },
-                ]}
-              >
-                Retry
-              </Text>
+              <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           </View>
-        ) : null}
+        )}
 
-        <View style={styles.recentList}>
+        {/* Log list */}
+        <View style={styles.logList}>
           {loading ? (
-            <View
-              style={[
-                styles.emptyContainer,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={[styles.emptyText, { color: colors.muted }]}>
-                Loading your recent logs...
-              </Text>
+            <View style={styles.emptyCard}>
+              <ActivityIndicator size="large" color={T.PRIMARY} />
+              <Text style={styles.emptyText}>Loading your recent logs…</Text>
             </View>
           ) : logs.length === 0 ? (
-            <View
-              style={[
-                styles.emptyContainer,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name="clipboard-text-outline"
-                size={40}
-                color={colors.border}
-              />
-              <Text style={[styles.emptyText, { color: colors.muted }]}>
-                No logs found for today.
+            <View style={styles.emptyCard}>
+              <View style={styles.emptyIcon}>
+                <MaterialCommunityIcons
+                  name="clipboard-text-outline"
+                  size={32}
+                  color={T.MUTED}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>Nothing logged yet</Text>
+              <Text style={styles.emptyText}>
+                Tap any card above to start tracking.
               </Text>
             </View>
           ) : (
-            logs.map((item) => {
-              const config = getLogConfig(item.type);
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[
-                    styles.recentCard,
-                    {
-                      backgroundColor: colors.card,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => openRecent(item)}
-                  {...getButtonAccessibility("expandButton", "deepLink")}
-                >
-                  <View style={styles.recentLeft}>
-                    <View
-                      style={[
-                        styles.recentDot,
-                        { backgroundColor: config.dotColor },
-                      ]}
-                    />
-                    <View>
-                      <Text
-                        style={[styles.recentLabel, { color: colors.text }]}
-                      >
-                        {config.label}
-                      </Text>
-                      <Text
-                        style={[styles.recentValue, { color: colors.muted }]}
-                      >
-                        {item.value} {item.unit || ""}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.recentRight}>
-                    <Text style={[styles.recentTime, { color: colors.muted }]}>
-                      {item.timestamp
-                        ? moment(item.timestamp.toDate()).format("h:mm A")
-                        : "Just now"}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.recentStatus,
-                        { color: config.statusColor },
-                      ]}
-                    >
-                      {item.meal || item.period || "Logged"}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+            logs.map((item) => (
+              <RecentRow
+                key={item.id}
+                item={item}
+                onPress={() => openRecent(item)}
+              />
+            ))
           )}
         </View>
-        {/* Meal detail modal */}
-        <Modal visible={!!selectedLog} animationType="slide" transparent>
-          <TouchableWithoutFeedback onPress={() => setSelectedLog(null)}>
-            <View style={modalStyles.backdrop}>
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View
-                  style={[modalStyles.sheet, { backgroundColor: colors.card }]}
-                >
-                  <View style={modalStyles.headerRow}>
-                    <Text
-                      style={[modalStyles.modalTitle, { color: colors.text }]}
-                    >
-                      Log detail
-                    </Text>
-                    <TouchableOpacity onPress={() => setSelectedLog(null)}>
-                      <Ionicons name="close" size={22} color={colors.text} />
-                    </TouchableOpacity>
-                  </View>
-                  {selectedLog && (
-                    <ScrollView>
-                      {selectedLog.imageUri && (
-                        <Image
-                          source={{ uri: selectedLog.imageUri }}
-                          style={modalStyles.image}
-                        />
-                      )}
-                      <Text
-                        style={[
-                          modalStyles.fieldLabel,
-                          { color: colors.muted },
-                        ]}
-                      >
-                        Food
-                      </Text>
-                      <Text
-                        style={[modalStyles.fieldValue, { color: colors.text }]}
-                      >
-                        {selectedLog.value}
-                      </Text>
-                      {selectedLog.calories !== undefined && (
-                        <>
-                          <Text
-                            style={[
-                              modalStyles.fieldLabel,
-                              { color: colors.muted },
-                            ]}
-                          >
-                            Calories
-                          </Text>
-                          <Text
-                            style={[
-                              modalStyles.fieldValue,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {selectedLog.calories} kcal
-                          </Text>
-                        </>
-                      )}
-                      {selectedLog.servingSize && (
-                        <>
-                          <Text
-                            style={[
-                              modalStyles.fieldLabel,
-                              { color: colors.muted },
-                            ]}
-                          >
-                            Serving
-                          </Text>
-                          <Text
-                            style={[
-                              modalStyles.fieldValue,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {selectedLog.servingSize}
-                          </Text>
-                        </>
-                      )}
-                      <Text
-                        style={[
-                          modalStyles.fieldLabel,
-                          { color: colors.muted },
-                        ]}
-                      >
-                        Logged
-                      </Text>
-                      <Text
-                        style={[modalStyles.fieldValue, { color: colors.text }]}
-                      >
-                        {selectedLog.timestamp
-                          ? moment(selectedLog.timestamp.toDate()).format(
-                              "MMM D, h:mm A"
-                            )
-                          : "Just now"}
-                      </Text>
-                    </ScrollView>
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* ── Meal detail sheet ── */}
+      <MealSheet log={selectedLog} onClose={() => setSelectedLog(null)} />
     </SafeAreaView>
   );
 }
 
-const getStyles = (colors) =>
-  StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 48 },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    kicker: {
-      fontSize: 12,
-      color: colors.muted,
-      fontWeight: "700",
-      letterSpacing: 0.8,
-      textTransform: "uppercase",
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "800",
-      color: colors.text,
-      marginTop: 4,
-      lineHeight: 36,
-    },
-    iconBtn: {
-      width: 48,
-      height: 48,
-      borderRadius: 16,
-      backgroundColor: colors.card,
-      justifyContent: "center",
-      alignItems: "center",
-      elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.06,
-      shadowRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    heroCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.background === "#FFFFFF" ? "#F8F6F0" : "#1C2621",
-      borderRadius: 24,
-      padding: 18,
-      marginBottom: 24,
-      elevation: 1,
-      borderWidth: 1,
-      borderColor: colors.background === "#FFFFFF" ? "#EBE7DD" : "#2C3B33",
-    },
-    heroIconWrap: {
-      width: 56,
-      height: 56,
-      borderRadius: 18,
-      backgroundColor:
-        colors.background === "#FFFFFF"
-          ? "rgba(34, 66, 47, 0.08)"
-          : "rgba(34, 66, 47, 0.20)",
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 16,
-    },
-    heroTextWrap: { flex: 1 },
-    heroTitle: {
-      fontSize: 17,
-      fontWeight: "700",
-      color: colors.text,
-      lineHeight: 22,
-    },
-    heroText: {
-      fontSize: 13,
-      lineHeight: 20,
-      color: colors.muted,
-      marginTop: 7,
-    },
-    sectionTitle: {
-      fontSize: 19,
-      fontWeight: "800",
-      color: colors.text,
-      marginBottom: 16,
-    },
-    grid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      marginBottom: 20,
-    },
-    gridCard: {
-      minHeight: 152,
-      backgroundColor: colors.card,
-      borderRadius: 26,
-      padding: 18,
-      marginBottom: 14,
-      elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.05,
-      shadowRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    cardIcon: {
-      width: 52,
-      height: 52,
-      borderRadius: 18,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 14,
-    },
-    cardTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
-    cardSubtitle: {
-      fontSize: 13,
-      color: colors.muted,
-      marginTop: 5,
-      lineHeight: 18,
-    },
-    cardAddIcon: { position: "absolute", top: 16, right: 16, opacity: 0.7 },
-    recentHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    seeAll: { fontSize: 13, fontWeight: "600", color: colors.primary },
-    recentList: { gap: 10 },
-    recentCard: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 22,
-      padding: 15,
-      elevation: 1,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    recentLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
-    recentDot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
-    recentLabel: { fontSize: 15, fontWeight: "700", color: colors.text },
-    recentValue: { fontSize: 12, color: colors.muted, marginTop: 3 },
-    recentRight: { alignItems: "flex-end", marginLeft: 10 },
-    recentTime: { fontSize: 11, color: colors.muted },
-    recentStatus: { fontSize: 11, fontWeight: "700", marginTop: 4 },
-    emptyContainer: {
-      alignItems: "center",
-      marginTop: 20,
-      opacity: 0.7,
-      backgroundColor: colors.card,
-      borderRadius: 22,
-      paddingVertical: 24,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    emptyText: { marginTop: 10, fontSize: 14, color: colors.muted },
-    errorBox: {
-      backgroundColor: "#FEE2E2",
-      borderRadius: 16,
-      padding: 12,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: "#FECACA",
-    },
-    errorText: { color: "#B91C1C", fontSize: 13 },
-    retryBtn: {
-      marginTop: 10,
-      alignSelf: "flex-start",
-      backgroundColor: colors.card,
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#FCA5A5",
-    },
-    retryText: { color: "#B91C1C", fontSize: 13, fontWeight: "700" },
-  });
+// ─── Screen styles ────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: T.BG },
+  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 60 },
 
-const getModalStyles = (colors) =>
-  StyleSheet.create({
-    backdrop: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.35)",
-      justifyContent: "flex-end",
-    },
-    sheet: {
-      backgroundColor: "#FFF",
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      maxHeight: "72%",
-      padding: 18,
-    },
-    headerRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 14,
-    },
-    modalTitle: { fontSize: 16, fontWeight: "800", color: "#111827" },
-    image: { width: "100%", height: 170, borderRadius: 14, marginBottom: 12 },
-    fieldLabel: {
-      fontSize: 12,
-      color: "#6B7280",
-      fontWeight: "700",
-      marginTop: 8,
-    },
-    fieldValue: {
-      fontSize: 16,
-      color: colors.text,
-    },
-  });
+  // Header
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 22,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: T.MUTED,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: T.TEXT,
+    letterSpacing: -0.8,
+    lineHeight: 36,
+  },
+  dateStr: { fontSize: 13, color: T.MUTED, fontWeight: "600", marginTop: 3 },
+  calBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    backgroundColor: T.CARD,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+
+  // Hero card
+  heroCard: {
+    backgroundColor: T.SAGE,
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    gap: 12,
+  },
+  heroLeft: { flexDirection: "row", alignItems: "flex-start", gap: 14 },
+  heroIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: T.PRIMARY_LIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  heroTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: T.TEXT,
+    marginBottom: 4,
+  },
+  heroBody: { fontSize: 13, color: T.MUTED, lineHeight: 19 },
+  heroBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: T.PRIMARY,
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  heroBtnText: { color: T.WHITE, fontSize: 13, fontWeight: "800" },
+
+  // Section label
+  sectionLabel: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: T.TEXT,
+    marginBottom: 14,
+  },
+
+  // Grid
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 28 },
+
+  // Recent header
+  recentHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  seeAll: { fontSize: 13, fontWeight: "700", color: T.PRIMARY },
+
+  // Log list
+  logList: { gap: 10 },
+
+  // Empty state
+  emptyCard: {
+    backgroundColor: T.CARD,
+    borderRadius: 22,
+    paddingVertical: 36,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    gap: 8,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    backgroundColor: T.BG,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  emptyTitle: { fontSize: 16, fontWeight: "800", color: T.TEXT },
+  emptyText: {
+    fontSize: 13,
+    color: T.MUTED,
+    textAlign: "center",
+    lineHeight: 19,
+  },
+
+  // Error
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "rgba(239,68,68,0.08)",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+  },
+  errorText: { flex: 1, fontSize: 13, color: T.RED, fontWeight: "600" },
+  retryBtn: {
+    backgroundColor: T.RED,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  retryText: { color: T.WHITE, fontSize: 12, fontWeight: "800" },
+});

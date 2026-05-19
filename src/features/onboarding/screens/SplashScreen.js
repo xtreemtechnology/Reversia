@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, View, Text } from "react-native";
+import { Animated, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";
-import { shared } from "../styles/shared";
 import ROUTES from "../../../navigation/routeNames";
 
 export default function SplashScreen({ navigation }) {
@@ -34,7 +33,7 @@ export default function SplashScreen({ navigation }) {
       2500
     );
     return () => clearTimeout(t);
-  }, []);
+  }, [logo, navigation, tagFade, word]);
 
   const logoScale = logo.interpolate({
     inputRange: [0, 1],

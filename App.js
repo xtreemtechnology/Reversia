@@ -87,7 +87,9 @@ export default function App() {
             // which would kick them back into onboarding on refresh.
             const user = auth?.currentUser;
             if (user && parsed) {
-              const localFlag = await AsyncStorage.getItem("ONBOARDING_COMPLETE");
+              const localFlag = await AsyncStorage.getItem(
+                "ONBOARDING_COMPLETE"
+              );
               const containsOnboarding = hasOnboardingRoute(parsed);
               const rootName = parsed?.routes?.[0]?.name;
               const pointsToMainApp =
