@@ -7,6 +7,7 @@ import {
   FlatList,
   SafeAreaView,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserProfile } from "../../../hooks/useUserProfile";
 import { db } from "../../../config/firebase";

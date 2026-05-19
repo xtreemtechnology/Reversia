@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Animated,
   StyleSheet,
@@ -15,7 +15,7 @@ const HEIGHT = 80;
 
 export default function NotificationHost() {
   const insets = useSafeAreaInsets();
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const [queue, setQueue] = useState([]);
   const [current, setCurrent] = useState(null);
   const anim = useRef(new Animated.Value(-HEIGHT)).current;
@@ -36,6 +36,21 @@ export default function NotificationHost() {
     }
   }, [queue, current]);
 
+  const dismissCurrent = useCallback(() => {
+    if (hideTimeout.current) {
+      clearTimeout(hideTimeout.current);
+      hideTimeout.current = null;
+    }
+    Animated.timing(anim, {
+      toValue: -HEIGHT,
+      duration: 240,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrent(null);
+    });
+  }, [anim]);
+
   useEffect(() => {
     if (current) {
       Animated.timing(anim, {
@@ -51,22 +66,7 @@ export default function NotificationHost() {
       });
     }
     return () => {};
-  }, [current]);
-
-  function dismissCurrent() {
-    if (hideTimeout.current) {
-      clearTimeout(hideTimeout.current);
-      hideTimeout.current = null;
-    }
-    Animated.timing(anim, {
-      toValue: -HEIGHT,
-      duration: 240,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      setCurrent(null);
-    });
-  }
+  }, [current, anim, dismissCurrent]);
 
   if (!current) return null;
 

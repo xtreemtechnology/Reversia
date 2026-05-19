@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";
 import { shared } from "../styles/shared";

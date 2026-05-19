@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Animated, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, TouchableWithoutFeedback } from "react-native";
 
 export default function PressableScale({
   children,

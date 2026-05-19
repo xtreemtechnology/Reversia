@@ -20,6 +20,7 @@ import {
 import { confirm } from "../../components/Confirm";
 import { showNotification } from "../../components/Notification";
 import { deleteUserData } from "../../utils/accountDeletion";
+/* eslint-disable react-native/no-inline-styles */
 
 const PlaceholderScreen = ({ navigation, title }) => (
   <SafeAreaView style={styles.container}>

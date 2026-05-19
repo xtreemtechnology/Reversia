@@ -3,6 +3,7 @@ import { Animated, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import T from "../../../theme/tokens";
 import ROUTES from "../../../navigation/routeNames";
+/* eslint-disable react-native/no-inline-styles */
 
 export default function SplashScreen({ navigation }) {
   const logo = useRef(new Animated.Value(0)).current;

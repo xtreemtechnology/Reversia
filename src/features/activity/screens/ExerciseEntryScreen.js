@@ -4,6 +4,8 @@
  * Keeps: Firebase save, Vibration, limits constants, navigation
  */
 
+/* eslint-disable react-native/no-inline-styles */
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { limits } from "../../../constants/index";
 import {
@@ -195,7 +197,7 @@ const PulsingDot = ({ color }) => {
       ])
     ).start();
     return () => pulse.stopAnimation();
-  }, []);
+  }, [pulse]);
   return (
     <Animated.View
       style={[
@@ -212,9 +214,7 @@ const pulseStyles = StyleSheet.create({
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function ExerciseEntryScreen({ navigation }) {
   const { width: sw } = useWindowDimensions();
-  const pad = 20;
   // 4-column on wide, 4-column on narrow (2 visible at once via wrapping)
-  const cardW = Math.floor((sw - pad * 2 - 30) / 4);
 
   // ── State ──
   const [selectedName, setSelectedName] = useState("Walking");

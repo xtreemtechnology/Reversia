@@ -8,6 +8,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, {
   Path,

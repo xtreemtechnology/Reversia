@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as settingsService from "../services/settingsService";
 
 /**

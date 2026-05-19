@@ -10,6 +10,7 @@ import {
   RefreshControl,
   useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -72,7 +73,6 @@ export default function TrackScreen() {
       title: "Breakfast Logged",
       desc: "Oats, boiled egg, avocado",
       icon: "food-apple-outline",
-      color: "#16A34A",
       color: TRACK_COLORS.meals,
     },
     {

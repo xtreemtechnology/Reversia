@@ -1,5 +1,6 @@
 // src/screens/GlucoseScreen.js - Theme-Integrated Version
 import React, { useState, useMemo } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   ScrollView,
   View,

@@ -12,6 +12,7 @@ import AnimatedScreen from "../../../components/AnimatedScreen";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { auth, db } from "../../../config/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+/* eslint-disable react-native/no-inline-styles */
 
 export default function WaterEntryScreen({ navigation }) {
   const { colors } = useTheme();

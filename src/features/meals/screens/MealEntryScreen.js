@@ -8,7 +8,6 @@ import {
   ScrollView,
   ActivityIndicator,
   Animated,
-  Easing,
   KeyboardAvoidingView,
   Platform,
   Vibration,
@@ -16,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { logMealEntry } from "../services/mealsService";
+/* eslint-disable react-native/no-inline-styles */
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -247,7 +247,7 @@ export default function MealEntryScreen({ navigation, route }) {
       duration: 320,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fadeAnim]);
 
   const gi = mealName.trim().length > 2 ? estimateGI(mealName) : null;
   const tip = TIPS[selectedMeal] || TIPS.other;

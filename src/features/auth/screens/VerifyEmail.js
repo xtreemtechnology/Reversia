@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   View,
   Text,

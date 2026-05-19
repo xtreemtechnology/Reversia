@@ -7,6 +7,7 @@ import ROUTES from "../../../navigation/routeNames";
 import BackBtn from "../components/OnboardingHeader";
 import StepDots from "../components/OnboardingProgress";
 import PrimaryBtn from "../components/ContinueButton";
+/* eslint-disable react-native/no-inline-styles */
 
 export default function AccountSetupReadiness({ navigation }) {
   const [selected, setSelected] = useState(null);

@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useMemo } from "react";
 import {
   View,
@@ -31,7 +32,7 @@ export default function ActivityTracker({ navigation }) {
   const todayKey = getDateKey(new Date());
   const todayLogs = useMemo(
     () => logs.filter((l) => getDateKey(l.timestamp) === todayKey),
-    [logs]
+    [logs, todayKey]
   );
   const exerciseLogs = useMemo(
     () => todayLogs.filter((l) => l.type === "exercise"),

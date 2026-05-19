@@ -1,4 +1,5 @@
 // src/components/LogWeightModal.js
+/* eslint-disable react-native/no-inline-styles */
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -7,7 +8,6 @@ import {
   Modal,
   TouchableOpacity,
   Animated,
-  PanResponder,
   ScrollView,
   useWindowDimensions,
   ActivityIndicator,
@@ -27,7 +27,7 @@ const PICKER_H = ITEM_HEIGHT * VISIBLE_ITEMS;
 const KG_VALUES = Array.from({ length: 2201 }, (_, i) =>
   (30 + i * 0.1).toFixed(1)
 ); // 30.0 → 250.0
-const DECIMAL_VALUES = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+// DECIMAL_VALUES intentionally removed (unused)
 const UNIT_VALUES = ["kg", "lbs"];
 
 // ─── Scroll Wheel Picker ──────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ const WheelPicker = ({
         animated: false,
       });
     }
-  }, []);
+  }, [selectedIndex]);
 
   const handleScroll = (e) => {
     const y = e.nativeEvent.contentOffset.y;
@@ -117,54 +117,7 @@ const WheelPicker = ({
   );
 };
 
-const pickerStyles = StyleSheet.create({
-  container: {
-    height: PICKER_H,
-    overflow: "hidden",
-    position: "relative",
-  },
-  highlight: {
-    position: "absolute",
-    top: ITEM_HEIGHT * 2,
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 14,
-    zIndex: 0,
-  },
-  fade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT * 2,
-    zIndex: 2,
-  },
-  fadeTop: {
-    top: 0,
-    backgroundColor: "#FFFFFF",
-    opacity: 0.92,
-    // RN gradient workaround via opacity rows
-  },
-  fadeBottom: {
-    bottom: 0,
-  },
-  item: {
-    height: ITEM_HEIGHT,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  itemText: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#D1D5DB",
-  },
-  itemTextSelected: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#111827",
-  },
-});
+// Theme-aware picker styles are provided by `getPickerStyles(colors)` below.
 
 // ─── BMI Preview ──────────────────────────────────────────────────────────────
 const BMIPreview = ({ weight, unit, height: userHeight = 175 }) => {
@@ -208,28 +161,15 @@ const BMIPreview = ({ weight, unit, height: userHeight = 175 }) => {
   );
 };
 
-const bmiStyles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 18,
-    padding: 16,
-    justifyContent: "space-around",
-    marginBottom: 20,
-  },
-  item: { alignItems: "center" },
-  label: { fontSize: 11, color: "#9CA3AF", fontWeight: "600", marginBottom: 4 },
-  value: { fontSize: 16, fontWeight: "800", color: "#111827" },
-  divider: { width: 1, backgroundColor: "#E5E7EB", marginVertical: 4 },
-});
+// BMI styles are provided by `getBmiStyles(colors)` below.
 
 // ─── Trend Badge ──────────────────────────────────────────────────────────────
 const TrendBadge = ({ current, previous }) => {
   const { colors } = useTheme();
   const trendStyles = getTrendStyles(colors);
-  const diff = (current - previous).toFixed(1);
+  const diff = parseFloat((current - previous).toFixed(1));
   const isDown = diff < 0;
-  const isNeutral = diff == 0;
+  const isNeutral = diff === 0;
 
   if (isNeutral) {
     return null;
@@ -257,19 +197,7 @@ const TrendBadge = ({ current, previous }) => {
   );
 };
 
-const trendStyles = StyleSheet.create({
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  text: { fontSize: 12, fontWeight: "700" },
-});
+// Theme-aware trend styles are provided by `getTrendStyles(colors)` below.
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 export default function LogWeightModal({
@@ -282,9 +210,7 @@ export default function LogWeightModal({
   const styles = getStyles(colors);
   const { height: screenHeight } = useWindowDimensions();
   const sheetHeight = Math.min(screenHeight * 0.88, 760);
-  // Build integer & decimal parts from lastWeight
-  const lastWhole = Math.floor(lastWeight);
-  const lastDecimal = Math.round((lastWeight - lastWhole) * 10);
+  // Build integer & decimal parts from lastWeight (no local integer used)
 
   // KG_VALUES index for lastWeight
   const defaultKgIndex = KG_VALUES.findIndex(
@@ -292,7 +218,7 @@ export default function LogWeightModal({
   );
 
   const [wholeIndex, setWholeIndex] = useState(Math.max(defaultKgIndex, 0));
-  const [decimalIndex, setDecimalIndex] = useState(lastDecimal);
+  // decimal index removed — current UI uses wholeIndex for 0.1 precision
   const [unitIndex, setUnitIndex] = useState(0); // 0 = kg
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -336,7 +262,7 @@ export default function LogWeightModal({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim, backdropAnim, sheetHeight]);
 
   const handleSave = async () => {
     const user = auth.currentUser;

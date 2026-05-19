@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 
@@ -767,7 +767,6 @@ const mealStyles = StyleSheet.create({
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function MealPlanScreen({ navigation }) {
-  const { width: sw } = useWindowDimensions();
   const [selectedDay, setSelectedDay] = useState(TODAY_IDX);
   const [completedMeals, setCompletedMeals] = useState([]);
   const [glasses, setGlasses] = useState(3);

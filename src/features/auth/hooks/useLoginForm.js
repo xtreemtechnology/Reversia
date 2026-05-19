@@ -16,9 +16,9 @@ export function useLoginForm() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
 
-  const validateEmail = (email) => {
+  const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(value);
   };
 
   const validateForm = useCallback(() => {

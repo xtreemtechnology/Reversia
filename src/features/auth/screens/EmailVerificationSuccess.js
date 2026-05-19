@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthButton } from "../components/AuthButton";

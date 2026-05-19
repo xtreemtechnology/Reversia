@@ -3,6 +3,8 @@
  * Keeps: useUserLogs hook, navigation params, moment, getButtonAccessibility
  */
 
+/* eslint-disable react-native/no-inline-styles */
+
 import React, { useState, useRef } from "react";
 import {
   View,

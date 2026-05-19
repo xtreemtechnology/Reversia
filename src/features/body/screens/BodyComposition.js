@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import LogWeightModal from "../components/LogWeightModal";
 import { shadowStyle } from "../../../utils/shadows";

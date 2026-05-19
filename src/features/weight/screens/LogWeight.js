@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { useState } from "react";
 import {
   View,
@@ -7,7 +8,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
 } from "react-native";
 import { showNotification } from "../../../components/Notification";

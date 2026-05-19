@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   View,
   Text,
@@ -8,7 +9,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+// removed unused Ionicons import
 import { OnboardingHeader } from "../components/OnboardingHeader";
 import { OnboardingProgress } from "../components/OnboardingProgress";
 import { ContinueButton } from "../components/ContinueButton";

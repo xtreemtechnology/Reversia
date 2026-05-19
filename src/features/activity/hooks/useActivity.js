@@ -14,12 +14,6 @@ export function useActivity(userId) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (userId) {
-      loadActivityLogs();
-    }
-  }, [userId]);
-
   const loadActivityLogs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -32,7 +26,13 @@ export function useActivity(userId) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      loadActivityLogs();
+    }
+  }, [userId, loadActivityLogs]);
 
   const logActivity = useCallback(async (activityData) => {
     try {

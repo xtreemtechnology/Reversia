@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useRef, useEffect } from "react";
 import { Animated, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

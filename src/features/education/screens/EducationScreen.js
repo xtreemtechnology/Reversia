@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ImageBackground,
   TextInput,
-  useWindowDimensions,
 } from "react-native";
 import {
   SafeAreaView,

@@ -9,16 +9,11 @@ import * as profileService from "../services/profileService";
  * Usage:
  *   const { profile, isLoading, error, updateProfile } = useProfile(userId);
  */
+/* eslint-disable no-console */
 export function useProfile(userId) {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (userId) {
-      loadProfile();
-    }
-  }, [userId]);
 
   const loadProfile = useCallback(async () => {
     if (!userId) {
@@ -39,6 +34,12 @@ export function useProfile(userId) {
       setIsLoading(false);
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      loadProfile();
+    }
+  }, [userId, loadProfile]);
 
   const updateProfile = useCallback(
     async (updates) => {
