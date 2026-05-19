@@ -1,4 +1,3 @@
-// src/features/onboarding/screens/AccountSetupWeight.js
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -9,13 +8,14 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons, AntDesign } from "@expo/vector-icons";
+// removed unused Ionicons import
 import { OnboardingHeader } from "../components/OnboardingHeader";
 import { OnboardingProgress } from "../components/OnboardingProgress";
 import { ContinueButton } from "../components/ContinueButton";
 import { ErrorBox } from "../components/ErrorBox";
 import { saveWeight } from "../services/onboardingService";
 import { useTheme } from "../../../theme/ThemeProvider";
+import ROUTES from "../../../navigation/routeNames";
 
 const TICK_SPACING = 20;
 const MIN_KG = 30;
@@ -54,7 +54,7 @@ export default function AccountSetupWeight({ navigation }) {
     setLoading(true);
     try {
       await saveWeight(weight, unit);
-      navigation.navigate("AccountSetupHeight");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_HEIGHT);
     } catch (err) {
       console.error("Error saving weight:", err);
       setError("We couldn't save your weight. Please try again.");
@@ -64,9 +64,7 @@ export default function AccountSetupWeight({ navigation }) {
   };
 
   const toggleUnit = (newUnit) => {
-    if (newUnit === unit) {
-      return;
-    }
+    if (newUnit === unit) return;
     let newWeight =
       newUnit === "lb"
         ? Math.round(weight * 2.20462)
@@ -132,12 +130,6 @@ export default function AccountSetupWeight({ navigation }) {
         </View>
 
         <View style={styles.weightValueContainer}>
-          <AntDesign
-            name="caretleft"
-            size={24}
-            color={colors.primary}
-            style={styles.indicatorArrow}
-          />
           <View style={[styles.valueBox, { minWidth: valueBoxWidth }]}>
             <Text style={styles.valueText}>{weight}</Text>
           </View>

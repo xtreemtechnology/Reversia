@@ -1,17 +1,16 @@
-// src/features/onboarding/components/ErrorBox.js
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 export const ErrorBox = ({ error }) => {
-  if (!error) {
-    return null;
-  }
+  if (!error) return null;
   return (
     <View style={styles.box}>
       <Text style={styles.text}>{error}</Text>
     </View>
   );
 };
+
+export default ErrorBox;
 
 const styles = StyleSheet.create({
   box: {

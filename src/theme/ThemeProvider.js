@@ -1,11 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../config/firebase";
 import useSettings from "../features/settings/hooks/useSettings";
 
@@ -17,21 +12,21 @@ const ThemeContext = createContext({
 });
 
 const light = {
-  background: "#F8FAFC",
+  background: "#F8F6F0",
   card: "#FFFFFF",
-  text: "#0F172A",
-  muted: "#6B7280",
-  border: "#E5E7EB",
-  primary: "#825CFF",
+  text: "#22422F",
+  muted: "#627A6E",
+  border: "#EBE7DD",
+  primary: "#22422F",
 };
 
 const dark = {
-  background: "#0B1220",
-  card: "#0F172A",
-  text: "#E6EEF7",
-  muted: "#94A3B8",
-  border: "#1F2937",
-  primary: "#8B5CF6",
+  background: "#121A16",
+  card: "#1C2621",
+  text: "#E6EFEA",
+  muted: "#8CA397",
+  border: "#2C3B33",
+  primary: "#22422F",
 };
 
 export function ThemeProvider({ children }) {
@@ -40,6 +35,24 @@ export function ThemeProvider({ children }) {
   const { settings } = useSettings(userId);
   const [localTheme, setLocalTheme] = useState(null);
   const [userSettingsTheme, setUserSettingsTheme] = useState(null);
+  const THEME_KEY = "APP_THEME";
+
+  // Load persisted local theme (for unauthenticated or fallback)
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const t = await AsyncStorage.getItem(THEME_KEY);
+        if (mounted && t) setLocalTheme(t);
+      } catch (e) {
+        // ignore
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Sync theme from settings when userId becomes available
   useEffect(() => {
@@ -57,6 +70,11 @@ export function ThemeProvider({ children }) {
   const setTheme = async (theme) => {
     try {
       setLocalTheme(theme);
+      try {
+        await AsyncStorage.setItem(THEME_KEY, theme);
+      } catch (e) {
+        // ignore
+      }
       // Update Firestore if user is authenticated
       if (userId) {
         const settingsService = require("../features/settings/services/settingsService");

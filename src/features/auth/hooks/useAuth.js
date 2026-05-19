@@ -28,9 +28,9 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const user = await authService.signIn(email, password);
-      setUser(user);
-      return user;
+      const authUser = await authService.signIn(email, password);
+      setUser(authUser);
+      return authUser;
     } catch (err) {
       const message =
         err.code === "auth/user-not-found"
@@ -49,9 +49,9 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const user = await authService.signUp(email, password, displayName);
-      setUser(user);
-      return user;
+      const authUser = await authService.signUp(email, password, displayName);
+      setUser(authUser);
+      return authUser;
     } catch (err) {
       const message =
         err.message === "EMAIL_EXISTS"

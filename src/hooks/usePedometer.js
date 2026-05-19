@@ -3,6 +3,8 @@ import { Pedometer } from "expo-sensors";
 import { auth, db } from "../config/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 // Simple pedometer hook (MVP)
 // - reads today's steps using Pedometer.getStepCountAsync
 // - subscribes to live updates via Pedometer.watchStepCount

@@ -13,9 +13,9 @@ export function usePasswordReset() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(value);
   };
 
   const resetPassword = useCallback(async () => {

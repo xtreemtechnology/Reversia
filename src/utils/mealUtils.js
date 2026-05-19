@@ -12,6 +12,9 @@ export function detectMeal(date = new Date()) {
 }
 
 export const MEAL_LABELS = MEAL_WINDOWS.reduce(
-  (acc, w) => ((acc[w.id] = w.label), acc),
+  (acc, w) => {
+    acc[w.id] = w.label;
+    return acc;
+  },
   { other: "Other" }
 );

@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";

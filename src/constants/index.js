@@ -1,36 +1,36 @@
 // src/constants/colors.js
 export const colors = {
-  primary: "#825CFF",
-  secondary: "#F59E0B",
+  primary: "#22422F",
+  secondary: "#ECA143",
   success: "#10B981",
   danger: "#EF4444",
-  warning: "#F59E0B",
-  info: "#3B82F6",
+  warning: "#ECA143",
+  info: "#0284C7",
 
   // Grays
-  gray50: "#F9FAFB",
-  gray100: "#F3F4F6",
-  gray200: "#E5E7EB",
-  gray300: "#D1D5DB",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-  gray700: "#374151",
-  gray800: "#1F2937",
-  gray900: "#111827",
+  gray50: "#F8F6F0",
+  gray100: "#EBE7DD",
+  gray200: "#DED6C8",
+  gray300: "#D1C9B5",
+  gray400: "#A89B88",
+  gray500: "#627A6E",
+  gray600: "#4A6660",
+  gray700: "#335550",
+  gray800: "#1C2621",
+  gray900: "#121A16",
 
   // Semantic
-  background: "#FAFAFA",
-  text: "#111827",
-  textSecondary: "#374151",
-  textTertiary: "#9CA3AF",
-  border: "#E5E7EB",
+  background: "#F8F6F0",
+  text: "#22422F",
+  textSecondary: "#627A6E",
+  textTertiary: "#8CA397",
+  border: "#EBE7DD",
   shadow: "#000000",
 
   // Status
   online: "#10B981",
-  offline: "#9CA3AF",
-  pending: "#F59E0B",
+  offline: "#8CA397",
+  pending: "#ECA143",
   error: "#EF4444",
 };
 

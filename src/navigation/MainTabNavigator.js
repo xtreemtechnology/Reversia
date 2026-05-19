@@ -21,10 +21,61 @@ import ProfileScreen from "../features/profile/screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const TAB_BAR_HEIGHT = 62; // visible bar height (icon + label)
-const SCAN_BTN_HEIGHT = 60; // center scan button diameter
+const TAB_BAR_HEIGHT = 74; // visible bar height (icon + label)
+const SCAN_BTN_HEIGHT = 64; // center scan button diameter
 const ANDROID_EXTRA_PAD = 12; // breathing room above Android system nav
 const IOS_LABEL_PAD = 4;
+
+function HomeTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <Ionicons name={focused ? "home" : "home-outline"} size={s} color={color} />
+  );
+}
+
+function LogTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <MaterialCommunityIcons
+      name={focused ? "plus-circle" : "plus-circle-outline"}
+      size={s}
+      color={color}
+    />
+  );
+}
+
+function MealTabIcon({ color }) {
+  const s = 26;
+
+  return (
+    <MaterialCommunityIcons
+      name="silverware-fork-knife"
+      size={s}
+      color={color}
+    />
+  );
+}
+
+function ProfileTabIcon({ focused, color }) {
+  const s = 26;
+
+  return (
+    <Ionicons
+      name={focused ? "person" : "person-outline"}
+      size={s}
+      color={color}
+    />
+  );
+}
+
+const TAB_ICON_COMPONENTS = {
+  Home: HomeTabIcon,
+  Log: LogTabIcon,
+  Meal: MealTabIcon,
+  Profile: ProfileTabIcon,
+};
 
 export default function MainTabNavigator() {
   const insets = useSafeAreaInsets();
@@ -50,60 +101,24 @@ export default function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: styles.label,
+        tabBarItemStyle: styles.tabItem,
+        tabBarIconStyle: styles.icon,
         tabBarStyle: {
           ...styles.tabBar,
           backgroundColor: colors.card,
           borderTopColor: colors.border,
           height: tabBarHeight,
           paddingBottom: tabBarPaddingBottom,
-          paddingTop: 10,
+          paddingTop: 12,
+          marginHorizontal: 12,
+          marginBottom: 10,
+          borderRadius: 28,
         },
-        tabBarIcon: ({ focused, color }) => {
-          const s = 24;
-          switch (route.name) {
-            case "Home":
-              return (
-                <Ionicons
-                  name={focused ? "home" : "home-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Log":
-              return (
-                <MaterialCommunityIcons
-                  name={focused ? "plus-circle" : "plus-circle-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Scan":
-              return null; // custom button below
-            case "Meal":
-              return (
-                <MaterialCommunityIcons
-                  name={
-                    focused ? "silverware-fork-knife" : "silverware-fork-knife"
-                  }
-                  size={s}
-                  color={color}
-                />
-              );
-            case "Profile":
-              return (
-                <Ionicons
-                  name={focused ? "person" : "person-outline"}
-                  size={s}
-                  color={color}
-                />
-              );
-            default:
-              return null;
-          }
-        },
+        tabBarIcon: TAB_ICON_COMPONENTS[route.name] ?? null,
       })}
     >
       <Tab.Screen
@@ -121,9 +136,7 @@ export default function MainTabNavigator() {
         component={ScanScreen}
         options={{
           tabBarLabel: "",
-          tabBarButton: (props) => (
-            <ScanTabButton {...props} bottomPad={tabBarPaddingBottom} />
-          ),
+          tabBarButton: ScanTabButton,
         }}
       />
       <Tab.Screen
@@ -148,12 +161,11 @@ function ScanTabButton({
   accessibilityRole,
   accessibilityState,
   testID,
-  bottomPad,
 }) {
   const { colors } = useTheme();
 
   // Lift button so it sits centered on the tab bar, overlapping slightly
-  const liftAmount = -(SCAN_BTN_HEIGHT / 2 - TAB_BAR_HEIGHT / 2);
+  const liftAmount = -(SCAN_BTN_HEIGHT / 2 - TAB_BAR_HEIGHT / 2) - 2;
 
   return (
     <TouchableOpacity
@@ -172,7 +184,7 @@ function ScanTabButton({
         ]}
       >
         <View style={[styles.scanBtn, { backgroundColor: colors.primary }]}>
-          <Ionicons name="scan" size={24} color="#FFF" />
+          <Ionicons name="scan" size={26} color="#FFF" />
         </View>
       </View>
       <Text style={[styles.scanLabel, { color: colors.primary }]}>Scan</Text>
@@ -188,18 +200,27 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderTopWidth: 1,
-    // Shadow
-    elevation: 12,
+    elevation: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
   },
 
   label: {
     fontSize: 11,
-    fontWeight: "600",
-    marginTop: 2,
+    fontWeight: "700",
+    marginTop: 3,
+  },
+
+  tabItem: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 2,
+  },
+
+  icon: {
+    marginBottom: 0,
   },
 
   // ── Scan button ──
@@ -210,26 +231,25 @@ const styles = StyleSheet.create({
     // Don't add paddingBottom here — it shifts the label position
   },
   scanRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     justifyContent: "center",
     alignItems: "center",
-    // White ring acts as a border that hides the tab bar line underneath
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
   scanBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
   },
   scanLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     marginTop: 3,
     marginBottom: Platform.OS === "android" ? 6 : 2,

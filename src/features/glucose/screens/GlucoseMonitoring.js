@@ -8,6 +8,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, {
   Path,
@@ -313,8 +314,8 @@ export default function GlucoseMonitoring({ navigation }) {
           <Svg width={CHART_W} height={CHART_H}>
             <Defs>
               <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor="#825CFF" stopOpacity="0.18" />
-                <Stop offset="1" stopColor="#825CFF" stopOpacity="0.01" />
+                <Stop offset="0" stopColor="#22422F" stopOpacity="0.18" />
+                <Stop offset="1" stopColor="#22422F" stopOpacity="0.01" />
               </LinearGradient>
               <LinearGradient id="safeZone" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0" stopColor="#10B981" stopOpacity="0.07" />
@@ -365,7 +366,7 @@ export default function GlucoseMonitoring({ navigation }) {
             <Path
               d={linePath}
               fill="none"
-              stroke="#825CFF"
+              stroke="#22422F"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"

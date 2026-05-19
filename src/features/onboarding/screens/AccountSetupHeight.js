@@ -1,5 +1,5 @@
-// src/features/onboarding/screens/AccountSetupHeight.js
 import React, { useState, useRef, useEffect } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons, AntDesign } from "@expo/vector-icons";
+// removed unused Ionicons import
 import { OnboardingHeader } from "../components/OnboardingHeader";
 import { OnboardingProgress } from "../components/OnboardingProgress";
 import { ContinueButton } from "../components/ContinueButton";
 import { ErrorBox } from "../components/ErrorBox";
 import { saveHeight } from "../services/onboardingService";
 import { useTheme } from "../../../theme/ThemeProvider";
+import ROUTES from "../../../navigation/routeNames";
 
 const TICK_SPACING = 20;
 
@@ -52,7 +53,7 @@ export default function AccountSetupHeight({ navigation }) {
     setLoading(true);
     try {
       await saveHeight(height, unit);
-      navigation.navigate("AccountSetupGoal");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_GOAL);
     } catch (err) {
       console.error("Error saving height:", err);
       setError("Could not save height. Please check your connection.");
@@ -130,12 +131,6 @@ export default function AccountSetupHeight({ navigation }) {
         </View>
 
         <View style={styles.valueDisplayContainer}>
-          <AntDesign
-            name="caretleft"
-            size={24}
-            color={colors.primary}
-            style={styles.indicatorArrow}
-          />
           <View style={[styles.valueBox, { minWidth: valueBoxWidth }]}>
             <Text style={styles.valueText}>
               {height} <Text style={{ fontSize: 20 }}>{unit}</Text>
@@ -215,8 +210,7 @@ const getStyles = (colors) =>
     activeTab: { backgroundColor: colors.primary },
     toggleText: { fontSize: 16, color: colors.muted, fontWeight: "600" },
     activeToggleText: { color: colors.background },
-    valueDisplayContainer: { alignItems: "center", marginBottom: 20 },
-    indicatorArrow: { transform: [{ rotate: "270deg" }], marginBottom: 5 },
+    valueDisplayContainer: { alignItems: "center", marginBottom: 14 },
     valueBox: {
       backgroundColor: colors.card,
       paddingHorizontal: 40,

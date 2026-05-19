@@ -1,218 +1,138 @@
-// src/features/onboarding/screens/AccountSetupReadiness.js
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-  useWindowDimensions,
-} from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { OnboardingHeader } from "../components/OnboardingHeader";
-import { OnboardingProgress } from "../components/OnboardingProgress";
-import { ContinueButton } from "../components/ContinueButton";
-import { ErrorBox } from "../components/ErrorBox";
-import { saveReadinessLevel } from "../services/onboardingService";
-import { useTheme } from "../../../theme/ThemeProvider";
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import T from "../../../theme/tokens";
+import { shared } from "../styles/shared";
+import ROUTES from "../../../navigation/routeNames";
+import BackBtn from "../components/OnboardingHeader";
+import StepDots from "../components/OnboardingProgress";
+import PrimaryBtn from "../components/ContinueButton";
+/* eslint-disable react-native/no-inline-styles */
 
 export default function AccountSetupReadiness({ navigation }) {
-  const { colors } = useTheme();
-  const styles = getStyles(colors);
-  const [selectedReadiness, setSelectedReadiness] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const { width: screenWidth } = useWindowDimensions();
-  const contentPadding = screenWidth < 380 ? 20 : 25;
 
-  const options = [
+  const levels = [
     {
       id: "starting",
-      title: "Just Starting",
-      icon: (
-        <MaterialCommunityIcons name="seed-outline" size={28} color="#4ADE80" />
-      ),
-      desc: "I am taking my first steps toward health.",
+      label: "Just Starting Out",
+      desc: "Still building habits, need gentle guidance",
+      emoji: "🌱",
     },
     {
       id: "momentum",
-      title: "Building Momentum",
-      icon: (
-        <MaterialCommunityIcons name="speedometer" size={28} color="#FBBF24" />
-      ),
-      desc: "I am already making some changes.",
+      label: "Building Momentum",
+      desc: "Some routines in place, ready to level up",
+      emoji: "⚡",
     },
     {
       id: "committed",
-      title: "Fully Committed",
-      icon: <MaterialCommunityIcons name="fire" size={28} color="#EF4444" />,
-      desc: "I am ready to do whatever it takes.",
+      label: "Fully Committed",
+      desc: "Ready for an intensive, structured plan",
+      emoji: "🔥",
     },
   ];
 
-  const handleFinish = async () => {
-    if (!selectedReadiness) {
-      return;
-    }
-
-    setError(null);
+  const handleContinue = async () => {
+    if (!selected) return;
     setLoading(true);
     try {
-      await saveReadinessLevel(selectedReadiness);
-      navigation.navigate("AccountSetupComplete");
-    } catch (err) {
-      console.error("Error finalizing setup:", err);
-      setError("Could not complete setup. Please try again.");
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_CHECK_FREQUENCY);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <OnboardingHeader onBack={() => navigation.goBack()} />
-
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingHorizontal: contentPadding },
-        ]}
-      >
-        <OnboardingProgress current={8} />
-
-        <Text style={styles.title}>
-          How ready are you to improve your health?
-        </Text>
-        <Text style={styles.subtitle}>
-          This helps us set the right pace for your daily goals.
+    <SafeAreaView style={shared.safeArea}>
+      <View style={shared.content}>
+        <BackBtn onPress={() => navigation.goBack()} />
+        <StepDots current={9} />
+        <Text style={shared.eyebrow}>Step 9 of 11</Text>
+        <Text style={shared.heading}>Where are you{"\n"}right now?</Text>
+        <Text style={shared.subheading}>
+          We'll pace your plan to match your current readiness.
         </Text>
 
-        <View style={styles.listContainer}>
-          {options.map((item) => {
-            const isSelected = selectedReadiness === item.id;
+        <View style={{ gap: 12 }}>
+          {levels.map((l) => {
+            const sel = selected === l.id;
             return (
               <TouchableOpacity
-                key={item.id}
+                key={l.id}
+                onPress={() => setSelected(l.id)}
                 activeOpacity={0.8}
-                onPress={() => setSelectedReadiness(item.id)}
                 style={[
-                  styles.readinessCard,
-                  isSelected && styles.selectedCard,
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 16,
+                    backgroundColor: T.CARD,
+                    padding: 20,
+                    borderRadius: 22,
+                    borderWidth: 1.5,
+                    borderColor: T.BORDER,
+                  },
+                  sel && {
+                    borderColor: T.PRIMARY,
+                    backgroundColor: T.PRIMARY_LIGHT,
+                    borderWidth: 2.5,
+                  },
                 ]}
-                disabled={loading}
               >
-                <View style={styles.iconContainer}>{item.icon}</View>
-                <View style={styles.textContainer}>
-                  <View style={[styles.radioCircle, isSelected && styles.radioSelected]}>
-                    {isSelected ? <View style={styles.radioInner} /> : null}
-                  </View>
-                  <Text style={styles.optionDesc}>{item.desc}</Text>
-                </View>
-
-
-                  style={[
-                    styles.radioCircle,
-                    isSelected && styles.radioSelected,
-                  ]}
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 18,
+                    backgroundColor: T.BG,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  {isSelected && <View style={styles.radioInner} />}
+                  <Text style={{ fontSize: 32 }}>{l.emoji}</Text>
                 </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      {
+                        fontSize: 16,
+                        fontWeight: "800",
+                        color: T.TEXT,
+                        marginBottom: 3,
+                      },
+                      sel && { color: T.PRIMARY },
+                    ]}
+                  >
+                    {l.label}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 13, color: T.MUTED, lineHeight: 18 }}
+                  >
+                    {l.desc}
+                  </Text>
+                </View>
+                {sel && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color={T.PRIMARY}
+                  />
+                )}
               </TouchableOpacity>
             );
           })}
         </View>
+      </View>
 
-        <ErrorBox error={error} />
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <ContinueButton
-          onPress={handleFinish}
+      <View style={shared.footer}>
+        <PrimaryBtn
+          onPress={handleContinue}
           loading={loading}
-          disabled={!selectedReadiness}
-          label="Finish Setup"
+          disabled={!selected}
         />
       </View>
     </SafeAreaView>
   );
 }
-
-const getStyles = (colors) =>
-  StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    content: { paddingHorizontal: 25, paddingTop: 40 },
-    title: {
-      fontSize: 28,
-      fontWeight: "700",
-      color: colors.primary,
-      textAlign: "center",
-      marginBottom: 15,
-    },
-    subtitle: {
-      fontSize: 15,
-      color: colors.muted,
-      textAlign: "center",
-      marginBottom: 35,
-    },
-    listContainer: { width: "100%" },
-    readinessCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      padding: 20,
-      borderRadius: 20,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-      elevation: 3,
-      shadowColor: colors.text,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-    },
-    selectedCard: {
-      borderColor: colors.primary,
-      backgroundColor: "#F3F0FF",
-      borderWidth: 2,
-      elevation: 0,
-    },
-    iconContainer: {
-      width: 50,
-      height: 50,
-      borderRadius: 12,
-      backgroundColor: colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 15,
-    },
-    textContainer: { flex: 1 },
-    optionTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: colors.text,
-      marginBottom: 4,
-    },
-    optionDesc: {
-      fontSize: 13,
-      color: colors.muted,
-    },
-    selectedText: { color: colors.primary },
-    radioCircle: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      borderWidth: 2,
-      borderColor: colors.border,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    radioSelected: { borderColor: colors.primary },
-    radioInner: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: colors.primary,
-    },
-    footer: { paddingHorizontal: 25, paddingBottom: 40 },
-  });

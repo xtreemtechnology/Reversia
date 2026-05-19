@@ -72,6 +72,7 @@ export default function OrderSummary() {
           </Text>
           <Text style={[styles.orderDate, { color: colors.muted }]}>
             {order.date}
+          </Text>
 
           <TouchableOpacity
             style={[

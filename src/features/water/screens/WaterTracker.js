@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { useState } from "react";
 import {
   View,
@@ -7,9 +8,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StyleSheet,
 } from "react-native";
+
+import { showNotification } from "../../../components/Notification";
 import { useWaterLogs } from "../hooks/useWaterLogs";
 import { addWaterEntry } from "../services/waterService";
 import { useTheme } from "../../../theme/ThemeProvider";
@@ -23,7 +25,11 @@ export default function WaterTracker() {
   const handleAdd = async () => {
     const num = parseFloat(value);
     if (isNaN(num) || num <= 0) {
-      Alert.alert("Invalid amount", "Enter a valid ml amount");
+      showNotification({
+        type: "warning",
+        title: "Invalid amount",
+        message: "Enter a valid ml amount",
+      });
       return;
     }
     setSaving(true);
@@ -32,7 +38,11 @@ export default function WaterTracker() {
       setValue("");
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Could not save water");
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "Could not save water",
+      });
     } finally {
       setSaving(false);
     }

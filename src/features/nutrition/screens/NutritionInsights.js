@@ -1,5 +1,6 @@
 // src/screens/NutritionInsights.js
 import React, { useState, useMemo } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   View,
   Text,
@@ -7,7 +8,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  useWindowDimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";

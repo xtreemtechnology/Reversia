@@ -1,7 +1,17 @@
-// src/features/onboarding/components/OnboardingHeader.js
 import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { shared } from "../styles/shared";
+
+export const BackBtn = ({ onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={shared.backBtn}
+    activeOpacity={0.7}
+  >
+    <Ionicons name="chevron-back" size={22} color={"#1A2E22"} />
+  </TouchableOpacity>
+);
 
 export const OnboardingHeader = ({ onBack }) => (
   <View style={styles.header}>
@@ -11,6 +21,8 @@ export const OnboardingHeader = ({ onBack }) => (
     <View style={styles.spacer} />
   </View>
 );
+
+export default BackBtn;
 
 const styles = StyleSheet.create({
   header: {

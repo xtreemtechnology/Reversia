@@ -5,13 +5,13 @@ import {
   Animated,
   Image,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
@@ -246,7 +246,6 @@ export default function MealAnalyser({ navigation }) {
   const styles = getStyles(colors, isDark);
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedUri, setCapturedUri] = useState(null);
-  const [capturedBase64, setCapturedBase64] = useState(null);
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [result, setResult] = useState(null);
   const [logging, setLogging] = useState(false);
@@ -326,7 +325,6 @@ export default function MealAnalyser({ navigation }) {
         exif: false,
       });
       setCapturedUri(photo.uri);
-      setCapturedBase64(photo.base64);
       await runAnalysis(photo.base64);
     } catch (err) {
       setMessage(err.message);
@@ -353,7 +351,6 @@ export default function MealAnalyser({ navigation }) {
       if (!picked.canceled && picked.assets?.[0]) {
         const asset = picked.assets[0];
         setCapturedUri(asset.uri);
-        setCapturedBase64(asset.base64);
         await runAnalysis(asset.base64);
       }
     } catch (err) {
@@ -388,7 +385,6 @@ export default function MealAnalyser({ navigation }) {
   const handleRetake = () => {
     setResult(null);
     setCapturedUri(null);
-    setCapturedBase64(null);
     setIsAnalysing(false);
   };
 

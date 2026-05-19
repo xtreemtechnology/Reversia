@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useState } from "react";
 import {
   View,
@@ -8,7 +9,6 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
-  Alert,
   Modal,
   TextInput,
 } from "react-native";
@@ -16,6 +16,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { auth } from "../../../config/firebase";
 import { sendEmailVerification, onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
+import { showNotification } from "../../../components/Notification";
+import { confirm } from "../../../utils/confirmService";
 import { useProfile } from "../hooks/useProfile";
 import { useTheme } from "../../../theme/ThemeProvider";
 
@@ -305,14 +307,19 @@ export default function ProfileScreen({ navigation }) {
                         updatedAt: new Date().toISOString(),
                       };
                       await updateProfile(updates);
-                      Alert.alert("Saved", "Profile updated");
+                      showNotification({
+                        type: "success",
+                        title: "Saved",
+                        message: "Profile updated",
+                      });
                       setEditVisible(false);
                     } catch (err) {
                       console.error("Inline save failed", err);
-                      Alert.alert(
-                        "Error",
-                        err?.message || "Failed to save profile"
-                      );
+                      showNotification({
+                        type: "error",
+                        title: "Error",
+                        message: err?.message || "Failed to save profile",
+                      });
                     }
                   }}
                   style={styles.modalSaveBtn}
@@ -359,6 +366,7 @@ export default function ProfileScreen({ navigation }) {
             value={profile?.streak ?? "—"}
             color="#F59E0B"
             colors={colors}
+            styles={styles}
           />
           <StatCard
             icon="check-circle"
@@ -366,6 +374,7 @@ export default function ProfileScreen({ navigation }) {
             value={profile?.goalsMetTotal ?? "—"}
             color="#10B981"
             colors={colors}
+            styles={styles}
           />
           <StatCard
             icon="trending-down"
@@ -373,6 +382,7 @@ export default function ProfileScreen({ navigation }) {
             value={profile?.a1cDrop ? `${profile.a1cDrop}%` : "—"}
             color="#825CFF"
             colors={colors}
+            styles={styles}
           />
         </View>
 
@@ -527,16 +537,19 @@ export default function ProfileScreen({ navigation }) {
                 try {
                   setSendingVerification(true);
                   await sendEmailVerification(auth.currentUser);
-                  Alert.alert(
-                    "Verification sent",
-                    "Check your inbox for the verification email."
-                  );
+                  showNotification({
+                    type: "success",
+                    title: "Verification sent",
+                    message: "Check your inbox for the verification email.",
+                  });
                 } catch (err) {
                   console.error("Resend verification failed", err);
-                  Alert.alert(
-                    "Error",
-                    err?.message || "Unable to send verification email"
-                  );
+                  showNotification({
+                    type: "error",
+                    title: "Error",
+                    message:
+                      err?.message || "Unable to send verification email",
+                  });
                 } finally {
                   setSendingVerification(false);
                 }
@@ -593,10 +606,11 @@ export default function ProfileScreen({ navigation }) {
                 await setTheme(theme);
               } catch (err) {
                 console.error("Update appearance failed", err);
-                Alert.alert(
-                  "Error",
-                  err?.message || "Unable to update appearance"
-                );
+                showNotification({
+                  type: "error",
+                  title: "Error",
+                  message: err?.message || "Unable to update appearance",
+                });
               }
             }}
             iconColor={colors.text}
@@ -611,7 +625,26 @@ export default function ProfileScreen({ navigation }) {
             styles.signOutBtn,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
-          onPress={() => auth.signOut()}
+          onPress={async () => {
+            try {
+              const ok = await confirm({
+                title: "Sign out",
+                message: "Are you sure you want to sign out?",
+                confirmText: "Sign out",
+                cancelText: "Cancel",
+              });
+              if (ok) {
+                await auth.signOut();
+              }
+            } catch (err) {
+              console.error("Sign out failed", err);
+              showNotification({
+                type: "error",
+                title: "Error",
+                message: "Unable to sign out",
+              });
+            }
+          }}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text style={styles.signOutTextDanger}>Sign Out</Text>

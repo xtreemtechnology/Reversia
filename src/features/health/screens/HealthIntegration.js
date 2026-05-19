@@ -1,5 +1,6 @@
 // src/screens/HealthIntegration.js
 import React, { useState, useRef, useEffect } from "react";
+/* eslint-disable react-native/no-inline-styles */
 import {
   View,
   Text,
@@ -172,8 +173,8 @@ const AnimatedRing = ({
           <Text style={styles.percentText}>{Math.round(progress)}%</Text>
         </View>
       </View>
-      <Text style={ringStyles.label}>{label}</Text>
-      <Text style={ringStyles.sub}>{sublabel}</Text>
+      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.sub}>{sublabel}</Text>
     </View>
   );
 };
@@ -409,7 +410,7 @@ const HRSparkline = ({ min, current, max }) => {
       </Svg>
       <View style={styles.stats}>
         <Text style={styles.stat}>
-          ↓ {min} <Text style={hrStyles.statLabel}>min</Text>
+          ↓ {min} <Text style={styles.statLabel}>min</Text>
         </Text>
         <Text style={[styles.stat, { color: "#EF4444", fontSize: 18 }]}>
           {current} <Text style={styles.statUnit}>bpm</Text>
@@ -508,29 +509,27 @@ const ConnectionCard = ({ connected, onConnect, onDisconnect, lastSync }) => {
     } else {
       pulseAnim.setValue(1);
     }
-  }, [connected]);
+  }, [connected, pulseAnim]);
 
   return (
-    <View style={connStyles.card}>
+    <View style={styles.card}>
       {/* Logos */}
-      <View style={connStyles.logosRow}>
+      <View style={styles.logosRow}>
         {/* Google Fit logo placeholder */}
-        <View style={connStyles.logo}>
+        <View style={styles.logo}>
           <MaterialCommunityIcons name="google-fit" size={28} color="#4285F4" />
         </View>
         {/* Connection line */}
-        <View style={connStyles.lineWrap}>
-          <View
-            style={[connStyles.line, connected && connStyles.lineConnected]}
-          />
+        <View style={styles.lineWrap}>
+          <View style={[styles.line, connected && styles.lineConnected]} />
           {connected && (
             <Animated.View
-              style={[connStyles.pulse, { transform: [{ scale: pulseAnim }] }]}
+              style={[styles.pulse, { transform: [{ scale: pulseAnim }] }]}
             />
           )}
         </View>
         {/* Reversia logo placeholder */}
-        <View style={[connStyles.logo, connStyles.reversiaLogo]}>
+        <View style={[styles.logo, styles.reversiaLogo]}>
           <MaterialCommunityIcons
             name="heart-pulse"
             size={28}
@@ -563,20 +562,20 @@ const ConnectionCard = ({ connected, onConnect, onDisconnect, lastSync }) => {
       </View>
 
       {/* Data icons */}
-      <View style={connStyles.dataIcons}>
+      <View style={styles.dataIcons}>
         {[
           { icon: "food-apple", color: "#F59E0B" },
           { icon: "sleep", color: "#6D28D9" },
           { icon: "arm-flex", color: "#10B981" },
           { icon: "diabetes", color: "#825CFF" },
         ].map((d, i) => (
-          <View key={i} style={connStyles.dataIcon}>
+          <View key={i} style={styles.dataIcon}>
             <MaterialCommunityIcons name={d.icon} size={22} color={d.color} />
           </View>
         ))}
       </View>
 
-      <Text style={connStyles.desc}>
+      <Text style={styles.desc}>
         {connected
           ? "Reversia is syncing steps, sleep, heart rate, and activity from Google Fit."
           : "Connect Google Fit to automatically sync your health data with Reversia."}
@@ -791,6 +790,8 @@ export default function HealthIntegration({ navigation }) {
   };
 
   const styles = getStyles(colors, isDark);
+  const workoutStyles = getWorkoutStyles(colors);
+  const freqStyles = getFreqStyles(colors);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1013,7 +1014,7 @@ export default function HealthIntegration({ navigation }) {
                     <View style={styles.weekStat}>
                       <Text style={styles.weekStatVal}>
                         {Math.round(
-                          WEEK_STEPS.reduce((s, d) => s + d.val, 0) /
+                          WEEK_STEPS.reduce((s, entry) => s + entry.val, 0) /
                             WEEK_STEPS.length
                         ).toLocaleString()}
                       </Text>
@@ -1022,7 +1023,11 @@ export default function HealthIntegration({ navigation }) {
                     <View style={styles.weekStatDivider} />
                     <View style={styles.weekStat}>
                       <Text style={styles.weekStatVal}>
-                        {WEEK_STEPS.filter((d) => d.val >= 10000).length} / 7
+                        {
+                          WEEK_STEPS.filter((entry) => entry.val >= 10000)
+                            .length
+                        }{" "}
+                        / 7
                       </Text>
                       <Text style={styles.weekStatLabel}>Goal days</Text>
                     </View>
@@ -1030,7 +1035,8 @@ export default function HealthIntegration({ navigation }) {
                     <View style={styles.weekStat}>
                       <Text style={styles.weekStatVal}>
                         {(
-                          WEEK_STEPS.reduce((s, d) => s + d.val, 0) * 0.00065
+                          WEEK_STEPS.reduce((s, entry) => s + entry.val, 0) *
+                          0.00065
                         ).toFixed(1)}{" "}
                         km
                       </Text>

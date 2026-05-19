@@ -1,167 +1,140 @@
-// src/features/onboarding/screens/AccountSetupGender.js
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  Image,
-  useWindowDimensions,
-} from "react-native";
-import { OnboardingHeader } from "../components/OnboardingHeader";
-import { OnboardingProgress } from "../components/OnboardingProgress";
-import { ContinueButton } from "../components/ContinueButton";
-import { saveGender } from "../services/onboardingService";
-import { useTheme } from "../../../theme/ThemeProvider";
+/* eslint-disable react-native/no-inline-styles */
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import T from "../../../theme/tokens";
+import { shared } from "../styles/shared";
+import ROUTES from "../../../navigation/routeNames";
+import BackBtn from "../components/OnboardingHeader";
+import StepDots from "../components/OnboardingProgress";
+import PrimaryBtn from "../components/ContinueButton";
 
 export default function AccountSetupGender({ navigation }) {
-  const { width } = useWindowDimensions();
-  const { colors } = useTheme();
-  const styles = getStyles(colors);
-  const [gender, setGender] = useState("female");
+  const [gender, setGender] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const genderWidth = (width - 60) / 2;
+  const options = [
+    {
+      id: "male",
+      label: "Male",
+      icon: "human-male",
+      color: "#DBEAFE",
+      accent: "#2563EB",
+    },
+    {
+      id: "female",
+      label: "Female",
+      icon: "human-female",
+      color: "#FCE7F3",
+      accent: "#DB2777",
+    },
+    {
+      id: "other",
+      label: "Prefer not to say",
+      icon: "account",
+      color: T.SAGE,
+      accent: T.PRIMARY,
+    },
+  ];
 
   const handleContinue = async () => {
+    if (!gender) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      await saveGender(gender);
-      navigation.navigate("AccountSetupAge");
-    } catch (error) {
-      console.error("Error saving gender:", error);
+      navigation.navigate(ROUTES.ONBOARDING.ACCOUNT_SETUP_AGE);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <OnboardingHeader onBack={() => navigation.goBack()} />
-
-      <View style={styles.content}>
-        <OnboardingProgress current={2} />
-        <Text style={styles.title}>What is your gender?</Text>
-        <Text style={styles.subtitle}>
-          Please give some true answers for the following question
+    <SafeAreaView style={shared.safeArea}>
+      <View style={shared.content}>
+        <BackBtn onPress={() => navigation.goBack()} />
+        <StepDots current={2} />
+        <Text style={shared.eyebrow}>Step 2 of 11</Text>
+        <Text style={shared.heading}>What is your{"\n"}biological sex?</Text>
+        <Text style={shared.subheading}>
+          This helps us calibrate your metabolic insights.
         </Text>
 
-        <View style={styles.selectionContainer}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setGender("male")}
-            style={[styles.genderWrapper, { width: genderWidth }]}
-            disabled={loading}
-          >
-            <View
-              style={[
-                styles.card,
-                gender === "male" ? styles.activeCardMale : styles.inactiveCard,
-              ]}
-            >
-              <Image
-                source={require("../../../../assets/Male.png")}
-                style={styles.avatar}
-                resizeMode="contain"
-              />
-            </View>
-            <Text
-              style={[
-                styles.genderLabel,
-                gender === "male" && styles.activeLabelMale,
-              ]}
-            >
-              Male
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setGender("female")}
-            style={[styles.genderWrapper, { width: genderWidth }]}
-            disabled={loading}
-          >
-            <View
-              style={[
-                styles.card,
-                gender === "female"
-                  ? styles.activeCardFemale
-                  : styles.inactiveCard,
-              ]}
-            >
-              <Image
-                source={require("../../../../assets/Female.png")}
-                style={styles.avatar}
-                resizeMode="contain"
-              />
-            </View>
-            <Text
-              style={[
-                styles.genderLabel,
-                gender === "female" && styles.activeLabelFemale,
-              ]}
-            >
-              Female
-            </Text>
-          </TouchableOpacity>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          {options.map((opt) => {
+            const sel = gender === opt.id;
+            return (
+              <TouchableOpacity
+                key={opt.id}
+                onPress={() => setGender(opt.id)}
+                activeOpacity={0.8}
+                style={[
+                  {
+                    width: "47%",
+                    backgroundColor: T.CARD,
+                    borderRadius: 22,
+                    borderWidth: 1.5,
+                    borderColor: T.BORDER,
+                    padding: 20,
+                    alignItems: "center",
+                    gap: 12,
+                  },
+                  sel && { borderColor: opt.accent, borderWidth: 2.5 },
+                  opt.id === "other" && { width: "100%" },
+                ]}
+              >
+                <View
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 24,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: opt.color,
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name={opt.icon}
+                    size={34}
+                    color={opt.accent}
+                  />
+                </View>
+                <Text
+                  style={[
+                    { fontSize: 15, fontWeight: "700", color: T.TEXT },
+                    sel && { color: opt.accent },
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+                {sel && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      width: 22,
+                      height: 22,
+                      borderRadius: 11,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: opt.accent,
+                    }}
+                  >
+                    <Ionicons name="checkmark" size={12} color={T.WHITE} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <ContinueButton onPress={handleContinue} loading={loading} />
+      <View style={shared.footer}>
+        <PrimaryBtn
+          onPress={handleContinue}
+          loading={loading}
+          disabled={!gender}
+        />
       </View>
     </SafeAreaView>
   );
 }
-
-const getStyles = (colors) =>
-  StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    content: {
-      flex: 1,
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingTop: 40,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "700",
-      color: colors.primary,
-      textAlign: "center",
-      marginBottom: 15,
-    },
-    subtitle: {
-      fontSize: 15,
-      color: colors.muted,
-      textAlign: "center",
-      lineHeight: 22,
-      marginBottom: 40,
-    },
-    selectionContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      width: "100%",
-      paddingHorizontal: 10,
-    },
-    genderWrapper: {
-      alignItems: "center",
-    },
-    card: {
-      width: "100%",
-      aspectRatio: 0.85,
-      borderRadius: 24,
-      justifyContent: "flex-end",
-      alignItems: "center",
-      overflow: "hidden",
-      marginBottom: 12,
-    },
-    inactiveCard: { backgroundColor: colors.card },
-    activeCardMale: { backgroundColor: "#DBEAFE" },
-    activeCardFemale: { backgroundColor: "#E0E7FF" },
-    avatar: { width: "90%", height: "90%" },
-    genderLabel: { fontSize: 18, fontWeight: "600", color: colors.muted },
-    activeLabelMale: { color: "#2563EB" },
-    activeLabelFemale: { color: colors.primary },
-    footer: { paddingHorizontal: 25, paddingBottom: 40 },
-  });

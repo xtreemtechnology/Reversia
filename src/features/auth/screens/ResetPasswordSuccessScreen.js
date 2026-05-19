@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from "react";
 import { View, Text, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

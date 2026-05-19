@@ -14,12 +14,6 @@ export function useGlucose(userId) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (userId) {
-      loadGlucoseLogs();
-    }
-  }, [userId]);
-
   const loadGlucoseLogs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -32,7 +26,13 @@ export function useGlucose(userId) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      loadGlucoseLogs();
+    }
+  }, [userId, loadGlucoseLogs]);
 
   const logGlucose = useCallback(async (glucoseData) => {
     try {

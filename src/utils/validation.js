@@ -48,7 +48,7 @@ export const validatePassword = (password) => {
     strength += 15;
   }
 
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (/[^\w\s]/.test(password)) {
     strength += 20;
   }
 

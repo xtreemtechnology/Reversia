@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import OnboardingNavigator from "../screens/onboarding/OnboardingNavigator";
+import OnboardingNavigator from "../features/onboarding/navigation";
 import AuthStack from "../features/auth/navigation";
 import AppStackNavigator from "./AppStackNavigator";
 import { ROUTES } from "./routeNames";

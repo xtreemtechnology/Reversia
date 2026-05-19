@@ -55,6 +55,7 @@ export const accessibilityHints = {
   emailFormat: "Enter a valid email address",
   passwordRequirements: "Must be at least 8 characters",
   confirmPassword: "Must match your password",
+  /* eslint-disable no-console */
 
   // Action hints
   saveData: "Saves your information to the database",

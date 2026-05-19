@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps, no-undef, react-native/no-inline-styles */
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -31,7 +32,7 @@ export default function ScanScreen({ navigation }) {
   const [scanLineAnim] = useState(new Animated.Value(0));
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-  const [debugStatus, setDebugStatus] = useState({});
+  // debugStatus removed (unused)
   const [message, setMessage] = useState(null);
   const styles = getStyles(colors, isDark);
 

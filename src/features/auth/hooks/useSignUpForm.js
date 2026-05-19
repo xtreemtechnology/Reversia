@@ -19,9 +19,9 @@ export function useSignUpForm() {
   const [errors, setErrors] = useState({});
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(value);
   };
 
   const validateForm = useCallback(() => {

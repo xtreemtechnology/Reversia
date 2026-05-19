@@ -1,4 +1,4 @@
-// src/features/onboarding/screens/AccountSetupComplete.js
+/* eslint-disable react-native/no-inline-styles */
 import React from "react";
 import {
   View,
@@ -11,11 +11,11 @@ import {
   StatusBar,
 } from "react-native";
 import {
-  AntDesign,
   MaterialCommunityIcons,
   FontAwesome5,
   Ionicons,
 } from "@expo/vector-icons";
+import { Ionicons as IonIcon } from "@expo/vector-icons";
 import Svg, {
   Path,
   Circle,
@@ -25,6 +25,7 @@ import Svg, {
 } from "react-native-svg";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import ROUTES from "../../../navigation/routeNames";
 
 export default function AccountSetupComplete({ navigation }) {
   const { colors } = useTheme();
@@ -35,10 +36,10 @@ export default function AccountSetupComplete({ navigation }) {
 
   const handleStart = () => {
     if (!auth.currentUser) {
-      navigation.replace("Login");
+      navigation.navigate(ROUTES.ROOT.AUTH, { screen: ROUTES.AUTH.LOGIN });
       return;
     }
-    navigation.replace("MainApp");
+    navigation.navigate(ROUTES.ROOT.MAIN_APP);
   };
 
   return (
@@ -177,8 +178,8 @@ export default function AccountSetupComplete({ navigation }) {
           onPress={handleStart}
         >
           <Text style={styles.startButtonText}>Start Natural Journey</Text>
-          <AntDesign
-            name="arrowright"
+          <IonIcon
+            name="chevron-forward"
             size={20}
             color="#FFF"
             style={{ marginLeft: 10 }}

@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../theme/ThemeProvider";

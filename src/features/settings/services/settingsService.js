@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../config/firebase";
 
 /**
@@ -38,11 +38,15 @@ export async function updateNotificationSettings(
 
   try {
     const settingsRef = doc(db, "userSettings", userId);
-    await updateDoc(settingsRef, {
-      pushEnabled,
-      emailNotifications,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      settingsRef,
+      {
+        pushEnabled,
+        emailNotifications,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
     return true;
   } catch (error) {
     throw error;
@@ -59,11 +63,15 @@ export async function updateProfileSettings(userId, { displayName, bio }) {
 
   try {
     const settingsRef = doc(db, "userSettings", userId);
-    await updateDoc(settingsRef, {
-      displayName,
-      bio,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      settingsRef,
+      {
+        displayName,
+        bio,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
     return true;
   } catch (error) {
     throw error;
@@ -80,11 +88,16 @@ export async function updateAppearanceSettings(userId, { theme, language }) {
 
   try {
     const settingsRef = doc(db, "userSettings", userId);
-    await updateDoc(settingsRef, {
-      theme,
-      language,
-      updatedAt: new Date().toISOString(),
-    });
+    // Use setDoc with merge so the document is created if it does not exist
+    await setDoc(
+      settingsRef,
+      {
+        theme,
+        language,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
     return true;
   } catch (error) {
     throw error;

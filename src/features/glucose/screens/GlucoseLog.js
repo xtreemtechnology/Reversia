@@ -7,8 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  StyleSheet,
 } from "react-native";
+import { showNotification } from "../../../components/Notification";
 import { useGlucoseLogs } from "../hooks/useGlucoseLogs";
 import { addGlucoseEntry } from "../services/glucoseService";
 import { useTheme } from "../../../theme/ThemeProvider";
@@ -22,7 +23,11 @@ export default function GlucoseLog() {
   const handleAdd = async () => {
     const num = parseFloat(value);
     if (isNaN(num)) {
-      Alert.alert("Invalid value", "Enter a valid mg/dL value");
+      showNotification({
+        type: "warning",
+        title: "Invalid value",
+        message: "Enter a valid mg/dL value",
+      });
       return;
     }
     setSaving(true);
@@ -31,106 +36,122 @@ export default function GlucoseLog() {
       setValue("");
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Could not save glucose");
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "Could not save glucose",
+      });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View
-        style={{
-          padding: 16,
-          borderBottomWidth: 1,
-          borderColor: colors.border,
-        }}
-      >
-        <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text }}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <View style={[styles.header, { borderColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           Glucose
         </Text>
-        <Text style={{ color: colors.muted, marginTop: 6 }}>
+        <Text style={[styles.headerSub, { color: colors.muted }]}>
           Log blood glucose (mg/dL)
         </Text>
       </View>
 
-      <View
-        style={{
-          padding: 16,
-          flexDirection: "row",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
+      <View style={styles.inputRow}>
         <TextInput
           value={value}
           onChangeText={setValue}
           placeholder="mg/dL"
           placeholderTextColor={colors.muted}
           keyboardType="numeric"
-          style={{
-            flex: 1,
-            height: 48,
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: 10,
-            paddingHorizontal: 12,
-            backgroundColor: colors.card,
-            color: colors.text,
-          }}
+          style={[
+            styles.input,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+              color: colors.text,
+            },
+          ]}
         />
         <TouchableOpacity
           onPress={handleAdd}
-          style={{
-            backgroundColor: colors.primary,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 10,
-          }}
+          style={[styles.addBtn, { backgroundColor: colors.primary }]}
           disabled={saving}
         >
           {saving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{ color: "#fff", fontWeight: "700" }}>Add</Text>
+            <Text style={styles.addBtnText}>Add</Text>
           )}
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
+        <View style={styles.loadingWrap}>
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : (
         <FlatList
           data={logs}
           keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
-            <View
-              style={{
-                paddingVertical: 12,
-                borderBottomWidth: 1,
-                borderColor: colors.border,
-              }}
-            >
-              <Text style={{ fontWeight: "800", color: colors.text }}>
-                {item.mgdl} mg/dL
-              </Text>
-              <Text style={{ color: colors.muted }}>
-                {item.note || new Date(item.createdAt).toLocaleString()}
-              </Text>
-            </View>
+            <GlucoseListItem item={item} colors={colors} />
           )}
-          ListEmptyComponent={() => (
-            <View style={{ padding: 24, alignItems: "center" }}>
-              <Text style={{ color: colors.muted }}>No glucose logs yet.</Text>
-            </View>
-          )}
+          ListEmptyComponent={GlucoseEmpty}
         />
       )}
     </SafeAreaView>
   );
 }
+
+const GlucoseListItem = ({ item, colors }) => (
+  <View style={[listStyles.itemRow, { borderColor: colors.border }]}>
+    <Text style={[listStyles.itemTitle, { color: colors.text }]}>
+      {item.mgdl} mg/dL
+    </Text>
+    <Text style={[listStyles.itemSub, { color: colors.muted }]}>
+      {item.note || new Date(item.createdAt).toLocaleString()}
+    </Text>
+  </View>
+);
+
+const listStyles = StyleSheet.create({
+  itemRow: { paddingVertical: 12, borderBottomWidth: 1 },
+  itemTitle: { fontWeight: "800" },
+  itemSub: {},
+});
+
+const GlucoseEmpty = () => {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.empty}>
+      <Text style={[styles.emptyText, { color: colors.muted }]}>
+        No glucose logs yet.
+      </Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: { padding: 16, borderBottomWidth: 1 },
+  headerTitle: { fontSize: 18, fontWeight: "800" },
+  headerSub: { marginTop: 6 },
+  inputRow: { padding: 16, flexDirection: "row", gap: 8, alignItems: "center" },
+  input: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+  },
+  addBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10 },
+  addBtnText: { color: "#fff", fontWeight: "700" },
+  loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
+  listContainer: { padding: 16 },
+  empty: { padding: 24, alignItems: "center" },
+  emptyText: {},
+});

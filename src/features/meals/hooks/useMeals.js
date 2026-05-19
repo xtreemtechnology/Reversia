@@ -16,12 +16,6 @@ export function useMeals(userId) {
   const [error, setError] = useState(null);
   const [lastAddedMeal, setLastAddedMeal] = useState(null);
 
-  useEffect(() => {
-    if (userId) {
-      loadMeals();
-    }
-  }, [userId]);
-
   const loadMeals = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -34,7 +28,13 @@ export function useMeals(userId) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      loadMeals();
+    }
+  }, [userId, loadMeals]);
 
   const logMeal = useCallback(async (mealData) => {
     try {
