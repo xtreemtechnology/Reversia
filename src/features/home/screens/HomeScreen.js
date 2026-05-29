@@ -1,134 +1,80 @@
-import React, { useCallback, useMemo, useState } from "react";
+/* eslint-disable react-native/no-inline-styles */
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Linking,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import Svg, { Circle } from "react-native-svg";
-import AIInsightModal from "../../../components/AIInsightModal";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import LucideIcon from "react-native-vector-icons/Feather"; // Replace with your standard icon library if preferred
+
 import AnimatedScreen from "../../../components/AnimatedScreen";
-import { useUserProfile } from "../../../hooks/useUserProfile";
+import ErrorBoundary from "../../../components/ErrorBoundary";
+import NotificationsModal from "../../../components/NotificationsModal";
+import EmptyStateHomeScreen from "../components/EmptyStateHomeScreen";
+import Header from "../components/Header";
 import { useUserLogs } from "../../../hooks/useUserLogs";
+import { useUserProfile } from "../../../hooks/useUserProfile";
+import secureStorage from "../../../utils/secureStorage";
+import { useTheme } from "../../../theme/ThemeProvider";
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
-const C = {
-  BG: "#F2F0E8", // warm cream
-  CARD: "#FFFFFF",
-  CARD_ALT: "#F2F0E8",
-  BORDER: "#E8E4D8",
-  TEXT: "#1A2E22", // deep forest
-  MUTED: "#7A8F82",
-  PRIMARY: "#22422F", // brand forest green
-  AMBER: "#ECA143",
-  GREEN: "#2A6B45",
-  RED: "#EF4444",
-  WHITE: "#FFFFFF",
-  BLUE: "#0284C7",
-  FOCUS_DONE_BG: "#FFF3E6",
-  FOCUS_DONE_BORDER: "#ECA143",
-  REMEDY_BG: "#DCE8DF", // muted sage
-};
-
-// ─── Pure helpers ─────────────────────────────────────────────────────────────
-const getGreeting = () => {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning,";
-  if (h < 17) return "Good afternoon,";
-  return "Good evening,";
-};
-
-const getDateKey = (value) => {
-  if (!value) return null;
-  const d =
-    typeof value?.toDate === "function" ? value.toDate() : new Date(value);
-  return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
-};
-
-const todayKey = () => getDateKey(new Date());
-
-const getHealthSummary = (vals) => {
-  if (!vals.length)
-    return { score: 0, label: "No data", inRangeText: "Add a glucose reading" };
-  const inRange = vals.filter((v) => v >= 70 && v <= 180).length;
-  const pct = Math.round((inRange / vals.length) * 100);
-  const avg = Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
-  const bonus = avg >= 70 && avg <= 140 ? 30 : avg <= 180 ? 18 : 10;
-  const score = Math.max(0, Math.min(100, Math.round(pct * 0.7 + bonus)));
-  const label =
-    score >= 80
-      ? "Excellent"
-      : score >= 60
-      ? "Good"
-      : score >= 40
-      ? "Fair"
-      : "Needs work";
-  return { score, label, inRangeText: `${pct}% in range` };
-};
-
-const getLogStreak = (logs) => {
-  const days = new Set(
-    logs.map((l) => getDateKey(l.timestamp)).filter(Boolean)
-  );
-  const cur = new Date();
-  cur.setHours(0, 0, 0, 0);
-  let streak = 0;
-  while (days.has(cur.toISOString().split("T")[0])) {
-    streak++;
-    cur.setDate(cur.getDate() - 1);
-  }
-  return streak;
-};
-
-// ─── Glucose ring ─────────────────────────────────────────────────────────────
-const GlucoseRing = ({ score = 0 }) => {
-  const SIZE = 56;
-  const STROKE = 5;
-  const R = (SIZE - STROKE) / 2;
-  const CIRC = 2 * Math.PI * R;
-  return (
-    <Svg width={SIZE} height={SIZE}>
-      <Circle
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={R}
-        stroke="#E8E4D8"
-        strokeWidth={STROKE}
-        fill="none"
-      />
-      <Circle
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={R}
-        stroke={C.AMBER}
-        strokeWidth={STROKE}
-        fill="none"
-        strokeDasharray={`${(score / 100) * CIRC} ${CIRC}`}
-        strokeLinecap="round"
-        rotation="-90"
-        origin={`${SIZE / 2},${SIZE / 2}`}
-      />
-    </Svg>
-  );
-};
-
-// ─── Main screen ──────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
   const { userData } = useUserProfile();
-  const { logs: rawLogs, refetch } = useUserLogs(60);
-
-  const [showAI, setShowAI] = useState(false);
+  const { logs, refetch, loading } = useUserLogs(60);
+  const { colors, typography } = useTheme();
+  const THEME_COLORS = colors;
+  const styles = createStyles(THEME_COLORS, typography);
   const [refreshing, setRefreshing] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasLocalLogs, setHasLocalLogs] = useState(null);
+  const hasLogs = Array.isArray(logs) && logs.length > 0;
 
-  const logs = useMemo(
-    () => (Array.isArray(rawLogs) ? rawLogs : []),
-    [rawLogs]
-  );
-  const safeUser = useMemo(() => userData ?? {}, [userData]);
+  useEffect(() => {
+    let mounted = true;
+
+    const readLocalLogs = async () => {
+      try {
+        const [guestLogs, cachedLogs] = await Promise.all([
+          secureStorage.getItem("@reversia_guest_logs"),
+          secureStorage.getItem("@reversia_cached_logs"),
+        ]);
+        if (!mounted) return;
+        setHasLocalLogs(Boolean(guestLogs || cachedLogs));
+      } catch (_) {
+        if (mounted) setHasLocalLogs(false);
+      }
+    };
+
+    readLocalLogs();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleUrl = ({ url }) => {
+      if (typeof url === "string" && url.includes("/log/meal")) {
+        navigation?.navigate("MealEntry", { openCamera: true });
+      }
+    };
+
+    const subscription = Linking.addEventListener("url", handleUrl);
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl({ url });
+    });
+
+    return () => subscription?.remove?.();
+  }, [navigation]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -139,738 +85,549 @@ export default function HomeScreen({ navigation }) {
     }
   }, [refetch]);
 
-  // Log slices
-  const glucoseLogs = useMemo(
-    () => logs.filter((l) => l?.type === "glucose").slice(0, 7),
-    [logs]
-  );
-  const glucoseVals = useMemo(
-    () =>
-      [...glucoseLogs]
-        .reverse()
-        .map((l) => Number(l.value))
-        .filter(isFinite),
-    [glucoseLogs]
-  );
-  const latestGluc = glucoseLogs[0] ?? null;
+  const insets = useSafeAreaInsets();
+  const stapleSummary = Array.isArray(userData?.typicalStaples)
+    ? userData.typicalStaples.slice(0, 3).join(", ")
+    : "";
 
-  const logsForDay = useMemo(
-    () =>
-      logs.filter(
-        (l) => l?.timestamp && getDateKey(l.timestamp) === todayKey()
-      ),
-    [logs]
-  );
-  const mealLogs = useMemo(
-    () => logsForDay.filter((l) => l?.type === "meal"),
-    [logsForDay]
-  );
-  const sleepLogs = useMemo(
-    () => logs.filter((l) => l?.type === "sleep"),
-    [logs]
-  );
-  const exerciseLogs = useMemo(
-    () => logsForDay.filter((l) => l?.type === "exercise"),
-    [logsForDay]
-  );
-  const lastSleepLog = sleepLogs[0] ?? null;
+  if (loading || hasLocalLogs === null) {
+    return (
+      <View
+        style={[styles.loadingState, { backgroundColor: colors.background }]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
+          Loading your home...
+        </Text>
+      </View>
+    );
+  }
 
-  const healthSummary = useMemo(
-    () => getHealthSummary(glucoseVals),
-    [glucoseVals]
-  );
-  const logStreak = useMemo(() => getLogStreak(logs), [logs]);
-
-  const sleepMins = lastSleepLog?.value || 0;
-  const sleepFormatted =
-    sleepMins >= 60
-      ? `${Math.floor(sleepMins / 60)}h ${sleepMins % 60}m`
-      : sleepMins
-      ? `${sleepMins}m`
-      : "7h 15m";
-
-  const totalSteps = exerciseLogs.reduce(
-    (s, l) => s + (Number(l.steps) || Number(l.value) * 100 || 0),
-    0
-  );
-  const displaySteps = totalSteps > 0 ? totalSteps.toLocaleString() : "4,200";
-
-  const goalsDone = [
-    glucoseLogs.some((l) => getDateKey(l.timestamp) === todayKey()),
-    mealLogs.length > 0,
-    exerciseLogs.length > 0,
-    lastSleepLog != null,
-  ].filter(Boolean).length;
-
-  const glucoseValue = latestGluc ? Math.round(Number(latestGluc.value)) : 98;
-  const glucoseStatus = latestGluc
-    ? glucoseValue >= 70 && glucoseValue <= 140
-      ? "In optimal range!"
-      : glucoseValue > 140
-      ? "Above range"
-      : "Below range"
-    : "In optimal range!";
-  const glucoseStatusColor =
-    glucoseValue >= 70 && glucoseValue <= 140 ? C.AMBER : C.RED;
-
-  // Quick log items
-  const quickLogItems = [
-    {
-      key: "blood_sugar",
-      label: "Blood\nSugar",
-      icon: "water-percent",
-      bg: C.PRIMARY,
-      color: C.WHITE,
-      screen: "GlucoseEntry",
-    },
-    {
-      key: "meal",
-      label: "Meal",
-      icon: "food-apple",
-      bg: "#D4DDD6",
-      color: C.PRIMARY,
-      screen: "MealEntry",
-    },
-    {
-      key: "activity",
-      label: "Activity",
-      icon: "heart-pulse",
-      bg: "#D4DDD6",
-      color: C.PRIMARY,
-      screen: "ActivityTracker",
-    },
-    {
-      key: "water",
-      label: "Water",
-      icon: "water",
-      bg: "#D4DDD6",
-      color: C.PRIMARY,
-      screen: "WaterEntry",
-    },
-  ];
-
-  // Focus items
-  const focusItems = [
-    {
-      text: "Post-lunch Walk",
-      sub: "15 minutes for optimal digestion",
-      time: "2:00 PM",
-      done: false,
-    },
-    {
-      text: "Morning Supplements",
-      sub: "Vitamin D3 & Cinnamon",
-      time: "8:00 AM",
-      done: true,
-    },
-  ];
+  if (!hasLogs && !hasLocalLogs) {
+    return (
+      <ErrorBoundary>
+        <EmptyStateHomeScreen navigation={navigation} userData={userData} />
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: C.BG }]}>
-      <AnimatedScreen style={styles.screen}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: THEME_COLORS.background }]}
+    >
+      <AnimatedScreen style={styles.flexOne}>
         <ScrollView
-          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={refreshing || loading}
               onRefresh={onRefresh}
-              tintColor={C.PRIMARY}
+              tintColor={THEME_COLORS.primary}
             />
           }
         >
-          {/* ── Header ── */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.name}>{safeUser.firstName || "Daniel"}</Text>
-              <Text style={styles.tagline}>
-                Your body is healing, step by step.
-              </Text>
-            </View>
+          <Header
+            userData={{
+              name:
+                userData?.name ||
+                [userData?.firstName, userData?.lastName]
+                  .filter(Boolean)
+                  .join(" "),
+              firstName: userData?.firstName,
+              photoURL: userData?.photoURL || userData?.profileImage,
+            }}
+            onBellPress={() => setShowNotifications(true)}
+          />
+
+          {/* Main Insight Section */}
+          <View style={styles.insightSection}>
+            <Text style={styles.insightTitle}>
+              {stapleSummary
+                ? `Your usual staples include ${stapleSummary}.`
+                : "Your afternoon energy improved significantly after increasing hydration yesterday."}
+            </Text>
+            <Text style={styles.insightBody}>
+              {stapleSummary
+                ? "That gives Reversia a better starting point for meal suggestions and meal logging."
+                : "Let's keep that momentum going today. A glass of water before your afternoon tea could help stabilize your energy until evening."}
+            </Text>
             <TouchableOpacity
+              style={styles.primaryButton}
+              activeOpacity={0.9}
               onPress={() =>
-                navigation.navigate("MainTabs", { screen: "Profile" })
+                navigation.navigate("MealEntry", { openCamera: true })
               }
-              style={styles.avatarCircle}
             >
-              <Text style={styles.avatarText}>
-                {(safeUser.firstName?.[0] || "D").toUpperCase()}
+              <LucideIcon
+                name="coffee"
+                size={18}
+                color={THEME_COLORS.primaryForeground}
+                style={styles.buttonIcon}
+              />
+              <Text style={styles.primaryButtonText}>
+                {stapleSummary ? "Log a Meal" : "Log Hydration"}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* ── Fasting Sugar card ── */}
-          <View style={styles.heroCard}>
-            <View style={styles.heroLeft}>
-              <View style={styles.heroLabelRow}>
-                <View style={styles.heroDot} />
-                <Text style={styles.heroEyebrow}>FASTING SUGAR</Text>
-              </View>
-              <View style={styles.heroValueRow}>
-                <Text style={styles.heroValue}>{glucoseValue}</Text>
-                <Text style={styles.heroUnit}> mg/dL</Text>
-              </View>
+          {/* Rest & Recovery Card */}
+          <View style={styles.recoveryCard}>
+            <View style={styles.cardHeaderRow}>
               <View
                 style={[
-                  styles.statusBadge,
-                  { backgroundColor: glucoseStatusColor + "22" },
+                  styles.cardIconWrapper,
+                  { backgroundColor: "rgba(121, 140, 115, 0.15)" },
                 ]}
               >
-                <Text
-                  style={[styles.statusText, { color: glucoseStatusColor }]}
-                >
-                  {glucoseStatus}
+                <LucideIcon
+                  name="moon"
+                  size={22}
+                  color={THEME_COLORS.secondary}
+                />
+              </View>
+              <View style={styles.cardContentBlock}>
+                <Text style={styles.cardHeading}>Rest & Recovery</Text>
+                <Text style={styles.cardDescription}>
+                  Your sleep quality appears to be improving your glucose
+                  stability. The 7.5 hours of rest you got last night has set a
+                  strong foundation for your metabolism today.
+                </Text>
+                <View style={styles.metricRow}>
+                  <LucideIcon
+                    name="trending-up"
+                    size={16}
+                    color={THEME_COLORS.secondary}
+                  />
+                  <Text style={styles.metricText}>
+                    +15% better recovery than last week
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Recent Patterns Horizonal Section */}
+          <View style={styles.patternsSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Patterns</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Details")}>
+                <Text style={styles.seeDetailsText}>See details</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalScrollGap}
+            >
+              {/* Pattern Card 1 */}
+              <View style={styles.patternCard}>
+                <View style={styles.patternHeaderRow}>
+                  <View
+                    style={[
+                      styles.patternIconBox,
+                      { backgroundColor: "rgba(226, 138, 130, 0.15)" },
+                    ]}
+                  >
+                    <LucideIcon
+                      name="pie-chart"
+                      size={18}
+                      color={THEME_COLORS.destructive}
+                    />
+                  </View>
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: "rgba(226, 138, 130, 0.1)" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        { color: THEME_COLORS.destructive },
+                      ]}
+                    >
+                      Observation
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.patternCardTitle}>Evening Meals</Text>
+                <Text style={styles.patternCardBody}>
+                  Late evening garri meals may be contributing to mild overnight
+                  glucose spikes. Consider having lighter dinners earlier.
                 </Text>
               </View>
-            </View>
-            <View style={styles.heroRight}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("GlucoseMonitor")}
-                style={styles.ringWrap}
-              >
-                <GlucoseRing score={healthSummary.score} />
-                <View style={styles.ringIcon}>
-                  <MaterialCommunityIcons
-                    name="trending-up"
-                    size={14}
-                    color={C.AMBER}
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
 
-          {/* ── Activity + Sleep row ── */}
-          <View style={styles.miniRow}>
-            <TouchableOpacity
-              style={styles.miniCard}
-              onPress={() => navigation.navigate("ActivityTracker")}
-            >
-              <View style={styles.miniIconRow}>
-                <MaterialCommunityIcons name="walk" size={16} color={C.MUTED} />
-                <Text style={styles.miniLabel}>ACTIVITY</Text>
-              </View>
-              <Text style={styles.miniValue}>{displaySteps}</Text>
-              <Text style={styles.miniSub}>Steps today</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.miniCard}
-              onPress={() => navigation.navigate("SleepInsights")}
-            >
-              <View style={styles.miniIconRow}>
-                <Ionicons name="moon-outline" size={15} color={C.MUTED} />
-                <Text style={styles.miniLabel}>SLEEP</Text>
-              </View>
-              <Text style={styles.miniValue}>{sleepFormatted}</Text>
-              <Text style={styles.miniSub}>
-                {lastSleepLog?.status || "Restful"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* ── Quick Log ── */}
-          <Text style={styles.sectionTitle}>Quick Log</Text>
-          <View style={styles.quickLogRow}>
-            {quickLogItems.map((item) => (
-              <TouchableOpacity
-                key={item.key}
-                style={styles.quickLogItem}
-                onPress={() => navigation.navigate(item.screen)}
-              >
-                <View
-                  style={[styles.quickLogIcon, { backgroundColor: item.bg }]}
-                >
-                  <MaterialCommunityIcons
-                    name={item.icon}
-                    size={22}
-                    color={item.color}
-                  />
-                </View>
-                <Text style={styles.quickLogLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* ── Today's Focus ── */}
-          <Text style={styles.sectionTitle}>Today's Focus</Text>
-          <View style={styles.focusContainer}>
-            {focusItems.map((item, i) => (
-              <View
-                key={i}
-                style={[styles.focusItem, item.done && styles.focusItemDone]}
-              >
-                <View
-                  style={[
-                    styles.focusCircle,
-                    item.done && styles.focusCircleDone,
-                  ]}
-                >
-                  {item.done && (
-                    <Ionicons name="checkmark" size={12} color={C.WHITE} />
-                  )}
-                </View>
-                <View style={styles.focusTextWrap}>
-                  <Text
+              {/* Pattern Card 2 */}
+              <View style={styles.patternCard}>
+                <View style={styles.patternHeaderRow}>
+                  <View
                     style={[
-                      styles.focusText,
-                      item.done && styles.focusTextDone,
+                      styles.patternIconBox,
+                      { backgroundColor: "rgba(224, 122, 95, 0.15)" },
                     ]}
                   >
-                    {item.text}
-                  </Text>
-                  <Text style={styles.focusSub}>{item.sub}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.focusTimeBadge,
-                    item.done && styles.focusTimeBadgeDone,
-                  ]}
-                >
-                  <Text
+                    <LucideIcon
+                      name="activity"
+                      size={18}
+                      color={THEME_COLORS.primary}
+                    />
+                  </View>
+                  <View
                     style={[
-                      styles.focusTime,
-                      item.done && styles.focusTimeDone,
+                      styles.badge,
+                      { backgroundColor: "rgba(224, 122, 95, 0.1)" },
                     ]}
                   >
-                    {item.time}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        { color: THEME_COLORS.primary },
+                      ]}
+                    >
+                      Positive
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.patternCardTitle}>Post-meal Movement</Text>
+                <Text style={styles.patternCardBody}>
+                  Your short walks after lunch are effectively keeping your
+                  afternoon energy levels stable. Great habit!
+                </Text>
               </View>
-            ))}
+            </ScrollView>
           </View>
 
-          {/* ── Academy card ── */}
-          <View style={styles.remedyCard}>
-            <View style={styles.remedyLeft}>
-              <Text style={styles.remedyEyebrow}>ACADEMY</Text>
-              <Text style={styles.remedyTitle}>
-                Reversal Academy{"\n"}Daily Lesson
-              </Text>
-              <Text style={styles.remedyBody}>
-                Learn one practical step today to{"\n"}support better glucose
-                control.
-              </Text>
-              <TouchableOpacity
-                style={styles.remedyBtn}
-                onPress={() => navigation.navigate("Education")}
-              >
-                <Text style={styles.remedyBtnText}>Open Academy</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.remedyArt}>
-              <MaterialCommunityIcons
-                name="school"
-                size={60}
-                color={C.PRIMARY}
-              />
-            </View>
-          </View>
-
-          {/* ── Progress bar ── */}
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressTitle}>Today's Progress</Text>
-              <Text style={styles.progressStreak}>
-                🔥 {logStreak || 1} Day Streak
-              </Text>
-            </View>
-            <Text style={styles.progressPct}>
-              {Math.round((goalsDone / 4) * 100)}% Complete
+          {/* Weekly Wellness Block */}
+          <View style={styles.weeklyWellnessCard}>
+            <Text style={styles.cardHeading}>Weekly Wellness</Text>
+            <Text style={[styles.cardDescription, { marginBottom: 20 }]}>
+              You're building wonderful consistency. Just two more days of
+              mindful evening meals to reach your target.
             </Text>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.round((goalsDone / 4) * 100)}%` },
-                ]}
-              />
-            </View>
-            <Text style={styles.progressSub}>
-              {goalsDone} of 4 goals logged today
-            </Text>
-          </View>
 
-          <View style={styles.bottomSpacer} />
+            {/* Progress Bar 1 */}
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressLabelRow}>
+                <Text style={styles.progressLabel}>Mindful Dinners</Text>
+                <Text style={styles.progressValue}>5/7 days</Text>
+              </View>
+              <View style={styles.progressTrackBackground}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: "71%", backgroundColor: THEME_COLORS.primary },
+                  ]}
+                />
+              </View>
+            </View>
+
+            {/* Progress Bar 2 */}
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressLabelRow}>
+                <Text style={styles.progressLabel}>Hydration</Text>
+                <Text style={styles.progressValue}>3/5 days</Text>
+              </View>
+              <View style={styles.progressTrackBackground}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: "60%", backgroundColor: THEME_COLORS.secondary },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
         </ScrollView>
       </AnimatedScreen>
 
-      <AIInsightModal
-        visible={showAI}
-        onClose={() => setShowAI(false)}
-        userData={safeUser}
+      <NotificationsModal
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
       />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  content: {
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
+function createStyles(THEME_COLORS, typography) {
+  const bodyFont =
+    typography?.body ||
+    Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" });
+  const headingFont =
+    typography?.heading ||
+    Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" });
 
-  // Header
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
-  headerLeft: { flex: 1 },
-  greeting: {
-    fontSize: 13,
-    color: C.MUTED,
-    fontWeight: "500",
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: C.TEXT,
-    marginTop: 2,
-    letterSpacing: -0.5,
-  },
-  tagline: {
-    fontSize: 13,
-    color: C.MUTED,
-    marginTop: 2,
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: C.PRIMARY,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 12,
-    marginTop: 4,
-  },
-  avatarText: {
-    color: C.WHITE,
-    fontWeight: "800",
-    fontSize: 17,
-  },
-
-  // Hero glucose card
-  heroCard: {
-    backgroundColor: C.CARD,
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  heroLeft: { flex: 1 },
-  heroLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  heroDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: C.AMBER,
-  },
-  heroEyebrow: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: C.MUTED,
-    letterSpacing: 1.2,
-  },
-  heroValueRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginBottom: 10,
-  },
-  heroValue: {
-    fontSize: 40,
-    fontWeight: "800",
-    color: C.TEXT,
-    letterSpacing: -1,
-  },
-  heroUnit: {
-    fontSize: 14,
-    color: C.MUTED,
-    fontWeight: "600",
-  },
-  statusBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  heroRight: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 16,
-  },
-  ringWrap: {
-    width: 56,
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringIcon: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Mini cards row
-  miniRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
-  },
-  miniCard: {
-    flex: 1,
-    backgroundColor: C.CARD,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  miniIconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginBottom: 8,
-  },
-  miniLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: C.MUTED,
-    letterSpacing: 0.8,
-  },
-  miniValue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: C.TEXT,
-    letterSpacing: -0.5,
-  },
-  miniSub: {
-    fontSize: 12,
-    color: C.MUTED,
-    marginTop: 2,
-  },
-
-  // Section title
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: C.TEXT,
-    marginBottom: 14,
-    letterSpacing: -0.3,
-  },
-
-  // Quick log
-  quickLogRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 28,
-  },
-  quickLogItem: {
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-  },
-  quickLogIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickLogLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: C.TEXT,
-    textAlign: "center",
-    lineHeight: 14,
-  },
-
-  // Focus
-  focusContainer: {
-    gap: 10,
-    marginBottom: 24,
-  },
-  focusItem: {
-    backgroundColor: C.CARD,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-  },
-  focusItemDone: {
-    backgroundColor: C.FOCUS_DONE_BG,
-    borderColor: C.FOCUS_DONE_BORDER + "40",
-  },
-  focusCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: C.BORDER,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: C.WHITE,
-  },
-  focusCircleDone: {
-    backgroundColor: C.AMBER,
-    borderColor: C.AMBER,
-  },
-  focusTextWrap: { flex: 1 },
-  focusText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: C.TEXT,
-  },
-  focusTextDone: {
-    textDecorationLine: "line-through",
-    color: C.MUTED,
-  },
-  focusSub: {
-    fontSize: 11,
-    color: C.MUTED,
-    marginTop: 2,
-  },
-  focusTimeBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    backgroundColor: C.BG,
-  },
-  focusTimeBadgeDone: {
-    backgroundColor: C.AMBER + "22",
-  },
-  focusTime: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: C.MUTED,
-  },
-  focusTimeDone: {
-    color: C.AMBER,
-  },
-
-  // Remedy card
-  remedyCard: {
-    backgroundColor: C.REMEDY_BG,
-    borderRadius: 24,
-    padding: 22,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    overflow: "hidden",
-  },
-  remedyLeft: { flex: 1 },
-  remedyEyebrow: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: C.PRIMARY,
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  remedyTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: C.TEXT,
-    lineHeight: 24,
-    marginBottom: 8,
-  },
-  remedyBody: {
-    fontSize: 12,
-    color: C.MUTED,
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-  remedyBtn: {
-    backgroundColor: C.PRIMARY,
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  remedyBtnText: {
-    color: C.WHITE,
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  remedyArt: {
-    width: 90,
-    height: 90,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 10,
-  },
-
-  // Progress card
-  progressCard: {
-    backgroundColor: C.PRIMARY,
-    borderRadius: 20,
-    padding: 20,
-  },
-  progressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  progressTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "rgba(255,255,255,0.6)",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  progressStreak: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: C.AMBER,
-  },
-  progressPct: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: C.WHITE,
-    marginBottom: 4,
-  },
-  progressTrack: {
-    height: 6,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 3,
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: C.WHITE,
-  },
-  progressSub: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.65)",
-  },
-  bottomSpacer: {
-    height: 120,
-  },
-});
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+    },
+    flexOne: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      gap: 32,
+    },
+    loadingState: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+    },
+    loadingText: {
+      fontSize: 14,
+      fontFamily: bodyFont,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingTop: 8,
+      paddingBottom: 6,
+    },
+    profileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 0,
+      borderColor: THEME_COLORS.borderSurface,
+    },
+    greetingText: {
+      fontFamily: bodyFont,
+      fontSize: 13,
+      fontWeight: "400",
+      color: THEME_COLORS.mutedTextColor,
+    },
+    profileName: {
+      fontFamily: bodyFont,
+      fontSize: 16,
+      fontWeight: "600",
+      color: THEME_COLORS.foreground,
+    },
+    iconButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: THEME_COLORS.cardBackground,
+      justifyContent: "center",
+      alignItems: "center",
+      position: "relative",
+    },
+    notificationBadge: {
+      position: "absolute",
+      top: 10,
+      right: 10,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: THEME_COLORS.primary,
+    },
+    insightSection: {
+      gap: 12,
+      marginTop: 4,
+    },
+    insightTitle: {
+      fontFamily: headingFont,
+      fontSize: 36,
+      fontWeight: "500",
+      lineHeight: 44,
+      letterSpacing: -0.5,
+      color: THEME_COLORS.foreground,
+    },
+    insightBody: {
+      fontFamily: bodyFont,
+      fontSize: 18,
+      lineHeight: 28,
+      color: THEME_COLORS.mutedTextColor,
+    },
+    primaryButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      backgroundColor: THEME_COLORS.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 999,
+      marginTop: 6,
+      shadowColor: THEME_COLORS.primary,
+      shadowOpacity: 0.12,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 6,
+    },
+    buttonIcon: {
+      marginRight: 8,
+    },
+    primaryButtonText: {
+      fontFamily: bodyFont,
+      fontSize: 15,
+      fontWeight: "600",
+      color: THEME_COLORS.primaryForeground,
+    },
+    recoveryCard: {
+      backgroundColor: THEME_COLORS.cardBackground,
+      borderRadius: 32,
+      padding: 24,
+      borderWidth: 1,
+      borderColor: THEME_COLORS.borderSurface,
+    },
+    cardHeaderRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 16,
+    },
+    cardIconWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cardContentBlock: {
+      flex: 1,
+    },
+    cardHeading: {
+      fontFamily: headingFont,
+      fontSize: 20,
+      fontWeight: "600",
+      color: THEME_COLORS.foreground,
+      marginBottom: 8,
+    },
+    cardDescription: {
+      fontFamily: bodyFont,
+      fontSize: 15,
+      lineHeight: 22,
+      color: THEME_COLORS.mutedTextColor,
+    },
+    metricRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 16,
+    },
+    metricText: {
+      fontFamily: bodyFont,
+      fontSize: 13,
+      fontWeight: "500",
+      color: THEME_COLORS.secondary,
+    },
+    patternsSection: {
+      gap: 14,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      marginBottom: 8,
+    },
+    sectionTitle: {
+      fontFamily: headingFont,
+      fontSize: 24,
+      fontWeight: "500",
+      color: THEME_COLORS.foreground,
+    },
+    seeDetailsText: {
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: "500",
+      color: THEME_COLORS.primary,
+    },
+    horizontalScrollGap: {
+      gap: 16,
+      paddingRight: 24,
+    },
+    patternCard: {
+      backgroundColor: THEME_COLORS.cardBackground,
+      borderRadius: 24,
+      padding: 20,
+      width: 280,
+      borderWidth: 1,
+      borderColor: THEME_COLORS.borderSurface,
+    },
+    patternHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    patternIconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    badge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 100,
+    },
+    badgeText: {
+      fontFamily: bodyFont,
+      fontSize: 12,
+      fontWeight: "500",
+    },
+    patternCardTitle: {
+      fontFamily: headingFont,
+      fontSize: 18,
+      fontWeight: "500",
+      color: THEME_COLORS.foreground,
+      marginBottom: 4,
+    },
+    patternCardBody: {
+      fontFamily: bodyFont,
+      fontSize: 14,
+      lineHeight: 20,
+      color: THEME_COLORS.mutedTextColor,
+    },
+    weeklyWellnessCard: {
+      backgroundColor: THEME_COLORS.cardBackground,
+      borderRadius: 32,
+      padding: 24,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: THEME_COLORS.borderSurface,
+    },
+    progressBarContainer: {
+      marginBottom: 16,
+    },
+    progressLabelRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    progressLabel: {
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: "500",
+      color: THEME_COLORS.foreground,
+    },
+    progressValue: {
+      fontFamily: bodyFont,
+      fontSize: 14,
+      color: THEME_COLORS.mutedTextColor,
+    },
+    progressTrackBackground: {
+      height: 8,
+      width: "100%",
+      backgroundColor: THEME_COLORS.background,
+      borderRadius: 100,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: 100,
+    },
+  });
+}

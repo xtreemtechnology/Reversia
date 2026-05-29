@@ -1,35 +1,34 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Switch,
+  View,
+  Text,
+  TouchableOpacity,
   ActivityIndicator,
-  Modal,
-  TextInput,
+  StyleSheet,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { onAuthStateChanged, sendEmailVerification } from "firebase/auth";
 import { auth } from "../../../config/firebase";
-import { sendEmailVerification, onAuthStateChanged } from "firebase/auth";
-import { useEffect } from "react";
+import { useTheme } from "../../../theme/ThemeProvider";
+import { useProfile } from "../hooks/useProfile";
 import { showNotification } from "../../../components/Notification";
 import { confirm } from "../../../utils/confirmService";
-import { useProfile } from "../hooks/useProfile";
-import { useTheme } from "../../../theme/ThemeProvider";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+import ProfileHeader from "../components/ProfileHeader";
+import ProfileHeroCard from "../components/ProfileHeroCard";
+import ProfileStatsRow from "../components/ProfileStatsRow";
+import ProfileInfoCard, { InfoRow } from "../components/ProfileInfoCard";
+import ProfilePreferencesCard from "../components/ProfilePreferencesCard";
+import ProfileEditModal from "../components/ProfileEditModal";
 
-const getInitials = (firstName = "", lastName = "") =>
-  `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "ME";
+const getInitials = (first = "", last = "") =>
+  `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || "ME";
 
 const formatDate = (value) => {
-  if (!value) {
-    return "N/A";
-  }
+  if (!value) return "N/A";
   try {
     return new Date(value).toLocaleDateString("en-US", {
       year: "numeric",
@@ -41,409 +40,283 @@ const formatDate = (value) => {
   }
 };
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-const SectionTitle = ({ children, colors, styles }) => (
-  <Text style={[styles.sectionTitle, { color: colors.text }]}>{children}</Text>
-);
-
-const InfoRow = ({
-  icon,
-  label,
-  value,
-  iconColor = "#6B7280",
-  colors,
-  styles,
-}) => (
-  <View style={styles.infoRow}>
-    <View style={[styles.infoIconWrap, { backgroundColor: iconColor + "18" }]}>
-      <Ionicons name={icon} size={18} color={iconColor} />
-    </View>
-    <View style={{ flex: 1 }}>
-      <Text style={[styles.infoLabel, { color: colors.muted }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color: colors.text }]}>
-        {value || "Not provided"}
-      </Text>
-    </View>
-  </View>
-);
-
-const StatCard = ({ icon, label, value, color, colors, styles }) => (
-  <View style={[styles.statCard, { backgroundColor: color + "14" }]}>
-    <MaterialCommunityIcons name={icon} size={22} color={color} />
-    <Text style={[styles.statValue, { color }]}>{value}</Text>
-    <Text style={[styles.statLabel, { color: colors.muted }]}>{label}</Text>
-  </View>
-);
-
-const ToggleRow = ({
-  icon,
-  label,
-  value,
-  onValueChange,
-  iconColor = "#825CFF",
-  colors,
-  styles,
-}) => (
-  <View style={styles.toggleRow}>
-    <View style={[styles.infoIconWrap, { backgroundColor: iconColor + "18" }]}>
-      <Ionicons name={icon} size={18} color={iconColor} />
-    </View>
-    <Text style={[styles.toggleLabel, { color: colors.text }]}>{label}</Text>
-    <Switch
-      value={!!value}
-      onValueChange={onValueChange}
-      trackColor={{ false: colors.border, true: colors.primary }}
-      thumbColor="#FFF"
-    />
-  </View>
-);
-
-// ─── Loading / Error States ──────────────────────────────────────────────────
-
-const CenteredMessage = ({ children, colors, styles }) => (
-  <SafeAreaView
-    style={[styles.centeredScreen, { backgroundColor: colors.background }]}
-  >
-    {children}
-  </SafeAreaView>
-);
-
-// ─── Main Screen ─────────────────────────────────────────────────────────────
+const diabetesLabel = (type) => {
+  const map = {
+    type2: "Type 2 Diabetic",
+    prediabetes: "Pre-Diabetic",
+    prevention: "Prevention Mode",
+  };
+  return map[type] || "Not specified";
+};
 
 export default function ProfileScreen({ navigation }) {
-  const userId = auth?.currentUser?.uid;
-  const { profile, isLoading, error, updateProfile } = useProfile(userId);
   const { colors, theme: currentTheme, setTheme } = useTheme();
-  const styles = getStyles(colors);
+  const userId = auth?.currentUser?.uid;
+  const { profile, isLoading, error, updateProfile, loadProfile } = useProfile(userId);
+
+  const [authChecked, setAuthChecked] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [sendingVerification, setSendingVerification] = useState(false);
+
   const [editVisible, setEditVisible] = useState(false);
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
   const [editPhone, setEditPhone] = useState("");
-  const [authChecked, setAuthChecked] = useState(false);
+  const [editStaples, setEditStaples] = useState([]);
+  const [editSweetDrinkFrequency, setEditSweetDrinkFrequency] = useState("rarely");
+  const [editDietaryRestrictions, setEditDietaryRestrictions] = useState([]);
+  const [editPrimaryGoal, setEditPrimaryGoal] = useState(null);
+  const [editSecondaryGoals, setEditSecondaryGoals] = useState([]);
+  const [editSleepHours, setEditSleepHours] = useState("6-7");
+  const [editSleepQuality, setEditSleepQuality] = useState("fair");
+  const [editOnMedication, setEditOnMedication] = useState(null);
+  const [editActivityLevel, setEditActivityLevel] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editTargetGlucose, setEditTargetGlucose] = useState("");
+  const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
+  const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
+  const [editPrimaryHba1c, setEditPrimaryHba1c] = useState(null);
+  const [editFastingBloodSugar, setEditFastingBloodSugar] = useState(null);
+  const [editFears, setEditFears] = useState([]);
 
-  // Wait for auth to initialize before showing "Not signed in"
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, () => {
-      setAuthChecked(true);
-    });
-    return () => unsubscribe();
+    const unsub = onAuthStateChanged(auth, () => setAuthChecked(true));
+    return () => unsub();
   }, []);
 
-  // ── Guards ──
-  if (!authChecked) {
+  const openEdit = useCallback(() => {
+    setEditFirst(profile?.firstName || "");
+    setEditLast(profile?.lastName || "");
+    setEditPhone(profile?.phone || "");
+    setEditStaples(profile?.typicalStaples || []);
+    setEditSweetDrinkFrequency(profile?.sweetDrinkFrequency || "rarely");
+    setEditDietaryRestrictions(profile?.dietaryRestrictions || []);
+    setEditPrimaryGoal(profile?.primaryGoal || null);
+    setEditSecondaryGoals(profile?.secondaryGoals || []);
+    setEditSleepHours(profile?.typicalSleepHours || "6-7");
+    setEditSleepQuality(profile?.sleepQuality || "fair");
+    setEditOnMedication(
+      typeof profile?.onMedication === "boolean" ? profile.onMedication : null
+    );
+    setEditActivityLevel(profile?.activityLevel || "");
+    setEditWeight(profile?.weight ? String(profile.weight) : "");
+    setEditTargetGlucose(profile?.targetGlucose ? String(profile.targetGlucose) : "");
+    setEditEmergencyContactName(profile?.emergencyContactName || "");
+    setEditEmergencyContactPhone(profile?.emergencyContactPhone || "");
+    setEditPrimaryHba1c(profile?.primaryHba1c || null);
+    setEditFastingBloodSugar(profile?.fastingBloodSugar || null);
+    setEditFears(profile?.healthFears || []);
+    setEditVisible(true);
+  }, [profile]);
+
+  const saveEdit = useCallback(async () => {
+    try {
+      await updateProfile({
+        firstName: editFirst.trim(),
+        lastName: editLast.trim(),
+        phone: editPhone.trim() || null,
+        typicalStaples: editStaples,
+        sweetDrinkFrequency: editSweetDrinkFrequency,
+        dietaryRestrictions: editDietaryRestrictions,
+        primaryGoal: editPrimaryGoal,
+        secondaryGoals: editSecondaryGoals,
+        typicalSleepHours: editSleepHours,
+        sleepQuality: editSleepQuality,
+        onMedication: editOnMedication,
+        activityLevel: editActivityLevel.trim(),
+        weight: editWeight.trim(),
+        targetGlucose: editTargetGlucose.trim(),
+        emergencyContactName: editEmergencyContactName.trim(),
+        emergencyContactPhone: editEmergencyContactPhone.trim(),
+        updatedAt: new Date().toISOString(),
+        primaryHba1c: editPrimaryHba1c || null,
+        fastingBloodSugar: editFastingBloodSugar || null,
+        healthFears: editFears || [],
+      });
+      showNotification({ type: "success", title: "Saved", message: "Profile updated" });
+      setEditVisible(false);
+    } catch (err) {
+      showNotification({ type: "error", title: "Error", message: err?.message || "Save failed" });
+    }
+  }, [
+    editActivityLevel,
+    editDietaryRestrictions,
+    editEmergencyContactName,
+    editEmergencyContactPhone,
+    editFirst,
+    editLast,
+    editOnMedication,
+    editPhone,
+    editPrimaryGoal,
+    editSecondaryGoals,
+    editSleepHours,
+    editSleepQuality,
+    editStaples,
+    editSweetDrinkFrequency,
+    editTargetGlucose,
+    editWeight,
+    updateProfile,
+  ]);
+
+  const handleResendVerification = useCallback(async () => {
+    try {
+      setSendingVerification(true);
+      await sendEmailVerification(auth.currentUser);
+      showNotification({ type: "success", title: "Sent", message: "Check your inbox." });
+    } catch (err) {
+      showNotification({ type: "error", title: "Error", message: err?.message || "Failed to send" });
+    } finally {
+      setSendingVerification(false);
+    }
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      const ok = await confirm({
+        title: "Sign out",
+        message: "Are you sure you want to sign out?",
+        confirmText: "Sign out",
+        cancelText: "Cancel",
+      });
+      if (ok) await auth.signOut();
+    } catch (err) {
+      showNotification({ type: "error", title: "Error", message: "Unable to sign out" });
+    }
+  }, []);
+
+  const handleRetry = useCallback(async () => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) {
+      showNotification({ type: "error", title: "No user", message: "Not signed in" });
+      return;
+    }
+
+    try {
+      await loadProfile();
+      showNotification({ type: "success", title: "Retrying", message: "Profile reload started" });
+    } catch (err) {
+      showNotification({ type: "error", title: "Error", message: err?.message || "Unable to retry" });
+    }
+  }, [loadProfile]);
+
+  if (!authChecked || isLoading) {
     return (
-      <CenteredMessage colors={colors} styles={styles}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.guardSub, { marginTop: 16, color: colors.muted }]}>
-          Initializing…
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}> 
+          {!authChecked ? "Initializing…" : "Loading your profile…"}
         </Text>
-      </CenteredMessage>
+      </SafeAreaView>
     );
   }
 
   if (!userId) {
     return (
-      <CenteredMessage colors={colors} styles={styles}>
-        <Ionicons name="person-circle-outline" size={64} color={colors.muted} />
-        <Text style={[styles.guardTitle, { color: colors.text }]}>
-          Not signed in
-        </Text>
-        <Text style={[styles.guardSub, { color: colors.muted }]}>
-          Please sign in to view your profile.
-        </Text>
-      </CenteredMessage>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <CenteredMessage colors={colors} styles={styles}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.guardSub, { marginTop: 16, color: colors.muted }]}>
-          Loading your profile…
-        </Text>
-      </CenteredMessage>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
+        <Ionicons name="person-circle-outline" size={64} color={colors.mutedForeground} />
+        <Text style={[styles.guardTitle, { color: colors.foreground }]}>Not signed in</Text>
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>Please sign in to view your profile.</Text>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <CenteredMessage colors={colors} styles={styles}>
-        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-        <Text style={[styles.guardTitle, { color: colors.text }]}>
-          Something went wrong
-        </Text>
-        <Text style={styles.guardError}>{error}</Text>
-      </CenteredMessage>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
+        <Ionicons name="warning" size={64} color="#E07A5F" />
+        <Text style={[styles.guardTitle, { color: colors.foreground }]}>Something went wrong</Text>
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>{error}</Text>
+        <Text style={[styles.guardSub, { color: colors.mutedForeground, marginTop: 8 }]}>Signed-in UID: {auth?.currentUser?.uid || "none"}</Text>
+        <TouchableOpacity onPress={handleRetry} style={[styles.retryBtn, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
+          <Text style={styles.retryText}>Try again</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
     );
   }
 
-  // ── Derived data ──
   const firstName = profile?.firstName || "";
   const lastName = profile?.lastName || "";
-  const authName = auth?.currentUser?.displayName || "";
-  const detectedName =
-    authName ||
-    (auth?.currentUser?.email ? auth.currentUser.email.split("@")[0] : "");
+  const authDisplayName = auth?.currentUser?.displayName || "";
   const fullName =
     [firstName, lastName].filter(Boolean).join(" ") ||
-    detectedName ||
-    "Your Name";
+    authDisplayName ||
+    (auth?.currentUser?.email?.split("@")[0] ?? "Your Name");
   const email = auth?.currentUser?.email || profile?.email || "No email";
   const initials = getInitials(
-    firstName || authName.split(" ")[0] || "",
-    lastName || authName.split(" ")[1] || ""
+    firstName || authDisplayName.split(" ")[0] || "",
+    lastName || authDisplayName.split(" ")[1] || ""
   );
 
-  const diabetesStatus =
-    profile?.diabetesType === "type2"
-      ? "Type 2 Diabetic"
-      : profile?.diabetesType === "prediabetes"
-      ? "Pre-Diabetic"
-      : profile?.diabetesType === "prevention"
-      ? "Prevention Mode"
-      : "Not specified";
-
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Header bar ── */}
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[styles.backBtn, { backgroundColor: colors.card }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.topBarTitle, { color: colors.text }]}>
-            My Profile
-          </Text>
-          <TouchableOpacity
-            style={[styles.editBtn, { backgroundColor: colors.text }]}
-            onPress={() => {
-              setEditFirst(profile?.firstName || "");
-              setEditLast(profile?.lastName || "");
-              setEditPhone(profile?.phone || "");
-              setEditVisible(true);
-            }}
-          >
-            <Text style={styles.editBtnText}>Edit</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}> 
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ProfileHeader onBack={() => navigation.goBack()} onEdit={openEdit} />
 
-        {/* ── Inline Edit Modal ── */}
-        <Modal visible={editVisible} animationType="slide" transparent>
-          <SafeAreaView style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              <Text style={styles.modalLabel}>First name</Text>
-              <TextInput
-                value={editFirst}
-                onChangeText={setEditFirst}
-                style={[
-                  styles.editInput,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                placeholder="First name"
-                placeholderTextColor={colors.muted}
-              />
-              <Text style={styles.modalLabelSpaced}>Last name</Text>
-              <TextInput
-                value={editLast}
-                onChangeText={setEditLast}
-                style={[
-                  styles.editInput,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                placeholder="Last name"
-                placeholderTextColor={colors.muted}
-              />
-              <Text style={styles.modalLabelSpaced}>Phone</Text>
-              <TextInput
-                value={editPhone}
-                onChangeText={setEditPhone}
-                style={[
-                  styles.editInput,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                placeholder="Phone"
-                placeholderTextColor={colors.muted}
-                keyboardType="phone-pad"
-              />
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  onPress={() => setEditVisible(false)}
-                  style={styles.modalCancelBtn}
-                >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={async () => {
-                    try {
-                      const updates = {
-                        firstName: editFirst.trim(),
-                        lastName: editLast.trim(),
-                        phone: editPhone.trim() || null,
-                        updatedAt: new Date().toISOString(),
-                      };
-                      await updateProfile(updates);
-                      showNotification({
-                        type: "success",
-                        title: "Saved",
-                        message: "Profile updated",
-                      });
-                      setEditVisible(false);
-                    } catch (err) {
-                      console.error("Inline save failed", err);
-                      showNotification({
-                        type: "error",
-                        title: "Error",
-                        message: err?.message || "Failed to save profile",
-                      });
-                    }
-                  }}
-                  style={styles.modalSaveBtn}
-                >
-                  <Text style={styles.modalSaveText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </SafeAreaView>
-        </Modal>
+        <ProfileEditModal
+          visible={editVisible}
+          onClose={() => setEditVisible(false)}
+          onSave={saveEdit}
+          editFirst={editFirst}
+          setEditFirst={setEditFirst}
+          editLast={editLast}
+          setEditLast={setEditLast}
+          editPhone={editPhone}
+          setEditPhone={setEditPhone}
+          editStaples={editStaples}
+          setEditStaples={setEditStaples}
+          editSweetDrinkFrequency={editSweetDrinkFrequency}
+          setEditSweetDrinkFrequency={setEditSweetDrinkFrequency}
+          editDietaryRestrictions={editDietaryRestrictions}
+          setEditDietaryRestrictions={setEditDietaryRestrictions}
+          editPrimaryGoal={editPrimaryGoal}
+          setEditPrimaryGoal={setEditPrimaryGoal}
+          editSecondaryGoals={editSecondaryGoals}
+          setEditSecondaryGoals={setEditSecondaryGoals}
+          editSleepHours={editSleepHours}
+          setEditSleepHours={setEditSleepHours}
+          editSleepQuality={editSleepQuality}
+          setEditSleepQuality={setEditSleepQuality}
+          editOnMedication={editOnMedication}
+          setEditOnMedication={setEditOnMedication}
+          editActivityLevel={editActivityLevel}
+          setEditActivityLevel={setEditActivityLevel}
+          editWeight={editWeight}
+          setEditWeight={setEditWeight}
+          editTargetGlucose={editTargetGlucose}
+          setEditTargetGlucose={setEditTargetGlucose}
+          editEmergencyContactName={editEmergencyContactName}
+          setEditEmergencyContactName={setEditEmergencyContactName}
+          editEmergencyContactPhone={editEmergencyContactPhone}
+          setEditEmergencyContactPhone={setEditEmergencyContactPhone}
+          editPrimaryHba1c={editPrimaryHba1c}
+          setEditPrimaryHba1c={setEditPrimaryHba1c}
+          editFastingBloodSugar={editFastingBloodSugar}
+          setEditFastingBloodSugar={setEditFastingBloodSugar}
+          editFears={editFears}
+          setEditFears={setEditFears}
+        />
 
-        {/* ── Avatar hero card ── */}
-        <View style={[styles.heroCard, { backgroundColor: colors.primary }]}>
-          <View style={styles.avatarRing}>
-            <View
-              style={[styles.avatar, { backgroundColor: colors.background }]}
-            >
-              <Text style={[styles.avatarText, { color: colors.primary }]}>
-                {initials}
-              </Text>
-            </View>
-          </View>
+        <ProfileHeroCard
+          initials={initials}
+          fullName={fullName}
+          email={email}
+          diabetesStatus={diabetesLabel(profile?.diabetesType)}
+        />
 
-          <Text style={styles.heroName}>{fullName}</Text>
-          <Text style={styles.heroEmail}>{email}</Text>
+        <ProfileStatsRow profile={profile} />
 
-          <View style={styles.statusBadge}>
-            <MaterialCommunityIcons
-              name="heart-pulse"
-              size={14}
-              color={colors.primary}
-            />
-            <Text style={[styles.statusText, { color: colors.primary }]}>
-              {diabetesStatus}
-            </Text>
-          </View>
-        </View>
+        <ProfileInfoCard title="Personal Info">
+          <InfoRow iconName="person" iconColor="#6D28D9" label="Full Name" value={fullName} />
+          <InfoRow iconName="mail" iconColor="#0284C7" label="Email" value={email} />
+          <InfoRow iconName="call" iconColor="#059669" label="Phone" value={profile?.phone} />
+          <InfoRow iconName="calendar" iconColor="#D97706" label="Date of Birth" value={profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : null} />
+          <InfoRow iconName="location" iconColor="#DC2626" label="Location" value={profile?.location} />
+        </ProfileInfoCard>
 
-        {/* ── Stats row ── */}
-        <View style={styles.statsRow}>
-          <StatCard
-            icon="fire"
-            label="Day Streak"
-            value={profile?.streak ?? "—"}
-            color="#F59E0B"
-            colors={colors}
-            styles={styles}
-          />
-          <StatCard
-            icon="check-circle"
-            label="Goals Met"
-            value={profile?.goalsMetTotal ?? "—"}
-            color="#10B981"
-            colors={colors}
-            styles={styles}
-          />
-          <StatCard
-            icon="trending-down"
-            label="A1C Drop"
-            value={profile?.a1cDrop ? `${profile.a1cDrop}%` : "—"}
-            color="#825CFF"
-            colors={colors}
-            styles={styles}
-          />
-        </View>
-
-        {/* ── Personal info ── */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <SectionTitle colors={colors} styles={styles}>
-            Personal Info
-          </SectionTitle>
-
+        <ProfileInfoCard title="Health Info">
           <InfoRow
-            icon="person-outline"
-            label="Full Name"
-            value={fullName}
-            iconColor="#6D28D9"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="mail-outline"
-            label="Email"
-            value={email}
-            iconColor="#0284C7"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="call-outline"
-            label="Phone"
-            value={profile?.phone}
-            iconColor="#059669"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="calendar-outline"
-            label="Date of Birth"
-            value={
-              profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : null
-            }
-            iconColor="#D97706"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="location-outline"
-            label="Location"
-            value={profile?.location}
-            iconColor="#DC2626"
-            colors={colors}
-            styles={styles}
-          />
-        </View>
-
-        {/* ── Health info ── */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <SectionTitle colors={colors} styles={styles}>
-            Health Info
-          </SectionTitle>
-
-          <InfoRow
-            icon="medical-outline"
+            iconName="medical"
+            iconColor={colors.primary}
             label="Medication Status"
             value={
               profile?.onMedication === true
@@ -452,513 +325,113 @@ export default function ProfileScreen({ navigation }) {
                 ? "No Medication"
                 : profile?.onMedication
             }
-            iconColor={colors.primary}
-            colors={colors}
-            styles={styles}
           />
-          <InfoRow
-            icon="fitness-outline"
-            label="Activity Level"
-            value={profile?.activityLevel}
-            iconColor="#0369A1"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="scale-outline"
-            label="Weight"
-            value={profile?.weight ? `${profile.weight} kg` : null}
-            iconColor="#065F46"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="analytics-outline"
-            label="Target Glucose"
-            value={
-              profile?.targetGlucose ? `${profile.targetGlucose} mg/dL` : null
-            }
-            iconColor="#B45309"
-            colors={colors}
-            styles={styles}
-          />
-        </View>
+          <InfoRow iconName="stats-chart" iconColor="#8B5CF6" label="HBA1c" value={profile?.primaryHba1c ? `${profile.primaryHba1c}` : null} action="Edit" onAction={openEdit} />
+          <InfoRow iconName="moon" iconColor="#F59E0B" label="Fasting (mg/dL)" value={profile?.fastingBloodSugar ? `${profile.fastingBloodSugar} mg/dL` : null} action="Edit" onAction={openEdit} />
+          <InfoRow iconName="fitness" iconColor="#0369A1" label="Activity Level" value={profile?.activityLevel} />
+          <InfoRow iconName="barbell" iconColor="#065F46" label="Weight" value={profile?.weight ? `${profile.weight} kg` : null} />
+          <InfoRow iconName="trending-up" iconColor="#B45309" label="Target Glucose" value={profile?.targetGlucose ? `${profile.targetGlucose} mg/dL` : null} />
+        </ProfileInfoCard>
 
-        {/* ── Emergency contact ── */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <SectionTitle colors={colors} styles={styles}>
-            Emergency Contact
-          </SectionTitle>
+        <ProfileInfoCard title="Emergency Contact">
+          <InfoRow iconName="people" iconColor="#DC2626" label="Name" value={profile?.emergencyContactName} />
+          <InfoRow iconName="call" iconColor="#DC2626" label="Phone" value={profile?.emergencyContactPhone} />
+        </ProfileInfoCard>
 
+        <ProfileInfoCard title="Account">
           <InfoRow
-            icon="people-outline"
-            label="Name"
-            value={profile?.emergencyContactName}
-            iconColor="#DC2626"
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="call-outline"
-            label="Phone"
-            value={profile?.emergencyContactPhone}
-            iconColor="#DC2626"
-            colors={colors}
-            styles={styles}
-          />
-        </View>
-
-        {/* ── Account info ── */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <SectionTitle colors={colors} styles={styles}>
-            Account
-          </SectionTitle>
-
-          <InfoRow
-            icon="finger-print"
-            label="User ID"
-            value={profile?.id}
-            iconColor={colors.muted}
-            colors={colors}
-            styles={styles}
-          />
-
-          <InfoRow
-            icon="shield-checkmark-outline"
+            iconName="shield-checkmark"
+            iconColor={profile?.emailVerified ? "#10B981" : "#F59E0B"}
             label="Email Verified"
             value={profile?.emailVerified ? "Verified ✓" : "Not Verified"}
-            iconColor={profile?.emailVerified ? "#10B981" : "#F59E0B"}
-            colors={colors}
-            styles={styles}
+            action={!profile?.emailVerified ? (sendingVerification ? "Sending…" : "Resend") : undefined}
+            onAction={!profile?.emailVerified ? handleResendVerification : undefined}
           />
-          {!profile?.emailVerified && (
-            <TouchableOpacity
-              onPress={async () => {
-                try {
-                  setSendingVerification(true);
-                  await sendEmailVerification(auth.currentUser);
-                  showNotification({
-                    type: "success",
-                    title: "Verification sent",
-                    message: "Check your inbox for the verification email.",
-                  });
-                } catch (err) {
-                  console.error("Resend verification failed", err);
-                  showNotification({
-                    type: "error",
-                    title: "Error",
-                    message:
-                      err?.message || "Unable to send verification email",
-                  });
-                } finally {
-                  setSendingVerification(false);
-                }
-              }}
-              style={styles.resendBtn}
-            >
-              {sendingVerification ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text style={styles.resendText}>Resend verification</Text>
-              )}
-            </TouchableOpacity>
-          )}
-          <InfoRow
-            icon="time-outline"
-            label="Member Since"
-            value={formatDate(profile?.createdAt)}
-            iconColor={colors.muted}
-            colors={colors}
-            styles={styles}
-          />
-          <InfoRow
-            icon="refresh-outline"
-            label="Last Updated"
-            value={formatDate(profile?.updatedAt)}
-            iconColor={colors.muted}
-            colors={colors}
-            styles={styles}
-          />
-        </View>
+          <InfoRow iconName="finger-print" iconColor={colors.mutedForeground} label="User ID" value={profile?.id ? `…${profile.id.slice(-8)}` : null} />
+          <InfoRow iconName="time" iconColor={colors.mutedForeground} label="Member Since" value={formatDate(profile?.createdAt)} />
+          <InfoRow iconName="refresh" iconColor={colors.mutedForeground} label="Last Updated" value={formatDate(profile?.updatedAt)} />
+        </ProfileInfoCard>
 
-        {/* ── Preferences ── */}
-        <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <SectionTitle colors={colors} styles={styles}>
-            Preferences
-          </SectionTitle>
-
-          <ToggleRow
-            icon="notifications-outline"
-            label="Push Notifications"
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            iconColor={colors.primary}
-            colors={colors}
-            styles={styles}
-          />
-          <ToggleRow
-            icon="moon-outline"
-            label="Dark Mode"
-            value={currentTheme === "dark"}
-            onValueChange={async (val) => {
-              try {
-                const theme = val ? "dark" : "light";
-                await setTheme(theme);
-              } catch (err) {
-                console.error("Update appearance failed", err);
-                showNotification({
-                  type: "error",
-                  title: "Error",
-                  message: err?.message || "Unable to update appearance",
-                });
-              }
-            }}
-            iconColor={colors.text}
-            colors={colors}
-            styles={styles}
-          />
-        </View>
-
-        {/* ── Sign out ── */}
-        <TouchableOpacity
-          style={[
-            styles.signOutBtn,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-          onPress={async () => {
+        <ProfilePreferencesCard
+          notificationsEnabled={notificationsEnabled}
+          setNotificationsEnabled={setNotificationsEnabled}
+          isDarkMode={currentTheme === "dark"}
+          onToggleDarkMode={async (val) => {
             try {
-              const ok = await confirm({
-                title: "Sign out",
-                message: "Are you sure you want to sign out?",
-                confirmText: "Sign out",
-                cancelText: "Cancel",
-              });
-              if (ok) {
-                await auth.signOut();
-              }
+              await setTheme(val ? "dark" : "light");
             } catch (err) {
-              console.error("Sign out failed", err);
-              showNotification({
-                type: "error",
-                title: "Error",
-                message: "Unable to sign out",
-              });
+              showNotification({ type: "error", title: "Error", message: err?.message || "Failed" });
             }
           }}
+        />
+
+        <TouchableOpacity
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+          style={[styles.signOutBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-          <Text style={styles.signOutTextDanger}>Sign Out</Text>
+          <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.versionText, { color: colors.muted }]}>
-          GlycoRev v1.0.0
-        </Text>
+        <Text style={[styles.version, { color: colors.mutedForeground }]}>GlycoRev v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
-const getStyles = (colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    scrollContent: {
-      paddingHorizontal: 20,
-      paddingTop: 12,
-      paddingBottom: 60,
-    },
-    centeredScreen: {
-      flex: 1,
-      backgroundColor: colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 32,
-    },
-    guardTitle: {
-      fontSize: 20,
-      fontWeight: "800",
-      color: colors.text,
-      marginTop: 16,
-    },
-    guardSub: {
-      fontSize: 14,
-      color: colors.muted,
-      marginTop: 8,
-      textAlign: "center",
-    },
-    guardSubSpaced: {
-      marginTop: 16,
-    },
-    guardError: {
-      color: "#EF4444",
-      textAlign: "center",
-      marginTop: 8,
-    },
-    topBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 24,
-    },
-    backBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.card,
-      justifyContent: "center",
-      alignItems: "center",
-      shadowColor: colors.text,
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
-      elevation: 2,
-    },
-    topBarTitle: {
-      fontSize: 18,
-      fontWeight: "800",
-      color: colors.text,
-    },
-    editBtn: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      backgroundColor: colors.text,
-      borderRadius: 20,
-    },
-    editBtnText: {
-      color: colors.background,
-      fontWeight: "700",
-      fontSize: 13,
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: "center",
-      backgroundColor: "rgba(0,0,0,0.4)",
-      padding: 20,
-    },
-    modalCard: {
-      backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 18,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: "800",
-      marginBottom: 12,
-      color: colors.text,
-    },
-    modalLabel: {
-      fontSize: 12,
-      color: colors.muted,
-      marginBottom: 6,
-    },
-    modalLabelSpaced: {
-      fontSize: 12,
-      color: colors.muted,
-      marginTop: 10,
-      marginBottom: 6,
-    },
-    modalActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      marginTop: 14,
-      gap: 10,
-    },
-    modalCancelBtn: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    modalCancelText: {
-      color: colors.muted,
-      fontWeight: "700",
-    },
-    modalSaveBtn: {
-      backgroundColor: colors.primary,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderRadius: 10,
-    },
-    modalSaveText: {
-      color: colors.background,
-      fontWeight: "800",
-    },
-    heroCard: {
-      backgroundColor: colors.primary,
-      borderRadius: 30,
-      paddingVertical: 32,
-      paddingHorizontal: 20,
-      alignItems: "center",
-      marginBottom: 18,
-    },
-    avatarRing: {
-      width: 88,
-      height: 88,
-      borderRadius: 44,
-      backgroundColor: "rgba(255,255,255,0.25)",
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 14,
-    },
-    avatar: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      backgroundColor: colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    avatarText: {
-      fontSize: 26,
-      fontWeight: "900",
-      color: colors.primary,
-    },
-    heroName: {
-      fontSize: 24,
-      fontWeight: "800",
-      color: colors.background,
-    },
-    heroEmail: {
-      fontSize: 13,
-      color: "rgba(255,255,255,0.75)",
-      marginTop: 4,
-    },
-    statusBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.background,
-      borderRadius: 20,
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      marginTop: 16,
-      gap: 6,
-    },
-    statusText: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: colors.primary,
-    },
-    statsRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 18,
-    },
-    statCard: {
-      flex: 1,
-      marginHorizontal: 4,
-      borderRadius: 20,
-      paddingVertical: 16,
-      alignItems: "center",
-    },
-    statValue: {
-      fontSize: 20,
-      fontWeight: "900",
-      marginTop: 6,
-    },
-    statLabel: {
-      fontSize: 11,
-      color: colors.muted,
-      marginTop: 2,
-      fontWeight: "600",
-    },
-    card: {
-      backgroundColor: colors.card,
-      borderRadius: 28,
-      padding: 20,
-      marginBottom: 14,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: "800",
-      color: colors.text,
-      marginBottom: 16,
-    },
-    infoRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 16,
-    },
-    infoIconWrap: {
-      width: 38,
-      height: 38,
-      borderRadius: 12,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 14,
-    },
-    infoLabel: {
-      fontSize: 11,
-      color: colors.muted,
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    infoValue: {
-      fontSize: 15,
-      color: colors.text,
-      fontWeight: "600",
-      marginTop: 2,
-    },
-    editInput: {
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      padding: 10,
-      fontSize: 15,
-      color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    toggleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 14,
-    },
-    toggleLabel: {
-      flex: 1,
-      fontSize: 15,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    signOutBtn: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderWidth: 1.5,
-      borderColor: "#FCA5A5",
-      borderRadius: 28,
-      height: 56,
-      marginTop: 8,
-      marginBottom: 16,
-      gap: 10,
-    },
-    signOutText: {
-      color: "#EF4444",
-      fontWeight: "700",
-      fontSize: 16,
-    },
-    signOutTextDanger: {
-      color: "#EF4444",
-      fontWeight: "700",
-      fontSize: 16,
-    },
-    resendBtn: {
-      marginTop: 10,
-      alignSelf: "flex-start",
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      backgroundColor: colors.background,
-    },
-    resendText: {
-      color: colors.primary,
-      fontWeight: "700",
-    },
-    versionText: {
-      textAlign: "center",
-      color: colors.muted,
-      fontSize: 12,
-      fontWeight: "600",
-    },
-  });
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 120,
+    gap: 16,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 12,
+  },
+  guardTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    fontFamily: "PlusJakartaSans_700Bold",
+  },
+  guardSub: {
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryBtn: {
+    marginTop: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+  },
+  retryText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1.5,
+    borderRadius: 999,
+    height: 56,
+  },
+  signOutText: {
+    color: "#EF4444",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  version: {
+    textAlign: "center",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+});

@@ -9,7 +9,13 @@ import {
   Dimensions,
 } from "react-native";
 import { shadowStyle } from "../utils/shadows";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import {
+  Robot,
+  XCircle,
+  Walking,
+  DropSimple,
+  ForkKnife,
+} from "phosphor-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 
 const { height } = Dimensions.get("window");
@@ -27,10 +33,21 @@ const getModalContext = (userData = {}) => {
   };
 };
 
-export default function AIInsightModal({ visible, onClose, userData = {} }) {
+export default function AIInsightModal({
+  visible,
+  onClose,
+  userData = {},
+  insight = {},
+}) {
   const { colors, theme } = useTheme();
   const isDark = theme === "dark";
   const context = getModalContext(userData);
+
+  const guidance =
+    insight?.guidance ||
+    `Based on ${context.activity}, we will keep guidance practical and timed to your routine.`;
+  const milestone = insight?.milestone || "Optimizing";
+  const foodSignal = insight?.foodSignal;
 
   return (
     <Modal
@@ -54,22 +71,18 @@ export default function AIInsightModal({ visible, onClose, userData = {} }) {
 
           <View style={styles.header}>
             <View style={[styles.aiIcon, { backgroundColor: colors.primary }]}>
-              <MaterialCommunityIcons
-                name="robot-glow"
-                size={28}
-                color="#FFF"
-              />
+              <Robot size={28} color="#FFF" weight="regular" />
             </View>
             <View>
               <Text style={[styles.title, { color: colors.text }]}>
-                Addy AI Assistant
+                Reversia Guide
               </Text>
               <Text style={[styles.subtitle, { color: colors.muted }]}>
-                Personalized Metabolic Strategy
+                Metabolic Wellness Companion
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close-circle" size={30} color={colors.muted} />
+              <XCircle size={30} color={colors.muted} weight="regular" />
             </TouchableOpacity>
           </View>
 
@@ -83,39 +96,62 @@ export default function AIInsightModal({ visible, onClose, userData = {} }) {
             ]}
           >
             <Text style={[styles.statusTitle, { color: colors.muted }]}>
-              Current State: <Text style={styles.statusGreen}>Optimizing</Text>
+              Current State: <Text style={styles.statusGreen}>{milestone}</Text>
             </Text>
             <Text style={[styles.mainInsight, { color: colors.text }]}>
-              {`Your profile says ${context.condition}. Based on ${context.activity}, we will keep guidance practical and timed to your routine. The next step is to act on one small win today.`}
+              {guidance}
             </Text>
           </View>
 
           <Text style={[styles.recommendationLabel, { color: colors.text }]}>
-            Recommended Actions
+            Your Next Small Step
           </Text>
 
-          <View style={styles.actionRow}>
-            <View
-              style={[
-                styles.actionIcon,
-                {
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <MaterialCommunityIcons name="walk" size={24} color="#825CFF" />
+          {foodSignal ? (
+            <View style={styles.actionRow}>
+              <View
+                style={[
+                  styles.actionIcon,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <ForkKnife size={24} color={colors.primary} weight="regular" />
+              </View>
+              <View style={styles.actionTextContainer}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>
+                  {foodSignal.title}
+                </Text>
+                <Text style={[styles.actionDesc, { color: colors.muted }]}>
+                  {foodSignal.nextStep}
+                </Text>
+              </View>
             </View>
-            <View style={styles.actionTextContainer}>
-              <Text style={[styles.actionTitle, { color: colors.text }]}>
-                10-Min Power Walk
-              </Text>
-              <Text style={[styles.actionDesc, { color: colors.muted }]}>
-                A good fit for {context.readiness.toLowerCase()} days and
-                low-friction momentum.
-              </Text>
+          ) : (
+            <View style={styles.actionRow}>
+              <View
+                style={[
+                  styles.actionIcon,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <ForkKnife size={24} color={colors.primary} weight="regular" />
+              </View>
+              <View style={styles.actionTextContainer}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>
+                  Repeat a Calm Meal
+                </Text>
+                <Text style={[styles.actionDesc, { color: colors.muted }]}>
+                  Pick one meal that felt good yesterday and log it again today.
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.actionRow}>
             <View
@@ -127,18 +163,15 @@ export default function AIInsightModal({ visible, onClose, userData = {} }) {
                 },
               ]}
             >
-              <MaterialCommunityIcons
-                name="cup-water"
-                size={24}
-                color="#0EA5E9"
-              />
+              <DropSimple size={24} color="#0EA5E9" weight="regular" />
             </View>
             <View style={styles.actionTextContainer}>
               <Text style={[styles.actionTitle, { color: colors.text }]}>
-                Hydration Buffer
+                Hydrate Earlier
               </Text>
               <Text style={[styles.actionDesc, { color: colors.muted }]}>
-                Use hydration to support your glucose-friendly routine today.
+                Water earlier in the day often supports steadier energy across
+                the whole day.
               </Text>
             </View>
           </View>

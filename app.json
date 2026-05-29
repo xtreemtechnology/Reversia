@@ -4,13 +4,13 @@
     "slug": "DiabetesApp",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/Reversia-Logo.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/Reversia_logo_png.png",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/Reversia-Logo.png",
+      "image": "./assets/Reversia_logo_png.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#231F1C",
       "hidden": true
     },
     "ios": {
@@ -23,8 +23,8 @@
     "android": {
       "package": "com.xtreemtech.reversia",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Reversia-Logo.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/Reversia_logo_png.png",
+        "backgroundColor": "#231F1C"
       },
       "edgeToEdgeEnabled": true
     },

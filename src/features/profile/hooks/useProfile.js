@@ -28,7 +28,12 @@ export function useProfile(userId) {
       console.log("[useProfile] Profile data loaded:", data);
       setProfile(data);
     } catch (err) {
-      console.error("[useProfile] Error loading profile:", err);
+      console.error("[useProfile] Error loading profile:", {
+        code: err?.code,
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack,
+      });
       setError(err.message || "Failed to load profile");
     } finally {
       setIsLoading(false);

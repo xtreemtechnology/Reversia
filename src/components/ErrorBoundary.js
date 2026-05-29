@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFF",
+    backgroundColor: "#231F1C",
   },
   title: {
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
-    color: "#B91C1C",
+    color: "#FCA5A5",
   },
-  message: { fontSize: 14, marginBottom: 8, marginTop: 10, color: "#333" },
-  stack: { fontSize: 12, marginTop: 10, color: "#666" },
+  message: { fontSize: 14, marginBottom: 8, marginTop: 10, color: "#E7E5E4" },
+  stack: { fontSize: 12, marginTop: 10, color: "#A8A29E" },
 });

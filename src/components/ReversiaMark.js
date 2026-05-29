@@ -1,0 +1,35 @@
+import React from "react";
+import { SvgXml } from "react-native-svg";
+
+const SVG_XML = `
+<svg viewBox="0 0 400 400" width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="10%" y1="10%" x2="90%" y2="90%">
+      <stop offset="0%" stop-color="#E07A5F"/>
+      <stop offset="100%" stop-color="#C9614A"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="50" y="50" width="300" height="300" rx="99" fill="url(#bgGrad)"/>
+
+  <g transform="rotate(45, 200, 200)">
+    <path d="M 172 140 A 52 52 0 1 0 172 260"
+          fill="none"
+          stroke="rgba(255,255,255,0.92)"
+          stroke-width="13"
+          stroke-linecap="round"/>
+
+    <path d="M 228 140 A 52 52 0 1 1 228 260"
+          fill="none"
+          stroke="rgba(255,255,255,0.92)"
+          stroke-width="13"
+          stroke-linecap="round"/>
+  </g>
+
+  <circle cx="200" cy="200" r="13" fill="#FFFFFF"/>
+</svg>
+`;
+
+export default function ReversiaMark({ size = 80 }) {
+  return <SvgXml xml={SVG_XML} width={size} height={size} />;
+}

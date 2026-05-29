@@ -1,219 +1,257 @@
-// App.js - Updated with Onboarding
 import React, { useEffect, useState } from "react";
-import { StatusBar } from "react-native";
-import {
-  NavigationContainer,
-  createNavigationContainerRef,
-} from "@react-navigation/native";
+import { StatusBar, DeviceEventEmitter } from "react-native";
+import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ThemeProvider, { useTheme } from "./src/theme/ThemeProvider";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppNavigator from "./src/navigation/AppNavigator";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import InlineSplash from "./src/components/InlineSplash";
 import { NotificationHost } from "./src/components/Notification";
 import { ConfirmHost } from "./src/components/Confirm";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import secureStorage from "./src/utils/secureStorage";
+import AuthNavigator from "./src/features/auth/AuthNavigator";
+import OnboardingNavigator from "./src/screens/onboarding/OnboardingNavigator";
 import { auth } from "./src/config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { ROUTES } from "./src/navigation/routeNames";
-
-const navigationRef = createNavigationContainerRef();
-const NAVIGATION_STATE_KEY = "NAVIGATION_STATE_V1";
-const ROOT_ROUTE_NAMES = new Set([
-  ROUTES.ROOT.ONBOARDING_FLOW,
-  ROUTES.ROOT.AUTH_STACK,
-  ROUTES.ROOT.AUTH,
-  ROUTES.ROOT.MAIN_APP,
-  ROUTES.APP.MAIN_APP,
-]);
-
-function isRestorableNavigationState(state) {
-  if (!state || !Array.isArray(state.routes) || state.routes.length === 0) {
-    return false;
-  }
-
-  const rootRoute = state.routes[0];
-  return !!rootRoute?.name && ROOT_ROUTE_NAMES.has(rootRoute.name);
-}
+import WelcomeTransitionScreen from "./src/screens/welcome/WelcomeTransitionScreen";
+import PostOnboardingFlow from "./src/features/onboarding/post-onboarding";
+const ONBOARDING_KEY = "@reversia_onboarding_complete";
+const POST_ONBOARDING_KEY_PREFIX = "@reversia_post_onboarding_complete_";
 
 export default function App() {
-  const [initialState, setInitialState] = useState();
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showWelcomeTransition, setShowWelcomeTransition] = useState(false);
+  const [showPostQuestionnaire, setShowPostQuestionnaire] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(null);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(null);
+  const [hasCompletedPostOnboarding, setHasCompletedPostOnboarding] = useState(null);
+
+  useEffect(() => {
+    // Listen for post-onboarding requests (triggered after signup)
+    const postHandler = async () => {
+      if (hasCompletedPostOnboarding) {
+        return;
+      }
+      if (hasSeenWelcome) {
+        setShowPostQuestionnaire(true);
+      } else {
+        setShowWelcomeTransition(true);
+      }
+    };
+    const sub = DeviceEventEmitter.addListener(
+      "postOnboardingRequested",
+      postHandler
+    );
+    return () => {
+      sub?.remove?.();
+    };
+  }, [
+    currentUser,
+    hasSeenWelcome,
+    hasCompletedPostOnboarding,
+    setShowPostQuestionnaire,
+    setShowWelcomeTransition,
+  ]);
 
   useEffect(() => {
     let mounted = true;
-    let timeoutId;
 
-    const restoreNavigationState = async () => {
-      const hasOnboardingRoute = (state) => {
-        const check = (node) => {
-          if (!node) {
-            return false;
-          }
-          if (Array.isArray(node)) {
-            return node.some(check);
-          }
-          if (
-            node.name &&
-            (node.name.includes("Onboarding") ||
-              node.name.includes("AccountSetup"))
-          ) {
-            return true;
-          }
-          if (node.routes && Array.isArray(node.routes)) {
-            return node.routes.some(check);
-          }
-          if (node.state) {
-            return check(node.state);
-          }
-          return false;
-        };
-        return check(state);
-      };
+    const readWelcomeSeen = async () => {
+      const uid = currentUser?.uid;
+      if (!uid) {
+        if (mounted) setHasSeenWelcome(false);
+        if (mounted) setHasCompletedPostOnboarding(false);
+        return;
+      }
 
       try {
-        // Try to restore saved navigation state so a refresh resumes where the user left off.
-        const saved = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-
-            if (!isRestorableNavigationState(parsed)) {
-              await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
-              return;
-            }
-
-            // If a user is already signed in, avoid restoring an onboarding route
-            // which would kick them back into onboarding on refresh.
-            const user = auth?.currentUser;
-            if (user && parsed) {
-              const localFlag = await AsyncStorage.getItem(
-                "ONBOARDING_COMPLETE"
-              );
-              const containsOnboarding = hasOnboardingRoute(parsed);
-              const rootName = parsed?.routes?.[0]?.name;
-              const pointsToMainApp =
-                rootName === ROUTES.ROOT.MAIN_APP ||
-                rootName === ROUTES.APP.MAIN_APP;
-
-              if (containsOnboarding) {
-                // If onboarding-related routes exist in the saved state, check local flag
-                // If onboarding was completed locally, it's safe to restore; otherwise drop it.
-                try {
-                  if (localFlag === "true") {
-                    setInitialState(parsed);
-                  } else {
-                    await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
-                  }
-                } catch (e) {
-                  // on any AsyncStorage failure be conservative and remove the saved state
-                  await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
-                }
-              } else if (pointsToMainApp && localFlag !== "true") {
-                // If onboarding is incomplete, do not restore a saved main app route.
-                await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
-              } else {
-                setInitialState(parsed);
-              }
-            } else {
-              setInitialState(parsed);
-            }
-          } catch (e) {
-            // If saved state can't be parsed, remove it to avoid breaking navigation
-            await AsyncStorage.removeItem(NAVIGATION_STATE_KEY);
-          }
-        }
-      } catch (error) {
-        // ignore AsyncStorage errors
-      } finally {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        if (mounted) {
-          setIsNavigationReady(true);
-        }
+        const value = await AsyncStorage.getItem(
+          `@reversia_welcome_seen_${uid}`
+        );
+        if (mounted) setHasSeenWelcome(value === "true");
+      } catch (_) {
+        if (mounted) setHasSeenWelcome(false);
       }
     };
 
-    // Set a safety timeout so app doesn't get stuck on splash screen if AsyncStorage hangs
-    timeoutId = setTimeout(() => {
-      if (mounted) {
-        setIsNavigationReady(true);
+    const readPostOnboardingComplete = async () => {
+      const uid = currentUser?.uid;
+      if (!uid) {
+        return;
       }
-    }, 8000); // 8 second timeout
 
-    restoreNavigationState();
+      try {
+        const value = await AsyncStorage.getItem(
+          `${POST_ONBOARDING_KEY_PREFIX}${uid}`
+        );
+        if (mounted) setHasCompletedPostOnboarding(value === "true");
+      } catch (_) {
+        if (mounted) setHasCompletedPostOnboarding(false);
+      }
+    };
+
+    readWelcomeSeen();
+    readPostOnboardingComplete();
+
+    // Attempt to migrate sensitive keys to secure store when app starts
+    secureStorage
+      .migrateKeys(["@reversia_guest_logs", "@reversia_cached_logs"])
+      .catch(() => {});
 
     return () => {
       mounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
+  }, [currentUser?.uid]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user ?? null);
+      setAuthChecked(true);
+    });
+
+    return () => unsub();
   }, []);
 
   useEffect(() => {
-    // Check initial auth state and only react once on startup.
-    let handled = false;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (handled) {
-        return;
-      }
-      handled = true;
+    let mounted = true;
 
-      if (user && navigationRef.isReady()) {
-        // Only bypass onboarding if it was completed previously.
-        AsyncStorage.getItem("ONBOARDING_COMPLETE")
-          .then((flag) => {
-            if (flag === "true") {
-              try {
-                navigationRef.navigate(ROUTES.ROOT.MAIN_APP);
-              } catch (e) {
-                // ignore navigation errors during startup
-              }
-            }
-          })
-          .catch(() => {
-            // ignore storage errors and keep current onboarding flow
-          });
+    const readFlag = async () => {
+      try {
+        const value = await AsyncStorage.getItem(ONBOARDING_KEY);
+        if (mounted) setOnboardingDone(value === "true");
+      } catch (e) {
+        if (mounted) setOnboardingDone(false);
       }
-    });
+    };
+
+    readFlag();
+
+    // fallback: don't stay on a blocking splash indefinitely
+    const t = setTimeout(() => {
+      if (mounted && onboardingDone === null) setOnboardingDone(false);
+    }, 1200);
 
     return () => {
-      try {
-        unsubscribe && unsubscribe();
-      } catch {}
+      mounted = false;
+      clearTimeout(t);
     };
-  }, []);
+  }, [currentUser]);
 
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <>
-          <ThemeAwareStatusBar />
-          {isNavigationReady ? (
-            <NavigationContainer
-              ref={navigationRef}
-              initialState={initialState}
-              onStateChange={(state) => {
-                AsyncStorage.setItem(
-                  NAVIGATION_STATE_KEY,
-                  JSON.stringify(state)
-                ).catch(() => {});
-              }}
-            >
-              <ErrorBoundary>
-                <AppNavigator />
-              </ErrorBoundary>
-            </NavigationContainer>
-          ) : (
-            <InlineSplash />
-          )}
-          <NotificationHost />
-          <ConfirmHost />
-        </>
+        <AppContent
+          authChecked={authChecked}
+          currentUser={currentUser}
+          onboardingDone={onboardingDone}
+          setOnboardingDone={setOnboardingDone}
+          showWelcomeTransition={showWelcomeTransition}
+          setShowWelcomeTransition={setShowWelcomeTransition}
+          showPostQuestionnaire={showPostQuestionnaire}
+          setShowPostQuestionnaire={setShowPostQuestionnaire}
+          hasSeenWelcome={hasSeenWelcome}
+          setHasSeenWelcome={setHasSeenWelcome}
+          setHasCompletedPostOnboarding={setHasCompletedPostOnboarding}
+        />
       </ThemeProvider>
     </SafeAreaProvider>
+  );
+}
+
+function AppContent({
+  authChecked,
+  currentUser,
+  onboardingDone,
+  setOnboardingDone,
+  showWelcomeTransition,
+  setShowWelcomeTransition,
+  showPostQuestionnaire,
+  setShowPostQuestionnaire,
+  hasSeenWelcome,
+  setHasSeenWelcome,
+  setHasCompletedPostOnboarding,
+}) {
+  const { colors } = useTheme();
+
+  const navigationTheme = React.useMemo(
+    () => ({
+      ...DarkTheme,
+      colors: {
+        ...DarkTheme.colors,
+        primary: colors.primary,
+        background: colors.background,
+        card: colors.card,
+        text: colors.text,
+        border: colors.border,
+        notification: colors.primary,
+      },
+    }),
+    [colors]
+  );
+
+  return (
+    <>
+      <ThemeAwareStatusBar />
+      <NavigationContainer theme={navigationTheme}>
+        <ErrorBoundary>
+          {onboardingDone === null || !authChecked ? (
+            <InlineSplash />
+          ) : !onboardingDone ? (
+            <OnboardingNavigator
+              onComplete={() => {
+                setOnboardingDone(true);
+                trackEvent("onboarding_completed", {
+                  userId: currentUser?.uid || null,
+                });
+                setShowWelcomeTransition(true);
+              }}
+            />
+          ) : showWelcomeTransition ? (
+            <WelcomeTransitionScreen
+              userName={currentUser?.displayName || "there"}
+              onFinish={() => {
+                const uid = currentUser?.uid;
+                if (uid) {
+                  AsyncStorage.setItem(
+                    `@reversia_welcome_seen_${uid}`,
+                    "true"
+                  ).catch(() => {});
+                  setShowPostQuestionnaire(true);
+                }
+                setHasSeenWelcome(true);
+                setShowWelcomeTransition(false);
+              }}
+            />
+          ) : showPostQuestionnaire ? (
+            <PostOnboardingFlow
+              onComplete={async () => {
+                const uid = currentUser?.uid;
+                if (uid) {
+                  await AsyncStorage.setItem(
+                    `${POST_ONBOARDING_KEY_PREFIX}${uid}`,
+                    "true"
+                  ).catch(() => {});
+                  setHasCompletedPostOnboarding(true);
+                }
+                try {
+                  // AsyncStorage.setItem("@reversia_user_goal", answers?.primaryGoal || "");
+                } catch (_) {}
+                setShowPostQuestionnaire(false);
+              }}
+              onSkip={() => setShowPostQuestionnaire(false)}
+            />
+          ) : currentUser ? (
+            <AppNavigator />
+          ) : (
+            <AuthNavigator />
+          )}
+        </ErrorBoundary>
+      </NavigationContainer>
+      <NotificationHost />
+      <ConfirmHost />
+    </>
   );
 }
 
