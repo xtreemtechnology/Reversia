@@ -5,13 +5,22 @@ import { View, Text, Switch, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-function ToggleRow({ iconName, iconColor, label, value, onValueChange, colors }) {
+function ToggleRow({
+  iconName,
+  iconColor,
+  label,
+  value,
+  onValueChange,
+  colors,
+}) {
   return (
     <View style={styles.toggleRow}>
       <View style={[styles.iconWrap, { backgroundColor: iconColor + "22" }]}>
         <Ionicons name={iconName} size={18} color={iconColor} />
       </View>
-      <Text style={[styles.toggleLabel, { color: colors.foreground }]}>{label}</Text>
+      <Text style={[styles.toggleLabel, { color: colors.foreground }]}>
+        {label}
+      </Text>
       <Switch
         value={!!value}
         onValueChange={onValueChange}
@@ -37,7 +46,9 @@ export default function ProfilePreferencesCard({
         { backgroundColor: colors.card, borderColor: colors.border + "80" },
       ]}
     >
-      <Text style={[styles.cardTitle, { color: colors.foreground }]}>Preferences</Text>
+      <Text style={[styles.cardTitle, { color: colors.foreground }]}>
+        Preferences
+      </Text>
 
       <ToggleRow
         // solar:bell-bing-bold-duotone → notifications

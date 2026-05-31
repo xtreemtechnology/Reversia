@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, AccessibilityInfo } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  AccessibilityInfo,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 
@@ -81,14 +87,29 @@ export default function EmptyMainInsightCard({ navigation }) {
         {displayedText}
         {!finished && cursorVisible ? "|" : ""}
       </Text>
-      <Text style={[styles.body, { color: colors.mutedForeground, fontFamily: typography?.body }]}>Every meal, glass of water, and night of sleep helps Reversia understand you.</Text>
+      <Text
+        style={[
+          styles.body,
+          { color: colors.mutedForeground, fontFamily: typography?.body },
+        ]}
+      >
+        Every meal, glass of water, and night of sleep helps Reversia understand
+        you.
+      </Text>
       <TouchableOpacity
         style={[styles.button, { backgroundColor: colors.primary }]}
         activeOpacity={0.85}
         onPress={() => navigation?.navigate("Track")}
       >
         <Ionicons name="cafe" size={18} color={colors.primaryForeground} />
-        <Text style={[styles.buttonText, { color: colors.primaryForeground, fontFamily: typography?.medium }]}>Log your first meal</Text>
+        <Text
+          style={[
+            styles.buttonText,
+            { color: colors.primaryForeground, fontFamily: typography?.medium },
+          ]}
+        >
+          Log your first meal
+        </Text>
       </TouchableOpacity>
     </View>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform } from "react-native";
+import { View, Text, StyleSheet, StatusBar, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../config/firebase";
@@ -36,27 +36,62 @@ export default function CheckEmailScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <View style={styles.inner}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.secondary + "1A" }]}>
-          <Ionicons name="mail-open-outline" size={44} color={colors.secondary} />
+        <View
+          style={[
+            styles.iconWrap,
+            { backgroundColor: colors.secondary + "1A" },
+          ]}
+        >
+          <Ionicons
+            name="mail-open-outline"
+            size={44}
+            color={colors.secondary}
+          />
         </View>
 
         <View style={styles.textBlock}>
-          <Text style={[styles.title, { color: colors.text }]}>Check your{"\n"}inbox.</Text>
-          <Text style={[styles.body, { color: colors.mutedForeground }]}>We sent a password reset link to{"\n"}<Text style={{ color: colors.text, fontFamily: "DMSans_500Medium" }}>{email}</Text></Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>It may take a minute. Check your spam folder if you don't see it.</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Check your{"\n"}inbox.
+          </Text>
+          <Text style={[styles.body, { color: colors.mutedForeground }]}>
+            We sent a password reset link to{"\n"}
+            <Text
+              style={{ color: colors.text, fontFamily: "DMSans_500Medium" }}
+            >
+              {email}
+            </Text>
+          </Text>
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            It may take a minute. Check your spam folder if you don't see it.
+          </Text>
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {resent ? (
           <View style={styles.resentRow}>
-            <Ionicons name="checkmark-circle" size={16} color={colors.secondary} />
-            <Text style={[styles.resentText, { color: colors.secondary }]}>Email resent successfully.</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={16}
+              color={colors.secondary}
+            />
+            <Text style={[styles.resentText, { color: colors.secondary }]}>
+              Email resent successfully.
+            </Text>
           </View>
         ) : null}
 
         <View style={styles.actions}>
-          <AuthButton label="Back to Sign In" onPress={() => navigation.navigate("SignIn")} variant="primary" />
-          <AuthButton label={loading ? "Sending…" : "Resend email"} onPress={handleResend} loading={loading} variant="ghost" />
+          <AuthButton
+            label="Back to Sign In"
+            onPress={() => navigation.navigate("SignIn")}
+            variant="primary"
+          />
+          <AuthButton
+            label={loading ? "Sending…" : "Resend email"}
+            onPress={handleResend}
+            loading={loading}
+            variant="ghost"
+          />
         </View>
       </View>
     </View>

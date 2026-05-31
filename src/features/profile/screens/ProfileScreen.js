@@ -3,7 +3,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   SafeAreaView,
   ScrollView,
-  View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
@@ -11,7 +10,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged, sendEmailVerification } from "firebase/auth";
+import * as ImagePicker from "expo-image-picker";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { updateProfile as updateAuthProfile } from "firebase/auth";
 import { auth } from "../../../config/firebase";
+import { storage } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { useProfile } from "../hooks/useProfile";
 import { showNotification } from "../../../components/Notification";
@@ -52,18 +55,21 @@ const diabetesLabel = (type) => {
 export default function ProfileScreen({ navigation }) {
   const { colors, theme: currentTheme, setTheme } = useTheme();
   const userId = auth?.currentUser?.uid;
-  const { profile, isLoading, error, updateProfile, loadProfile } = useProfile(userId);
+  const { profile, isLoading, error, updateProfile, loadProfile } =
+    useProfile(userId);
 
   const [authChecked, setAuthChecked] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [sendingVerification, setSendingVerification] = useState(false);
 
   const [editVisible, setEditVisible] = useState(false);
+  const [editPhotoURL, setEditPhotoURL] = useState("");
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editStaples, setEditStaples] = useState([]);
-  const [editSweetDrinkFrequency, setEditSweetDrinkFrequency] = useState("rarely");
+  const [editSweetDrinkFrequency, setEditSweetDrinkFrequency] =
+    useState("rarely");
   const [editDietaryRestrictions, setEditDietaryRestrictions] = useState([]);
   const [editPrimaryGoal, setEditPrimaryGoal] = useState(null);
   const [editSecondaryGoals, setEditSecondaryGoals] = useState([]);
@@ -74,7 +80,8 @@ export default function ProfileScreen({ navigation }) {
   const [editWeight, setEditWeight] = useState("");
   const [editTargetGlucose, setEditTargetGlucose] = useState("");
   const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
-  const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
+  const [editEmergencyContactPhone, setEditEmergencyContactPhone] =
+    useState("");
   const [editPrimaryHba1c, setEditPrimaryHba1c] = useState(null);
   const [editFastingBloodSugar, setEditFastingBloodSugar] = useState(null);
   const [editFears, setEditFears] = useState([]);
@@ -85,6 +92,12 @@ export default function ProfileScreen({ navigation }) {
   }, []);
 
   const openEdit = useCallback(() => {
+    setEditPhotoURL(
+      profile?.photoURL ||
+        profile?.profileImage ||
+        auth?.currentUser?.photoURL ||
+        ""
+    );
     setEditFirst(profile?.firstName || "");
     setEditLast(profile?.lastName || "");
     setEditPhone(profile?.phone || "");
@@ -100,7 +113,9 @@ export default function ProfileScreen({ navigation }) {
     );
     setEditActivityLevel(profile?.activityLevel || "");
     setEditWeight(profile?.weight ? String(profile.weight) : "");
-    setEditTargetGlucose(profile?.targetGlucose ? String(profile.targetGlucose) : "");
+    setEditTargetGlucose(
+      profile?.targetGlucose ? String(profile.targetGlucose) : ""
+    );
     setEditEmergencyContactName(profile?.emergencyContactName || "");
     setEditEmergencyContactPhone(profile?.emergencyContactPhone || "");
     setEditPrimaryHba1c(profile?.primaryHba1c || null);
@@ -114,6 +129,7 @@ export default function ProfileScreen({ navigation }) {
       await updateProfile({
         firstName: editFirst.trim(),
         lastName: editLast.trim(),
+        photoURL: editPhotoURL.trim() || null,
         phone: editPhone.trim() || null,
         typicalStaples: editStaples,
         sweetDrinkFrequency: editSweetDrinkFrequency,
@@ -133,10 +149,18 @@ export default function ProfileScreen({ navigation }) {
         fastingBloodSugar: editFastingBloodSugar || null,
         healthFears: editFears || [],
       });
-      showNotification({ type: "success", title: "Saved", message: "Profile updated" });
+      showNotification({
+        type: "success",
+        title: "Saved",
+        message: "Profile updated",
+      });
       setEditVisible(false);
     } catch (err) {
-      showNotification({ type: "error", title: "Error", message: err?.message || "Save failed" });
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: err?.message || "Save failed",
+      });
     }
   }, [
     editActivityLevel,
@@ -145,12 +169,16 @@ export default function ProfileScreen({ navigation }) {
     editEmergencyContactPhone,
     editFirst,
     editLast,
+    editPhotoURL,
     editOnMedication,
     editPhone,
     editPrimaryGoal,
     editSecondaryGoals,
     editSleepHours,
     editSleepQuality,
+    editPrimaryHba1c,
+    editFastingBloodSugar,
+    editFears,
     editStaples,
     editSweetDrinkFrequency,
     editTargetGlucose,
@@ -162,9 +190,17 @@ export default function ProfileScreen({ navigation }) {
     try {
       setSendingVerification(true);
       await sendEmailVerification(auth.currentUser);
-      showNotification({ type: "success", title: "Sent", message: "Check your inbox." });
+      showNotification({
+        type: "success",
+        title: "Sent",
+        message: "Check your inbox.",
+      });
     } catch (err) {
-      showNotification({ type: "error", title: "Error", message: err?.message || "Failed to send" });
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: err?.message || "Failed to send",
+      });
     } finally {
       setSendingVerification(false);
     }
@@ -180,30 +216,105 @@ export default function ProfileScreen({ navigation }) {
       });
       if (ok) await auth.signOut();
     } catch (err) {
-      showNotification({ type: "error", title: "Error", message: "Unable to sign out" });
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: "Unable to sign out",
+      });
     }
   }, []);
 
   const handleRetry = useCallback(async () => {
     const uid = auth?.currentUser?.uid;
     if (!uid) {
-      showNotification({ type: "error", title: "No user", message: "Not signed in" });
+      showNotification({
+        type: "error",
+        title: "No user",
+        message: "Not signed in",
+      });
       return;
     }
 
     try {
       await loadProfile();
-      showNotification({ type: "success", title: "Retrying", message: "Profile reload started" });
+      showNotification({
+        type: "success",
+        title: "Retrying",
+        message: "Profile reload started",
+      });
     } catch (err) {
-      showNotification({ type: "error", title: "Error", message: err?.message || "Unable to retry" });
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: err?.message || "Unable to retry",
+      });
     }
   }, [loadProfile]);
 
+  const handleEditAvatar = useCallback(async () => {
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        showNotification({
+          type: "error",
+          title: "Permission needed",
+          message: "Allow photo access to update your avatar.",
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const uid = auth?.currentUser?.uid;
+      if (!uid) {
+        showNotification({
+          type: "error",
+          title: "Not signed in",
+          message: "Please sign in again.",
+        });
+        return;
+      }
+
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+      const avatarRef = ref(storage, `users/${uid}/avatars/profile.jpg`);
+      await uploadBytes(avatarRef, blob, {
+        contentType: asset.mimeType || "image/jpeg",
+      });
+      const photoURL = await getDownloadURL(avatarRef);
+
+      await updateProfile({ photoURL });
+      await updateAuthProfile(auth.currentUser, { photoURL });
+      showNotification({
+        type: "success",
+        title: "Updated",
+        message: "Avatar changed successfully.",
+      });
+    } catch (err) {
+      showNotification({
+        type: "error",
+        title: "Error",
+        message: err?.message || "Failed to update avatar",
+      });
+    }
+  }, [updateProfile]);
+
   if (!authChecked || isLoading) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
+      <SafeAreaView
+        style={[styles.centered, { backgroundColor: colors.background }]}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}> 
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>
           {!authChecked ? "Initializing…" : "Loading your profile…"}
         </Text>
       </SafeAreaView>
@@ -212,22 +323,49 @@ export default function ProfileScreen({ navigation }) {
 
   if (!userId) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
-        <Ionicons name="person-circle-outline" size={64} color={colors.mutedForeground} />
-        <Text style={[styles.guardTitle, { color: colors.foreground }]}>Not signed in</Text>
-        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>Please sign in to view your profile.</Text>
+      <SafeAreaView
+        style={[styles.centered, { backgroundColor: colors.background }]}
+      >
+        <Ionicons
+          name="person-circle-outline"
+          size={64}
+          color={colors.mutedForeground}
+        />
+        <Text style={[styles.guardTitle, { color: colors.foreground }]}>
+          Not signed in
+        </Text>
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>
+          Please sign in to view your profile.
+        </Text>
       </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]}> 
+      <SafeAreaView
+        style={[styles.centered, { backgroundColor: colors.background }]}
+      >
         <Ionicons name="warning" size={64} color="#E07A5F" />
-        <Text style={[styles.guardTitle, { color: colors.foreground }]}>Something went wrong</Text>
-        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>{error}</Text>
-        <Text style={[styles.guardSub, { color: colors.mutedForeground, marginTop: 8 }]}>Signed-in UID: {auth?.currentUser?.uid || "none"}</Text>
-        <TouchableOpacity onPress={handleRetry} style={[styles.retryBtn, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
+        <Text style={[styles.guardTitle, { color: colors.foreground }]}>
+          Something went wrong
+        </Text>
+        <Text style={[styles.guardSub, { color: colors.mutedForeground }]}>
+          {error}
+        </Text>
+        <Text
+          style={[
+            styles.guardSub,
+            { color: colors.mutedForeground, marginTop: 8 },
+          ]}
+        >
+          Signed-in UID: {auth?.currentUser?.uid || "none"}
+        </Text>
+        <TouchableOpacity
+          onPress={handleRetry}
+          style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+          activeOpacity={0.85}
+        >
           <Text style={styles.retryText}>Try again</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -248,9 +386,17 @@ export default function ProfileScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}> 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <ProfileHeader onBack={() => navigation.goBack()} onEdit={openEdit} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <ProfileHeader
+          onBack={() => navigation.goBack()}
+          onEditAvatar={handleEditAvatar}
+        />
 
         <ProfileEditModal
           visible={editVisible}
@@ -260,6 +406,8 @@ export default function ProfileScreen({ navigation }) {
           setEditFirst={setEditFirst}
           editLast={editLast}
           setEditLast={setEditLast}
+          editPhotoURL={editPhotoURL}
+          setEditPhotoURL={setEditPhotoURL}
           editPhone={editPhone}
           setEditPhone={setEditPhone}
           editStaples={editStaples}
@@ -301,16 +449,50 @@ export default function ProfileScreen({ navigation }) {
           fullName={fullName}
           email={email}
           diabetesStatus={diabetesLabel(profile?.diabetesType)}
+          photoURL={
+            profile?.photoURL ||
+            profile?.profileImage ||
+            auth?.currentUser?.photoURL
+          }
+          onEditAvatar={handleEditAvatar}
+          onEditProfile={openEdit}
         />
 
         <ProfileStatsRow profile={profile} />
 
         <ProfileInfoCard title="Personal Info">
-          <InfoRow iconName="person" iconColor="#6D28D9" label="Full Name" value={fullName} />
-          <InfoRow iconName="mail" iconColor="#0284C7" label="Email" value={email} />
-          <InfoRow iconName="call" iconColor="#059669" label="Phone" value={profile?.phone} />
-          <InfoRow iconName="calendar" iconColor="#D97706" label="Date of Birth" value={profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : null} />
-          <InfoRow iconName="location" iconColor="#DC2626" label="Location" value={profile?.location} />
+          <InfoRow
+            iconName="person"
+            iconColor="#6D28D9"
+            label="Full Name"
+            value={fullName}
+          />
+          <InfoRow
+            iconName="mail"
+            iconColor="#0284C7"
+            label="Email"
+            value={email}
+          />
+          <InfoRow
+            iconName="call"
+            iconColor="#059669"
+            label="Phone"
+            value={profile?.phone}
+          />
+          <InfoRow
+            iconName="calendar"
+            iconColor="#D97706"
+            label="Date of Birth"
+            value={
+              profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : null
+            }
+          />
+          <InfoRow
+            iconName="location"
+            iconColor="#DC2626"
+            label="Location"
+            value={profile?.location}
+          />
         </ProfileInfoCard>
 
         <ProfileInfoCard title="Health Info">
@@ -326,16 +508,61 @@ export default function ProfileScreen({ navigation }) {
                 : profile?.onMedication
             }
           />
-          <InfoRow iconName="stats-chart" iconColor="#8B5CF6" label="HBA1c" value={profile?.primaryHba1c ? `${profile.primaryHba1c}` : null} action="Edit" onAction={openEdit} />
-          <InfoRow iconName="moon" iconColor="#F59E0B" label="Fasting (mg/dL)" value={profile?.fastingBloodSugar ? `${profile.fastingBloodSugar} mg/dL` : null} action="Edit" onAction={openEdit} />
-          <InfoRow iconName="fitness" iconColor="#0369A1" label="Activity Level" value={profile?.activityLevel} />
-          <InfoRow iconName="barbell" iconColor="#065F46" label="Weight" value={profile?.weight ? `${profile.weight} kg` : null} />
-          <InfoRow iconName="trending-up" iconColor="#B45309" label="Target Glucose" value={profile?.targetGlucose ? `${profile.targetGlucose} mg/dL` : null} />
+          <InfoRow
+            iconName="stats-chart"
+            iconColor="#8B5CF6"
+            label="HBA1c"
+            value={profile?.primaryHba1c ? `${profile.primaryHba1c}` : null}
+            action="Edit"
+            onAction={openEdit}
+          />
+          <InfoRow
+            iconName="moon"
+            iconColor="#F59E0B"
+            label="Fasting (mg/dL)"
+            value={
+              profile?.fastingBloodSugar
+                ? `${profile.fastingBloodSugar} mg/dL`
+                : null
+            }
+            action="Edit"
+            onAction={openEdit}
+          />
+          <InfoRow
+            iconName="fitness"
+            iconColor="#0369A1"
+            label="Activity Level"
+            value={profile?.activityLevel}
+          />
+          <InfoRow
+            iconName="barbell"
+            iconColor="#065F46"
+            label="Weight"
+            value={profile?.weight ? `${profile.weight} kg` : null}
+          />
+          <InfoRow
+            iconName="trending-up"
+            iconColor="#B45309"
+            label="Target Glucose"
+            value={
+              profile?.targetGlucose ? `${profile.targetGlucose} mg/dL` : null
+            }
+          />
         </ProfileInfoCard>
 
         <ProfileInfoCard title="Emergency Contact">
-          <InfoRow iconName="people" iconColor="#DC2626" label="Name" value={profile?.emergencyContactName} />
-          <InfoRow iconName="call" iconColor="#DC2626" label="Phone" value={profile?.emergencyContactPhone} />
+          <InfoRow
+            iconName="people"
+            iconColor="#DC2626"
+            label="Name"
+            value={profile?.emergencyContactName}
+          />
+          <InfoRow
+            iconName="call"
+            iconColor="#DC2626"
+            label="Phone"
+            value={profile?.emergencyContactPhone}
+          />
         </ProfileInfoCard>
 
         <ProfileInfoCard title="Account">
@@ -344,12 +571,35 @@ export default function ProfileScreen({ navigation }) {
             iconColor={profile?.emailVerified ? "#10B981" : "#F59E0B"}
             label="Email Verified"
             value={profile?.emailVerified ? "Verified ✓" : "Not Verified"}
-            action={!profile?.emailVerified ? (sendingVerification ? "Sending…" : "Resend") : undefined}
-            onAction={!profile?.emailVerified ? handleResendVerification : undefined}
+            action={
+              !profile?.emailVerified
+                ? sendingVerification
+                  ? "Sending…"
+                  : "Resend"
+                : undefined
+            }
+            onAction={
+              !profile?.emailVerified ? handleResendVerification : undefined
+            }
           />
-          <InfoRow iconName="finger-print" iconColor={colors.mutedForeground} label="User ID" value={profile?.id ? `…${profile.id.slice(-8)}` : null} />
-          <InfoRow iconName="time" iconColor={colors.mutedForeground} label="Member Since" value={formatDate(profile?.createdAt)} />
-          <InfoRow iconName="refresh" iconColor={colors.mutedForeground} label="Last Updated" value={formatDate(profile?.updatedAt)} />
+          <InfoRow
+            iconName="finger-print"
+            iconColor={colors.mutedForeground}
+            label="User ID"
+            value={profile?.id ? `…${profile.id.slice(-8)}` : null}
+          />
+          <InfoRow
+            iconName="time"
+            iconColor={colors.mutedForeground}
+            label="Member Since"
+            value={formatDate(profile?.createdAt)}
+          />
+          <InfoRow
+            iconName="refresh"
+            iconColor={colors.mutedForeground}
+            label="Last Updated"
+            value={formatDate(profile?.updatedAt)}
+          />
         </ProfileInfoCard>
 
         <ProfilePreferencesCard
@@ -360,7 +610,11 @@ export default function ProfileScreen({ navigation }) {
             try {
               await setTheme(val ? "dark" : "light");
             } catch (err) {
-              showNotification({ type: "error", title: "Error", message: err?.message || "Failed" });
+              showNotification({
+                type: "error",
+                title: "Error",
+                message: err?.message || "Failed",
+              });
             }
           }}
         />
@@ -368,13 +622,18 @@ export default function ProfileScreen({ navigation }) {
         <TouchableOpacity
           onPress={handleSignOut}
           activeOpacity={0.8}
-          style={[styles.signOutBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[
+            styles.signOutBtn,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.version, { color: colors.mutedForeground }]}>GlycoRev v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.mutedForeground }]}>
+          GlycoRev v1.0.0
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

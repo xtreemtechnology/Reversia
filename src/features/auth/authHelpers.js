@@ -1,4 +1,5 @@
-export const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
+export const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
 
 export const validatePassword = (password) => (password || "").length >= 8;
 

@@ -1,5 +1,14 @@
 import React, { useRef, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../config/firebase";
@@ -38,26 +47,53 @@ export default function ForgotPasswordScreen({ navigation, route }) {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.card }]} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={[styles.backBtn, { backgroundColor: colors.card }]}
+        activeOpacity={0.7}
+      >
         <Ionicons name="chevron-back" size={22} color={colors.text} />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primary + "1A" }]}>
-            <Ionicons name="lock-open-outline" size={36} color={colors.primary} />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View
+            style={[
+              styles.iconWrap,
+              { backgroundColor: colors.primary + "1A" },
+            ]}
+          >
+            <Ionicons
+              name="lock-open-outline"
+              size={36}
+              color={colors.primary}
+            />
           </View>
 
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Forgot{"\n"}password?</Text>
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>No stress. Enter your email and we'll send you a link to reset it.</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Forgot{"\n"}password?
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              No stress. Enter your email and we'll send you a link to reset it.
+            </Text>
           </View>
 
           <AuthInput
             label="Email address"
             placeholder="you@example.com"
             value={email}
-            onChangeText={(t) => { setEmail(t); setError(""); }}
+            onChangeText={(t) => {
+              setEmail(t);
+              setError("");
+            }}
             keyboardType="email-address"
             autoComplete="email"
             iconName="mail-outline"
@@ -68,8 +104,19 @@ export default function ForgotPasswordScreen({ navigation, route }) {
           />
 
           <View style={styles.ctaGroup}>
-            <AuthButton label="Send Reset Link" onPress={handleReset} loading={loading} disabled={!email} variant="primary" iconName="arrow-forward" />
-            <AuthButton label="Back to Sign In" onPress={() => navigation.navigate("SignIn")} variant="ghost" />
+            <AuthButton
+              label="Send Reset Link"
+              onPress={handleReset}
+              loading={loading}
+              disabled={!email}
+              variant="primary"
+              iconName="arrow-forward"
+            />
+            <AuthButton
+              label="Back to Sign In"
+              onPress={() => navigation.navigate("SignIn")}
+              variant="ghost"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -79,6 +126,7 @@ export default function ForgotPasswordScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  keyboardAvoid: { flex: 1 },
   backBtn: {
     position: "absolute",
     top: Platform.OS === "ios" ? 56 : 36,

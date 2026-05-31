@@ -6,7 +6,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-export default function ProfileHeader({ onBack, onEdit }) {
+export default function ProfileHeader({ onBack, onEditAvatar }) {
   const { colors } = useTheme();
 
   return (
@@ -25,7 +25,7 @@ export default function ProfileHeader({ onBack, onEdit }) {
       </Text>
 
       <TouchableOpacity
-        onPress={onEdit}
+        onPress={onEditAvatar}
         activeOpacity={0.8}
         style={[styles.editBtn, { backgroundColor: colors.foreground }]}
       >

@@ -19,11 +19,20 @@ export default function InlineSplash() {
   const haloOpacity = useSharedValue(0.08);
 
   useEffect(() => {
-    logoScale.value = withDelay(100, withTiming(1, { duration: 450, easing: Easing.out(Easing.cubic) }));
-    glowOpacity.value = withDelay(80, withTiming(0.24, { duration: 500, easing: Easing.out(Easing.cubic) }));
+    logoScale.value = withDelay(
+      100,
+      withTiming(1, { duration: 450, easing: Easing.out(Easing.cubic) })
+    );
+    glowOpacity.value = withDelay(
+      80,
+      withTiming(0.24, { duration: 500, easing: Easing.out(Easing.cubic) })
+    );
     glowScale.value = withRepeat(
       withSequence(
-        withTiming(1.02, { duration: 1600, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.02, {
+          duration: 1600,
+          easing: Easing.inOut(Easing.cubic),
+        }),
         withTiming(0.92, { duration: 1600, easing: Easing.inOut(Easing.cubic) })
       ),
       -1,
@@ -31,7 +40,10 @@ export default function InlineSplash() {
     );
     haloScale.value = withRepeat(
       withSequence(
-        withTiming(1.08, { duration: 1800, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.08, {
+          duration: 1800,
+          easing: Easing.inOut(Easing.cubic),
+        }),
         withTiming(0.88, { duration: 1800, easing: Easing.inOut(Easing.cubic) })
       ),
       -1,
@@ -39,18 +51,19 @@ export default function InlineSplash() {
     );
     haloOpacity.value = withRepeat(
       withSequence(
-        withTiming(0.12, { duration: 1800, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(0.12, {
+          duration: 1800,
+          easing: Easing.inOut(Easing.cubic),
+        }),
         withTiming(0.04, { duration: 1800, easing: Easing.inOut(Easing.cubic) })
       ),
       -1,
       true
     );
-  }, []);
+  }, [logoScale, glowScale, glowOpacity, haloScale, haloOpacity]);
 
   const logoStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: logoScale.value * glowScale.value },
-    ],
+    transform: [{ scale: logoScale.value * glowScale.value }],
   }));
 
   const glowStyle = useAnimatedStyle(() => ({

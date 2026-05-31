@@ -1,6 +1,16 @@
 import React from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
@@ -9,35 +19,75 @@ import EmptyRestRecoveryCard from "./EmptyRestRecoveryCard";
 import EmptyRecentPatterns from "./EmptyRecentPatterns";
 import EmptyWeeklyWellness from "./EmptyWeeklyWellness";
 
-export default function EmptyStateHomeScreen({ navigation, userData }) {
+export default function EmptyStateHomeScreen({
+  navigation,
+  userData,
+  logs = [],
+}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const firstName = userData?.firstName || userData?.displayName?.split(" ")[0] || "there";
+  const firstName =
+    userData?.firstName ||
+    userData?.displayName?.split(" ")[0] ||
+    userData?.name?.split(" ")[0] ||
+    userData?.username ||
+    "there";
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning," : hour < 17 ? "Good afternoon," : "Good evening,";
+  const greeting =
+    hour < 12
+      ? "Good morning,"
+      : hour < 17
+      ? "Good afternoon,"
+      : "Good evening,";
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}> 
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 120 },
+        ]}
       >
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             {userData?.profileImage ? (
-              <Image source={{ uri: userData.profileImage }} style={[styles.avatar, { borderColor: colors.border }]} />
+              <Image
+                source={{ uri: userData.profileImage }}
+                style={[styles.avatar, { borderColor: colors.border }]}
+              />
             ) : (
-              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Ionicons name="person" size={18} color={colors.mutedForeground} />
+              <View
+                style={[
+                  styles.avatarPlaceholder,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <Ionicons
+                  name="person"
+                  size={18}
+                  color={colors.mutedForeground}
+                />
               </View>
             )}
             <View>
-              <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting}</Text>
-              <Text style={[styles.userName, { color: colors.text }]}>{firstName}</Text>
+              <Text
+                style={[styles.greeting, { color: colors.mutedForeground }]}
+              >
+                {greeting}
+              </Text>
+              <Text style={[styles.userName, { color: colors.text }]}>
+                {firstName}
+              </Text>
             </View>
           </View>
 
-          <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.card }]} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={[styles.bellBtn, { backgroundColor: colors.card }]}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications" size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -46,33 +96,55 @@ export default function EmptyStateHomeScreen({ navigation, userData }) {
           <EmptyMainInsightCard navigation={navigation} />
         </ErrorBoundary>
         <ErrorBoundary>
-          <EmptyRestRecoveryCard />
+          <EmptyRestRecoveryCard userData={userData} logs={logs} />
         </ErrorBoundary>
         <ErrorBoundary>
-          <EmptyRecentPatterns />
+          <EmptyRecentPatterns logs={logs} />
         </ErrorBoundary>
         <ErrorBoundary>
-          <EmptyWeeklyWellness />
+          <EmptyWeeklyWellness logs={logs} />
         </ErrorBoundary>
 
-        <View style={[styles.exploreRow, { borderTopColor: colors.border + "60" }]}> 
-          <Text style={[styles.exploreLabel, { color: colors.mutedForeground }]}>Or explore</Text>
+        <View
+          style={[styles.exploreRow, { borderTopColor: colors.border + "60" }]}
+        >
+          <Text
+            style={[styles.exploreLabel, { color: colors.mutedForeground }]}
+          >
+            Or explore
+          </Text>
           <View style={styles.exploreLinks}>
             <TouchableOpacity
               onPress={() => navigation?.navigate("Learn")}
-              style={[styles.exploreChip, { backgroundColor: colors.card, borderColor: colors.border + "80" }]}
+              style={[
+                styles.exploreChip,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border + "80",
+                },
+              ]}
               activeOpacity={0.75}
             >
               <Ionicons name="book" size={15} color={colors.secondary} />
-              <Text style={[styles.exploreChipText, { color: colors.text }]}>Learn</Text>
+              <Text style={[styles.exploreChipText, { color: colors.text }]}>
+                Learn
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation?.navigate("Track")}
-              style={[styles.exploreChip, { backgroundColor: colors.card, borderColor: colors.border + "80" }]}
+              style={[
+                styles.exploreChip,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border + "80",
+                },
+              ]}
               activeOpacity={0.75}
             >
               <Ionicons name="add-circle" size={15} color={colors.primary} />
-              <Text style={[styles.exploreChipText, { color: colors.text }]}>Track</Text>
+              <Text style={[styles.exploreChipText, { color: colors.text }]}>
+                Track
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

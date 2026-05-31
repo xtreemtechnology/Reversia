@@ -58,14 +58,26 @@ function OptionChip({ label, active, onPress, colors }) {
         },
       ]}
     >
-      <Text style={[styles.chipText, { color: active ? colors.primary : colors.text }]}>
+      <Text
+        style={[
+          styles.chipText,
+          { color: active ? colors.primary : colors.text },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
 
-function ChipGroup({ label, options, value, onChange, multiSelect = false, colors }) {
+function ChipGroup({
+  label,
+  options,
+  value,
+  onChange,
+  multiSelect = false,
+  colors,
+}) {
   const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
 
   const toggleValue = (item) => {
@@ -82,11 +94,15 @@ function ChipGroup({ label, options, value, onChange, multiSelect = false, color
 
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+        {label}
+      </Text>
       <View style={styles.chipsRow}>
         {options.map((option) => {
-          const optionValue = typeof option === "string" ? option : option.value;
-          const optionLabel = typeof option === "string" ? option : option.label;
+          const optionValue =
+            typeof option === "string" ? option : option.value;
+          const optionLabel =
+            typeof option === "string" ? option : option.label;
           const active = multiSelect
             ? selectedValues.includes(optionValue)
             : value === optionValue;
@@ -114,6 +130,8 @@ export default function ProfileEditModal({
   setEditFirst,
   editLast,
   setEditLast,
+  editPhotoURL,
+  setEditPhotoURL,
   editPhone,
   setEditPhone,
   editStaples,
@@ -205,63 +223,203 @@ export default function ProfileEditModal({
     { value: "nothing", label: "Nothing / hopeful" },
   ];
 
-
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <SafeAreaView style={styles.overlay}>
-        <View style={[styles.sheet, { backgroundColor: colors.card, borderColor: colors.border + "80" }]}> 
+        <View
+          style={[
+            styles.sheet,
+            { backgroundColor: colors.card, borderColor: colors.border + "80" },
+          ]}
+        >
           <View style={[styles.handle, { backgroundColor: colors.border }]} />
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            <Text style={[styles.title, { color: colors.foreground }]}>Edit Profile</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <Text style={[styles.title, { color: colors.foreground }]}>
+              Edit Profile
+            </Text>
 
-            <Field label="First name" value={editFirst} onChangeText={setEditFirst} placeholder="First name" colors={colors} />
-            <Field label="Last name" value={editLast} onChangeText={setEditLast} placeholder="Last name" colors={colors} />
-            <Field label="Phone" value={editPhone} onChangeText={setEditPhone} placeholder="Phone number" keyboardType="phone-pad" colors={colors} />
+            <Field
+              label="Avatar photo URL"
+              value={editPhotoURL}
+              onChangeText={setEditPhotoURL}
+              placeholder="https://..."
+              colors={colors}
+            />
+            <Field
+              label="First name"
+              value={editFirst}
+              onChangeText={setEditFirst}
+              placeholder="First name"
+              colors={colors}
+            />
+            <Field
+              label="Last name"
+              value={editLast}
+              onChangeText={setEditLast}
+              placeholder="Last name"
+              colors={colors}
+            />
+            <Field
+              label="Phone"
+              value={editPhone}
+              onChangeText={setEditPhone}
+              placeholder="Phone number"
+              keyboardType="phone-pad"
+              colors={colors}
+            />
 
-            <Field label="Activity level" value={editActivityLevel} onChangeText={setEditActivityLevel} placeholder="Moderate" colors={colors} />
-            <Field label="Weight (kg)" value={editWeight} onChangeText={setEditWeight} placeholder="72" keyboardType="numeric" colors={colors} />
-            <Field label="Target glucose" value={editTargetGlucose} onChangeText={setEditTargetGlucose} placeholder="110" keyboardType="numeric" colors={colors} />
+            <Field
+              label="Activity level"
+              value={editActivityLevel}
+              onChangeText={setEditActivityLevel}
+              placeholder="Moderate"
+              colors={colors}
+            />
+            <Field
+              label="Weight (kg)"
+              value={editWeight}
+              onChangeText={setEditWeight}
+              placeholder="72"
+              keyboardType="numeric"
+              colors={colors}
+            />
+            <Field
+              label="Target glucose"
+              value={editTargetGlucose}
+              onChangeText={setEditTargetGlucose}
+              placeholder="110"
+              keyboardType="numeric"
+              colors={colors}
+            />
 
-            <Field label="Most recent HBA1c" value={String(editPrimaryHba1c || "")} onChangeText={(t) => setEditPrimaryHba1c(t)} placeholder="e.g. 6.5" keyboardType="numeric" colors={colors} />
-            <Field label="Fasting blood sugar (mg/dL)" value={String(editFastingBloodSugar || "")} onChangeText={(t) => setEditFastingBloodSugar(t)} placeholder="e.g. 110" keyboardType="numeric" colors={colors} />
+            <Field
+              label="Most recent HBA1c"
+              value={String(editPrimaryHba1c || "")}
+              onChangeText={(t) => setEditPrimaryHba1c(t)}
+              placeholder="e.g. 6.5"
+              keyboardType="numeric"
+              colors={colors}
+            />
+            <Field
+              label="Fasting blood sugar (mg/dL)"
+              value={String(editFastingBloodSugar || "")}
+              onChangeText={(t) => setEditFastingBloodSugar(t)}
+              placeholder="e.g. 110"
+              keyboardType="numeric"
+              colors={colors}
+            />
 
-            <Field label="Emergency contact name" value={editEmergencyContactName} onChangeText={setEditEmergencyContactName} placeholder="Contact name" colors={colors} />
-            <Field label="Emergency contact phone" value={editEmergencyContactPhone} onChangeText={setEditEmergencyContactPhone} placeholder="Contact phone" keyboardType="phone-pad" colors={colors} />
+            <Field
+              label="Emergency contact name"
+              value={editEmergencyContactName}
+              onChangeText={setEditEmergencyContactName}
+              placeholder="Contact name"
+              colors={colors}
+            />
+            <Field
+              label="Emergency contact phone"
+              value={editEmergencyContactPhone}
+              onChangeText={setEditEmergencyContactPhone}
+              placeholder="Contact phone"
+              keyboardType="phone-pad"
+              colors={colors}
+            />
 
-            <ChipGroup label="Food staples" options={stapleOptions} value={editStaples} onChange={setEditStaples} multiSelect colors={colors} />
-            <ChipGroup label="Sweet drink frequency" options={["daily", "weekly", "rarely", "never"]} value={editSweetDrinkFrequency} onChange={setEditSweetDrinkFrequency} colors={colors} />
-            <ChipGroup label="Dietary restrictions" options={restrictionOptions} value={editDietaryRestrictions} onChange={setEditDietaryRestrictions} multiSelect colors={colors} />
+            <ChipGroup
+              label="Food staples"
+              options={stapleOptions}
+              value={editStaples}
+              onChange={setEditStaples}
+              multiSelect
+              colors={colors}
+            />
+            <ChipGroup
+              label="Sweet drink frequency"
+              options={["daily", "weekly", "rarely", "never"]}
+              value={editSweetDrinkFrequency}
+              onChange={setEditSweetDrinkFrequency}
+              colors={colors}
+            />
+            <ChipGroup
+              label="Dietary restrictions"
+              options={restrictionOptions}
+              value={editDietaryRestrictions}
+              onChange={setEditDietaryRestrictions}
+              multiSelect
+              colors={colors}
+            />
 
-            <ChipGroup label="Primary goal" options={goalOptions} value={editPrimaryGoal} onChange={setEditPrimaryGoal} colors={colors} />
-            <ChipGroup label="Secondary goals" options={goalOptions} value={editSecondaryGoals} onChange={setEditSecondaryGoals} multiSelect colors={colors} />
+            <ChipGroup
+              label="Primary goal"
+              options={goalOptions}
+              value={editPrimaryGoal}
+              onChange={setEditPrimaryGoal}
+              colors={colors}
+            />
+            <ChipGroup
+              label="Secondary goals"
+              options={goalOptions}
+              value={editSecondaryGoals}
+              onChange={setEditSecondaryGoals}
+              multiSelect
+              colors={colors}
+            />
 
-            <ChipGroup label="Health fears" options={fearOptions} value={editFears} onChange={setEditFears} multiSelect colors={colors} />
+            <ChipGroup
+              label="Health fears"
+              options={fearOptions}
+              value={editFears}
+              onChange={setEditFears}
+              multiSelect
+              colors={colors}
+            />
 
-            <ChipGroup label="Typical sleep hours" options={sleepOptions} value={editSleepHours} onChange={setEditSleepHours} colors={colors} />
-            <ChipGroup label="Sleep quality" options={sleepQualityOptions} value={editSleepQuality} onChange={setEditSleepQuality} colors={colors} />
+            <ChipGroup
+              label="Typical sleep hours"
+              options={sleepOptions}
+              value={editSleepHours}
+              onChange={setEditSleepHours}
+              colors={colors}
+            />
+            <ChipGroup
+              label="Sleep quality"
+              options={sleepQualityOptions}
+              value={editSleepQuality}
+              onChange={setEditSleepQuality}
+              colors={colors}
+            />
 
-            <ChipGroup label="Medication status" options={yesNoOptions} value={editOnMedication} onChange={setEditOnMedication} colors={colors} />
+            <ChipGroup
+              label="Medication status"
+              options={yesNoOptions}
+              value={editOnMedication}
+              onChange={setEditOnMedication}
+              colors={colors}
+            />
 
             <View style={styles.actions}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={[styles.cancelBtn, { borderColor: colors.border }]}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[styles.cancelText, { color: colors.mutedForeground }]}
+              <TouchableOpacity
+                onPress={onClose}
+                style={[styles.cancelBtn, { borderColor: colors.border }]}
+                activeOpacity={0.7}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={onSave}
-              style={[styles.saveBtn, { backgroundColor: colors.primary }]}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
+                <Text
+                  style={[styles.cancelText, { color: colors.mutedForeground }]}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onSave}
+                style={[styles.saveBtn, { backgroundColor: colors.primary }]}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>

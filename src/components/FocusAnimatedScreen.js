@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useIsFocused } from "@react-navigation/native";
-import { Animated } from "react-native";
+import { Animated, StyleSheet } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 
 // Wraps content and applies a subtle fade only when the tab gains focus.
@@ -26,13 +26,16 @@ export default function FocusAnimatedScreen({ children }) {
 
   return (
     <Animated.View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        opacity,
-      }}
+      style={[
+        styles.container,
+        { backgroundColor: colors.background, opacity },
+      ]}
     >
       {children}
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});

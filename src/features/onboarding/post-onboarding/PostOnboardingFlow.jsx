@@ -12,13 +12,7 @@ import { updateUserProfile } from "../../profile/services/profileService";
 import { trackEvent } from "../../../utils/analytics";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-const SCREENS = [
-  "hba1c",
-  "fasting",
-  "food",
-  "fears",
-  "goals",
-];
+const SCREENS = ["hba1c", "fasting", "food", "fears", "goals"];
 
 const HBA_OPTIONS = [
   { value: "below_5_7", label: "Below 5.7% (normal)" },
@@ -98,7 +92,9 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   const toggleMulti = (key, value) => {
     setAnswers((s) => {
       const arr = Array.isArray(s[key]) ? s[key] : [];
-      const next = arr.includes(value) ? arr.filter((a) => a !== value) : [...arr, value];
+      const next = arr.includes(value)
+        ? arr.filter((a) => a !== value)
+        : [...arr, value];
       return { ...s, [key]: next };
     });
   };
@@ -177,7 +173,10 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   };
 
   const handleSkip = async () => {
-    await trackEvent("post_onboarding_skipped", { step: current, userId: auth.currentUser?.uid || null });
+    await trackEvent("post_onboarding_skipped", {
+      step: current,
+      userId: auth.currentUser?.uid || null,
+    });
     if (step < SCREENS.length - 1) {
       setStep((s) => s + 1);
       return;
@@ -190,37 +189,89 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}> 
-      <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={styles.inner}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.educationCard}>
           {current === "hba1c" && (
             <>
-              <Text style={[styles.educationTitle, { color: colors.foreground }]}>⚠️ DID YOU KNOW?</Text>
-              <Text style={[styles.educationBody, { color: colors.foreground }]}>Most people only discover they have diabetes when complications have already started. Knowing your HBA1c today can prevent 80% of future complications.</Text>
+              <Text
+                style={[styles.educationTitle, { color: colors.foreground }]}
+              >
+                ⚠️ DID YOU KNOW?
+              </Text>
+              <Text
+                style={[styles.educationBody, { color: colors.foreground }]}
+              >
+                Most people only discover they have diabetes when complications
+                have already started. Knowing your HBA1c today can prevent 80%
+                of future complications.
+              </Text>
             </>
           )}
           {current === "fasting" && (
             <>
-              <Text style={[styles.educationTitle, { color: colors.foreground }]}>🌙 WHILE YOU SLEEP...</Text>
-              <Text style={[styles.educationBody, { color: colors.foreground }]}>Your fasting blood sugar is the first warning sign. Most people feel nothing until it's too late — every 10 mg/dL above normal raises heart disease risk.</Text>
+              <Text
+                style={[styles.educationTitle, { color: colors.foreground }]}
+              >
+                🌙 WHILE YOU SLEEP...
+              </Text>
+              <Text
+                style={[styles.educationBody, { color: colors.foreground }]}
+              >
+                Your fasting blood sugar is the first warning sign. Most people
+                feel nothing until it's too late — every 10 mg/dL above normal
+                raises heart disease risk.
+              </Text>
             </>
           )}
           {current === "food" && (
             <>
-              <Text style={[styles.educationTitle, { color: colors.foreground }]}>🍛 YOUR FAVORITE MEALS</Text>
-              <Text style={[styles.educationBody, { color: colors.foreground }]}>A typical plate of Jollof rice raises blood sugar faster than 2 tablespoons of pure sugar. But protein, fiber order, and short walks reduce spikes.</Text>
+              <Text
+                style={[styles.educationTitle, { color: colors.foreground }]}
+              >
+                🍛 YOUR FAVORITE MEALS
+              </Text>
+              <Text
+                style={[styles.educationBody, { color: colors.foreground }]}
+              >
+                A typical plate of Jollof rice raises blood sugar faster than 2
+                tablespoons of pure sugar. But protein, fiber order, and short
+                walks reduce spikes.
+              </Text>
             </>
           )}
           {current === "fears" && (
             <>
-              <Text style={[styles.educationTitle, { color: colors.foreground }]}>😔 WHAT KEEPS YOU UP AT NIGHT?</Text>
-              <Text style={[styles.educationBody, { color: colors.foreground }]}>You're not alone — many fear complications like amputation or blindness. Reversia shows paths others have walked.</Text>
+              <Text
+                style={[styles.educationTitle, { color: colors.foreground }]}
+              >
+                😔 WHAT KEEPS YOU UP AT NIGHT?
+              </Text>
+              <Text
+                style={[styles.educationBody, { color: colors.foreground }]}
+              >
+                You're not alone — many fear complications like amputation or
+                blindness. Reversia shows paths others have walked.
+              </Text>
             </>
           )}
           {current === "goals" && (
             <>
-              <Text style={[styles.educationTitle, { color: colors.foreground }]}>✨ IMAGINE THIS...</Text>
-              <Text style={[styles.educationBody, { color: colors.foreground }]}>Imagine checking your sugar and seeing the progress you want. Over 3000 Nigerians have done it — what would success look like for you?</Text>
+              <Text
+                style={[styles.educationTitle, { color: colors.foreground }]}
+              >
+                ✨ IMAGINE THIS...
+              </Text>
+              <Text
+                style={[styles.educationBody, { color: colors.foreground }]}
+              >
+                Imagine checking your sugar and seeing the progress you want.
+                Over 3000 Nigerians have done it — what would success look like
+                for you?
+              </Text>
             </>
           )}
         </View>
@@ -228,10 +279,25 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
         <View style={styles.questionBlock}>
           {current === "hba1c" && (
             <View>
-              <Text style={[styles.questionTitle, { color: colors.foreground }]}>What's your most recent HBA1c?</Text>
+              <Text
+                style={[styles.questionTitle, { color: colors.foreground }]}
+              >
+                What's your most recent HBA1c?
+              </Text>
               {HBA_OPTIONS.map((o) => (
-                <TouchableOpacity key={o.value} onPress={() => setSingle("hba1c", o.value)} style={[styles.optionRow, answers.hba1c === o.value && styles.optionActive]}>
-                  <Text style={[styles.optionText, { color: colors.foreground }]}>{o.label}</Text>
+                <TouchableOpacity
+                  key={o.value}
+                  onPress={() => setSingle("hba1c", o.value)}
+                  style={[
+                    styles.optionRow,
+                    answers.hba1c === o.value && styles.optionActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.optionText, { color: colors.foreground }]}
+                  >
+                    {o.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -239,10 +305,25 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
           {current === "fasting" && (
             <View>
-              <Text style={[styles.questionTitle, { color: colors.foreground }]}>What's your most recent fasting blood sugar?</Text>
+              <Text
+                style={[styles.questionTitle, { color: colors.foreground }]}
+              >
+                What's your most recent fasting blood sugar?
+              </Text>
               {FASTING_OPTIONS.map((o) => (
-                <TouchableOpacity key={o.value} onPress={() => setSingle("fasting", o.value)} style={[styles.optionRow, answers.fasting === o.value && styles.optionActive]}>
-                  <Text style={[styles.optionText, { color: colors.foreground }]}>{o.label}</Text>
+                <TouchableOpacity
+                  key={o.value}
+                  onPress={() => setSingle("fasting", o.value)}
+                  style={[
+                    styles.optionRow,
+                    answers.fasting === o.value && styles.optionActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.optionText, { color: colors.foreground }]}
+                  >
+                    {o.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -250,10 +331,26 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
           {current === "food" && (
             <View>
-              <Text style={[styles.questionTitle, { color: colors.foreground }]}>What are your favorite Nigerian meals? (Select all)</Text>
+              <Text
+                style={[styles.questionTitle, { color: colors.foreground }]}
+              >
+                What are your favorite Nigerian meals? (Select all)
+              </Text>
               {FOOD_OPTIONS.map((o) => (
-                <TouchableOpacity key={o.value} onPress={() => toggleMulti("typicalStaples", o.value)} style={[styles.optionRow, (answers.typicalStaples || []).includes(o.value) && styles.optionActive]}>
-                  <Text style={[styles.optionText, { color: colors.foreground }]}>{o.label}</Text>
+                <TouchableOpacity
+                  key={o.value}
+                  onPress={() => toggleMulti("typicalStaples", o.value)}
+                  style={[
+                    styles.optionRow,
+                    (answers.typicalStaples || []).includes(o.value) &&
+                      styles.optionActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.optionText, { color: colors.foreground }]}
+                  >
+                    {o.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -261,10 +358,26 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
           {current === "fears" && (
             <View>
-              <Text style={[styles.questionTitle, { color: colors.foreground }]}>What worries you most about your health? (Select all)</Text>
+              <Text
+                style={[styles.questionTitle, { color: colors.foreground }]}
+              >
+                What worries you most about your health? (Select all)
+              </Text>
               {FEAR_OPTIONS.map((o) => (
-                <TouchableOpacity key={o.value} onPress={() => toggleMulti("fears", o.value)} style={[styles.optionRow, (answers.fears || []).includes(o.value) && styles.optionActive]}>
-                  <Text style={[styles.optionText, { color: colors.foreground }]}>{o.label}</Text>
+                <TouchableOpacity
+                  key={o.value}
+                  onPress={() => toggleMulti("fears", o.value)}
+                  style={[
+                    styles.optionRow,
+                    (answers.fears || []).includes(o.value) &&
+                      styles.optionActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.optionText, { color: colors.foreground }]}
+                  >
+                    {o.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -272,7 +385,11 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
           {current === "goals" && (
             <View>
-              <Text style={[styles.questionTitle, { color: colors.foreground }]}>What would success look like for you? (Select up to 3)</Text>
+              <Text
+                style={[styles.questionTitle, { color: colors.foreground }]}
+              >
+                What would success look like for you? (Select up to 3)
+              </Text>
               {GOAL_OPTIONS.map((o) => {
                 const selected = (answers.successGoals || []).includes(o.value);
                 return (
@@ -281,15 +398,25 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
                     onPress={() => {
                       // limit to 3
                       setAnswers((s) => {
-                        const arr = Array.isArray(s.successGoals) ? s.successGoals : [];
-                        if (arr.includes(o.value)) return { ...s, successGoals: arr.filter((a) => a !== o.value) };
+                        const arr = Array.isArray(s.successGoals)
+                          ? s.successGoals
+                          : [];
+                        if (arr.includes(o.value))
+                          return {
+                            ...s,
+                            successGoals: arr.filter((a) => a !== o.value),
+                          };
                         if (arr.length >= 3) return s;
                         return { ...s, successGoals: [...arr, o.value] };
                       });
                     }}
                     style={[styles.optionRow, selected && styles.optionActive]}
                   >
-                    <Text style={[styles.optionText, { color: colors.foreground }]}>{o.label}</Text>
+                    <Text
+                      style={[styles.optionText, { color: colors.foreground }]}
+                    >
+                      {o.label}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -304,13 +431,17 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
               disabled={step === 0}
               style={[styles.backBtn, step === 0 && styles.backBtnDisabled]}
             >
-              <Text style={[styles.backText, step === 0 && styles.backTextDisabled]}>
+              <Text
+                style={[styles.backText, step === 0 && styles.backTextDisabled]}
+              >
                 Back
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
-              <Text style={[styles.skipText, { color: colors.muted }]}>Skip for now</Text>
+              <Text style={[styles.skipText, { color: colors.muted }]}>
+                Skip for now
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -319,7 +450,9 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
             style={[styles.continueBtn, { backgroundColor: colors.primary }]}
           >
             <Text style={styles.continueText}>
-              {step === SCREENS.length - 1 ? "Take me to Reversia →" : "Continue →"}
+              {step === SCREENS.length - 1
+                ? "Take me to Reversia →"
+                : "Continue →"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -331,15 +464,34 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   inner: { padding: 20, gap: 18 },
-  educationCard: { backgroundColor: "rgba(255,255,255,0.04)", padding: 18, borderRadius: 14 },
+  educationCard: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    padding: 18,
+    borderRadius: 14,
+  },
   educationTitle: { fontSize: 18, fontWeight: "800", marginBottom: 8 },
   educationBody: { fontSize: 15, lineHeight: 20 },
   questionBlock: { marginTop: 14, gap: 12 },
   questionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 8 },
-  optionRow: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.04)", marginBottom: 8 },
-  optionActive: { borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(255,255,255,0.03)" },
+  optionRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.04)",
+    marginBottom: 8,
+  },
+  optionActive: {
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(255,255,255,0.03)",
+  },
   optionText: { fontSize: 15 },
-  actions: { marginTop: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  actions: {
+    marginTop: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   secondaryActions: { flexDirection: "row", alignItems: "center", gap: 14 },
   backBtn: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 999 },
   backBtnDisabled: { opacity: 0.35 },
@@ -347,6 +499,10 @@ const styles = StyleSheet.create({
   backTextDisabled: { opacity: 0.7 },
   skipBtn: { paddingVertical: 12 },
   skipText: { fontSize: 15 },
-  continueBtn: { paddingVertical: 14, paddingHorizontal: 20, borderRadius: 999 },
+  continueBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+  },
   continueText: { color: "#fff", fontWeight: "700" },
 });

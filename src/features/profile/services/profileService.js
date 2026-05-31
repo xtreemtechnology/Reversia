@@ -13,11 +13,11 @@ const normalizeArray = (value, fallback = []) =>
   Array.isArray(value)
     ? value.filter(Boolean)
     : typeof value === "string" && value.trim()
-      ? value
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean)
-      : fallback;
+    ? value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : fallback;
 
 const normalizeProfile = (snapshotData = {}) => ({
   ...snapshotData,
@@ -25,6 +25,7 @@ const normalizeProfile = (snapshotData = {}) => ({
   lastName: snapshotData.lastName || "",
   phone: snapshotData.phone || null,
   email: snapshotData.email || null,
+  photoURL: snapshotData.photoURL || snapshotData.profileImage || null,
   location: snapshotData.location || "",
   diabetesType: snapshotData.diabetesType || null,
   typicalStaples: normalizeArray(snapshotData.typicalStaples),

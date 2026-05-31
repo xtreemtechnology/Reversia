@@ -9,13 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { shadowStyle } from "../utils/shadows";
-import {
-  Robot,
-  XCircle,
-  Walking,
-  DropSimple,
-  ForkKnife,
-} from "phosphor-react-native";
+import { Robot, XCircle, DropSimple, ForkKnife } from "phosphor-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 
 const { height } = Dimensions.get("window");

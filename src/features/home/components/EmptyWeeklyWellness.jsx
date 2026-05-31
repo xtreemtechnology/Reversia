@@ -2,34 +2,80 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-export default function EmptyWeeklyWellness() {
+function countByCategory(logs = [], category) {
+  return logs.filter((log) => log?.category === category).length;
+}
+
+export default function EmptyWeeklyWellness({ logs = [] }) {
   const { colors } = useTheme();
   const days = ["M", "T", "W", "T", "F", "S", "S"];
+  const mealCount = countByCategory(logs, "meal");
+  const hydrationCount = countByCategory(logs, "hydration");
+  const sleepCount = countByCategory(logs, "sleep");
+  const hasLogs = logs.length > 0;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}> 
-      <Text style={[styles.title, { color: colors.text }]}>Weekly Wellness</Text>
-      <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Complete 3 more days of logging to see your weekly progress take shape.</Text>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        Weekly Wellness
+      </Text>
+      <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+        {hasLogs
+          ? "Your weekly progress is based on the logs you've added so far."
+          : "Complete 3 more days of logging to see your weekly progress take shape."}
+      </Text>
 
       <View style={styles.weekRow}>
         {days.map((d, i) => (
           <View key={i} style={styles.dayCol}>
-            <View style={[styles.dayTrack, { backgroundColor: colors.background }]}>
-              <View style={[styles.dayFill, { backgroundColor: colors.muted, height: "15%" }]} />
+            <View
+              style={[styles.dayTrack, { backgroundColor: colors.background }]}
+            >
+              <View
+                style={[
+                  styles.dayFill,
+                  {
+                    backgroundColor: colors.muted,
+                    height: `${Math.min(
+                      15 + mealCount * 4 + hydrationCount * 3 + sleepCount * 2,
+                      100
+                    )}%`,
+                  },
+                ]}
+              />
             </View>
-            <Text style={[styles.dayLabel, { color: colors.mutedForeground }]}>{d}</Text>
+            <Text style={[styles.dayLabel, { color: colors.mutedForeground }]}>
+              {d}
+            </Text>
           </View>
         ))}
       </View>
 
       <View style={styles.progressItems}>
-        {["Mindful Dinners", "Hydration"].map((label) => (
-          <View key={label} style={styles.progressRow}>
+        {[
+          { label: "Mindful Dinners", value: `${mealCount}/7 days` },
+          { label: "Hydration", value: `${hydrationCount}/7 days` },
+        ].map((item) => (
+          <View key={item.label} style={styles.progressRow}>
             <View style={styles.progressMeta}>
-              <Text style={[styles.progressLabel, { color: colors.text }]}>{label}</Text>
-              <Text style={[styles.progressValue, { color: colors.mutedForeground }]}>0/7 days</Text>
+              <Text style={[styles.progressLabel, { color: colors.text }]}>
+                {item.label}
+              </Text>
+              <Text
+                style={[
+                  styles.progressValue,
+                  { color: colors.mutedForeground },
+                ]}
+              >
+                {item.value}
+              </Text>
             </View>
-            <View style={[styles.progressTrack, { backgroundColor: colors.background }]} />
+            <View
+              style={[
+                styles.progressTrack,
+                { backgroundColor: colors.background },
+              ]}
+            />
           </View>
         ))}
       </View>

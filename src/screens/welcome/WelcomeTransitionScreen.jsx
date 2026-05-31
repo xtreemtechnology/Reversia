@@ -14,7 +14,10 @@ import { useTheme } from "../../theme/ThemeProvider";
 
 const { width: W, height: H } = Dimensions.get("window");
 
-export default function WelcomeTransitionScreen({ userName = "there", onFinish }) {
+export default function WelcomeTransitionScreen({
+  userName = "there",
+  onFinish,
+}) {
   const { colors } = useTheme();
   const containerOpacity = useSharedValue(0);
   const iconScale = useSharedValue(0.7);
@@ -31,24 +34,55 @@ export default function WelcomeTransitionScreen({ userName = "there", onFinish }
     const ease = Easing.out(Easing.cubic);
 
     containerOpacity.value = withTiming(1, { duration: 280, easing: ease });
-    iconScale.value = withDelay(120, withSpring(1, { damping: 13, stiffness: 120 }));
-    iconOpacity.value = withDelay(120, withTiming(1, { duration: 280, easing: ease }));
-    textOpacity.value = withDelay(360, withTiming(1, { duration: 420, easing: ease }));
-    textY.value = withDelay(360, withTiming(0, { duration: 420, easing: ease }));
-    subOpacity.value = withDelay(620, withTiming(1, { duration: 420, easing: ease }));
+    iconScale.value = withDelay(
+      120,
+      withSpring(1, { damping: 13, stiffness: 120 })
+    );
+    iconOpacity.value = withDelay(
+      120,
+      withTiming(1, { duration: 280, easing: ease })
+    );
+    textOpacity.value = withDelay(
+      360,
+      withTiming(1, { duration: 420, easing: ease })
+    );
+    textY.value = withDelay(
+      360,
+      withTiming(0, { duration: 420, easing: ease })
+    );
+    subOpacity.value = withDelay(
+      620,
+      withTiming(1, { duration: 420, easing: ease })
+    );
     subY.value = withDelay(620, withTiming(0, { duration: 420, easing: ease }));
 
     exitOpacity.value = withDelay(
       1600,
-      withTiming(0, { duration: 520, easing: Easing.in(Easing.cubic) }, (done) => {
-        if (done) {
-          onFinish?.();
+      withTiming(
+        0,
+        { duration: 520, easing: Easing.in(Easing.cubic) },
+        (done) => {
+          if (done) {
+            onFinish?.();
+          }
         }
-      })
+      )
     );
-  }, [onFinish]);
+  }, [
+    onFinish,
+    containerOpacity,
+    iconScale,
+    iconOpacity,
+    textOpacity,
+    textY,
+    subOpacity,
+    subY,
+    exitOpacity,
+  ]);
 
-  const containerStyle = useAnimatedStyle(() => ({ opacity: containerOpacity.value }));
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: containerOpacity.value,
+  }));
   const iconStyle = useAnimatedStyle(() => ({
     opacity: iconOpacity.value,
     transform: [{ scale: iconScale.value }],
@@ -64,20 +98,39 @@ export default function WelcomeTransitionScreen({ userName = "there", onFinish }
   const exitStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.value }));
 
   return (
-    <Animated.View style={[styles.root, { backgroundColor: colors.background }, exitStyle]}>
-      <LinearGradient colors={[colors.primary + "18", "transparent"]} style={styles.glow} />
+    <Animated.View
+      style={[styles.root, { backgroundColor: colors.background }, exitStyle]}
+    >
+      <LinearGradient
+        colors={[colors.primary + "18", "transparent"]}
+        style={styles.glow}
+      />
 
       <Animated.View style={[styles.inner, containerStyle]}>
-        <Animated.View style={[styles.iconWrap, { backgroundColor: colors.primary + "18" }, iconStyle]}>
+        <Animated.View
+          style={[
+            styles.iconWrap,
+            { backgroundColor: colors.primary + "18" },
+            iconStyle,
+          ]}
+        >
           <Ionicons name="sparkles" size={40} color={colors.primary} />
         </Animated.View>
 
         <Animated.View style={textStyle}>
-          <Text style={[styles.welcomeLabel, { color: colors.mutedForeground }]}>Welcome to Reversia,</Text>
-          <Text style={[styles.userName, { color: colors.foreground }]}>{firstName}.</Text>
+          <Text
+            style={[styles.welcomeLabel, { color: colors.mutedForeground }]}
+          >
+            Welcome to Reversia,
+          </Text>
+          <Text style={[styles.userName, { color: colors.foreground }]}>
+            {firstName}.
+          </Text>
         </Animated.View>
 
-        <Animated.Text style={[styles.subtitle, { color: colors.mutedForeground }, subStyle]}>
+        <Animated.Text
+          style={[styles.subtitle, { color: colors.mutedForeground }, subStyle]}
+        >
           Your personalized insights are ready when you are.
         </Animated.Text>
       </Animated.View>

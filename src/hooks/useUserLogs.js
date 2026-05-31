@@ -57,7 +57,7 @@ export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
 
       const q = query(
         collection(db, "users", user.uid, "logs"),
-        orderBy("timestamp", "desc"),
+        orderBy("createdAt", "desc"),
         limit(maxLimit)
       );
 

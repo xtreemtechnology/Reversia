@@ -1,14 +1,31 @@
 import React, { useRef, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import { auth, db } from "../../../config/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { DeviceEventEmitter } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
-import { validateEmail, validatePassword, firebaseErrorMessage } from "../authHelpers";
+import {
+  validateEmail,
+  validatePassword,
+  firebaseErrorMessage,
+} from "../authHelpers";
 
 export default function SignUpScreen({ navigation }) {
   const { colors } = useTheme();
@@ -25,7 +42,14 @@ export default function SignUpScreen({ navigation }) {
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
 
-  const strength = password.length === 0 ? 0 : password.length < 8 ? 1 : password.length < 12 && !/[^a-zA-Z0-9]/.test(password) ? 2 : 3;
+  const strength =
+    password.length === 0
+      ? 0
+      : password.length < 8
+      ? 1
+      : password.length < 12 && !/[^a-zA-Z0-9]/.test(password)
+      ? 2
+      : 3;
   const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
   const strengthColor = ["", "#E28A82", "#F2CC8F", colors.secondary][strength];
 
@@ -33,8 +57,10 @@ export default function SignUpScreen({ navigation }) {
     const nextErrors = {};
     if (!firstName.trim()) nextErrors.firstName = "First name is required.";
     if (!lastName.trim()) nextErrors.lastName = "Last name is required.";
-    if (!validateEmail(email)) nextErrors.email = "Enter a valid email address.";
-    if (!validatePassword(password)) nextErrors.password = "Password must be at least 8 characters.";
+    if (!validateEmail(email))
+      nextErrors.email = "Enter a valid email address.";
+    if (!validatePassword(password))
+      nextErrors.password = "Password must be at least 8 characters.";
     if (password !== confirm) nextErrors.confirm = "Passwords do not match.";
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -42,8 +68,14 @@ export default function SignUpScreen({ navigation }) {
     setError("");
     setLoading(true);
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` });
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+      await updateProfile(cred.user, {
+        displayName: `${firstName.trim()} ${lastName.trim()}`,
+      });
       await sendEmailVerification(cred.user);
       // Ensure a minimal user profile document exists so the app can read it immediately
       try {
@@ -60,14 +92,17 @@ export default function SignUpScreen({ navigation }) {
         );
       } catch (profileErr) {
         // non-fatal; log for diagnostics
-        // eslint-disable-next-line no-console
+
         console.warn("create user profile failed", profileErr);
       }
       // Request post-onboarding flow (welcome/questionnaire) for new users
       try {
         DeviceEventEmitter.emit("postOnboardingRequested");
       } catch (_) {}
-      navigation.navigate("EmailVerification", { email: email.trim(), displayName: firstName.trim() });
+      navigation.navigate("EmailVerification", {
+        email: email.trim(),
+        displayName: firstName.trim(),
+      });
     } catch (err) {
       setError(firebaseErrorMessage(err?.code));
     } finally {
@@ -79,39 +114,56 @@ export default function SignUpScreen({ navigation }) {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.card }]} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={[styles.backBtn, { backgroundColor: colors.card }]}
+        activeOpacity={0.7}
+      >
         <Ionicons name="chevron-back" size={22} color={colors.text} />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Create your{"\n"}account.</Text>
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Your reversal journey starts here.</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Create your{"\n"}account.
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              Your reversal journey starts here.
+            </Text>
           </View>
 
           <View style={styles.form}>
             <View style={styles.nameRow}>
-              <View style={{ flex: 1 }}>
-                <AuthInput
-                  label="First name"
-                  placeholder="Chioma"
-                  value={firstName}
-                  onChangeText={(t) => { setFirstName(t); setFieldErrors((e) => ({ ...e, firstName: "" })); }}
-                  autoCapitalize="words"
-                  autoComplete="given-name"
-                  iconName="person-outline"
-                  error={fieldErrors.firstName}
-                  returnKeyType="next"
-                  onSubmitEditing={() => lastRef.current?.focus()}
+              <View style={styles.flex1}>
+                label="First name" placeholder="Chioma" value={firstName}
+                onChangeText=
+                {(t) => {
+                  setFirstName(t);
+                  setFieldErrors((e) => ({ ...e, firstName: "" }));
+                }}
+                autoCapitalize="words" autoComplete="given-name"
+                iconName="person-outline" error={fieldErrors.firstName}
+                returnKeyType="next" onSubmitEditing=
+                {() => lastRef.current?.focus()}
                 />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={styles.flex1}>
                 <AuthInput
                   label="Last name"
                   placeholder="Eze"
                   value={lastName}
-                  onChangeText={(t) => { setLastName(t); setFieldErrors((e) => ({ ...e, lastName: "" })); }}
+                  onChangeText={(t) => {
+                    setLastName(t);
+                    setFieldErrors((e) => ({ ...e, lastName: "" }));
+                  }}
                   autoCapitalize="words"
                   autoComplete="family-name"
                   iconName="person-outline"
@@ -127,7 +179,10 @@ export default function SignUpScreen({ navigation }) {
               label="Email address"
               placeholder="you@example.com"
               value={email}
-              onChangeText={(t) => { setEmail(t); setFieldErrors((e) => ({ ...e, email: "" })); }}
+              onChangeText={(t) => {
+                setEmail(t);
+                setFieldErrors((e) => ({ ...e, email: "" }));
+              }}
               keyboardType="email-address"
               autoComplete="email"
               iconName="mail-outline"
@@ -142,7 +197,10 @@ export default function SignUpScreen({ navigation }) {
                 label="Password"
                 placeholder="At least 8 characters"
                 value={password}
-                onChangeText={(t) => { setPassword(t); setFieldErrors((e) => ({ ...e, password: "" })); }}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  setFieldErrors((e) => ({ ...e, password: "" }));
+                }}
                 secureTextEntry
                 autoComplete="new-password"
                 iconName="lock-closed-outline"
@@ -155,10 +213,23 @@ export default function SignUpScreen({ navigation }) {
                 <View style={styles.strengthRow}>
                   <View style={styles.strengthBars}>
                     {[1, 2, 3].map((level) => (
-                      <View key={level} style={[styles.strengthBar, { backgroundColor: strength >= level ? strengthColor : colors.border }]} />
+                      <View
+                        key={level}
+                        style={[
+                          styles.strengthBar,
+                          {
+                            backgroundColor:
+                              strength >= level ? strengthColor : colors.border,
+                          },
+                        ]}
+                      />
                     ))}
                   </View>
-                  <Text style={[styles.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
+                  <Text
+                    style={[styles.strengthLabel, { color: strengthColor }]}
+                  >
+                    {strengthLabel}
+                  </Text>
                 </View>
               ) : null}
             </View>
@@ -167,7 +238,10 @@ export default function SignUpScreen({ navigation }) {
               label="Confirm password"
               placeholder="Re-enter password"
               value={confirm}
-              onChangeText={(t) => { setConfirm(t); setFieldErrors((e) => ({ ...e, confirm: "" })); }}
+              onChangeText={(t) => {
+                setConfirm(t);
+                setFieldErrors((e) => ({ ...e, confirm: "" }));
+              }}
               secureTextEntry
               autoComplete="new-password"
               iconName="lock-closed-outline"
@@ -186,9 +260,36 @@ export default function SignUpScreen({ navigation }) {
           ) : null}
 
           <View style={styles.ctaGroup}>
-            <AuthButton label="Create Account" onPress={handleSignUp} loading={loading} disabled={!firstName || !lastName || !email || !password || !confirm} variant="primary" />
-            <TouchableOpacity onPress={() => navigation.replace("SignIn")} style={styles.signinLink} activeOpacity={0.6}>
-              <Text style={[styles.signinLinkText, { color: colors.mutedForeground }]}>Already have an account? <Text style={{ color: colors.primary, fontFamily: "DMSans_500Medium" }}>Sign in</Text></Text>
+            <AuthButton
+              label="Create Account"
+              onPress={handleSignUp}
+              loading={loading}
+              disabled={
+                !firstName || !lastName || !email || !password || !confirm
+              }
+              variant="primary"
+            />
+            <TouchableOpacity
+              onPress={() => navigation.replace("SignIn")}
+              style={styles.signinLink}
+              activeOpacity={0.6}
+            >
+              <Text
+                style={[
+                  styles.signinLinkText,
+                  { color: colors.mutedForeground },
+                ]}
+              >
+                Already have an account?{" "}
+                <Text
+                  style={{
+                    color: colors.primary,
+                    fontFamily: "DMSans_500Medium",
+                  }}
+                >
+                  Sign in
+                </Text>
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -199,6 +300,7 @@ export default function SignUpScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  keyboardAvoid: { flex: 1 },
   backBtn: {
     position: "absolute",
     top: Platform.OS === "ios" ? 56 : 36,
@@ -237,6 +339,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  flex1: { flex: 1 },
   strengthWrap: {
     gap: 8,
   },

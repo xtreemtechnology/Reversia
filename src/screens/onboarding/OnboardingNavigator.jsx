@@ -19,6 +19,7 @@ export default function OnboardingNavigator({ onComplete }) {
   };
 
   if (phase === "splash") return <SplashScreen onFinish={handleSplashFinish} />;
-  if (phase === "onboarding") return <OnboardingScreen onFinish={handleOnboardingFinish} />;
+  if (phase === "onboarding")
+    return <OnboardingScreen onFinish={handleOnboardingFinish} />;
   return null;
 }

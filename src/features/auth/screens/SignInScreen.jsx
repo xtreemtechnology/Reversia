@@ -1,5 +1,14 @@
 import React, { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../config/firebase";
@@ -19,8 +28,10 @@ export default function SignInScreen({ navigation }) {
 
   const handleSignIn = async () => {
     const nextErrors = {};
-    if (!validateEmail(email)) nextErrors.email = "Enter a valid email address.";
-    if (!password || password.length < 8) nextErrors.password = "Password must be at least 8 characters.";
+    if (!validateEmail(email))
+      nextErrors.email = "Enter a valid email address.";
+    if (!password || password.length < 8)
+      nextErrors.password = "Password must be at least 8 characters.";
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
@@ -39,15 +50,30 @@ export default function SignInScreen({ navigation }) {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.card }]} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={[styles.backBtn, { backgroundColor: colors.card }]}
+        activeOpacity={0.7}
+      >
         <Ionicons name="chevron-back" size={22} color={colors.text} />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Welcome{"\n"}back.</Text>
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue your reversal journey.</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Welcome{"\n"}back.
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              Sign in to continue your reversal journey.
+            </Text>
           </View>
 
           <View style={styles.form}>
@@ -55,7 +81,10 @@ export default function SignInScreen({ navigation }) {
               label="Email address"
               placeholder="you@example.com"
               value={email}
-              onChangeText={(t) => { setEmail(t); setFieldErrors((e) => ({ ...e, email: "" })); }}
+              onChangeText={(t) => {
+                setEmail(t);
+                setFieldErrors((e) => ({ ...e, email: "" }));
+              }}
               keyboardType="email-address"
               autoComplete="email"
               iconName="mail-outline"
@@ -68,7 +97,10 @@ export default function SignInScreen({ navigation }) {
               label="Password"
               placeholder="Your password"
               value={password}
-              onChangeText={(t) => { setPassword(t); setFieldErrors((e) => ({ ...e, password: "" })); }}
+              onChangeText={(t) => {
+                setPassword(t);
+                setFieldErrors((e) => ({ ...e, password: "" }));
+              }}
               secureTextEntry
               autoComplete="password"
               iconName="lock-closed-outline"
@@ -78,28 +110,62 @@ export default function SignInScreen({ navigation }) {
               onSubmitEditing={handleSignIn}
             />
 
-            <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword", { prefillEmail: email })} style={styles.forgotBtn} activeOpacity={0.6}>
-              <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot your password?</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ForgotPassword", { prefillEmail: email })
+              }
+              style={styles.forgotBtn}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.forgotText, { color: colors.primary }]}>
+                Forgot your password?
+              </Text>
             </TouchableOpacity>
           </View>
 
           {error ? (
-            <View style={[styles.errorBanner, { backgroundColor: "rgba(226,138,130,0.18)", borderColor: "rgba(226,138,130,0.4)" }]}>
+            <View
+              style={[
+                styles.errorBanner,
+                {
+                  backgroundColor: "rgba(226,138,130,0.18)",
+                  borderColor: "rgba(226,138,130,0.4)",
+                },
+              ]}
+            >
               <Ionicons name="warning-outline" size={16} color="#E28A82" />
               <Text style={styles.errorBannerText}>{error}</Text>
             </View>
           ) : null}
 
           <View style={styles.ctaGroup}>
-            <AuthButton label="Sign in" onPress={handleSignIn} loading={loading} disabled={!email || !password} variant="primary" />
+            <AuthButton
+              label="Sign in"
+              onPress={handleSignIn}
+              loading={loading}
+              disabled={!email || !password}
+              variant="primary"
+            />
 
             <View style={[styles.dividerRow, { marginVertical: 2 }]}>
-              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-              <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
-              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              <View
+                style={[styles.dividerLine, { backgroundColor: colors.border }]}
+              />
+              <Text
+                style={[styles.dividerText, { color: colors.mutedForeground }]}
+              >
+                or
+              </Text>
+              <View
+                style={[styles.dividerLine, { backgroundColor: colors.border }]}
+              />
             </View>
 
-            <AuthButton label="Create an account" onPress={() => navigation.replace("SignUp")} variant="outline" />
+            <AuthButton
+              label="Create an account"
+              onPress={() => navigation.replace("SignUp")}
+              variant="outline"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -109,6 +175,7 @@ export default function SignInScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  keyboardAvoid: { flex: 1 },
   backBtn: {
     position: "absolute",
     top: Platform.OS === "ios" ? 56 : 36,

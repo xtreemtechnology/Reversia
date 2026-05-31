@@ -7,28 +7,25 @@ import { useTheme } from "../../../theme/ThemeProvider";
 
 const STATS = [
   {
-    // solar:fire-bold → flame
     iconName: "flame",
     color: "#F59E0B",
-    labelKey: "streak",
-    label: "Day Streak",
-    suffix: "",
+    labelKey: "primaryHba1c",
+    label: "HBA1c",
+    suffix: "%",
   },
   {
-    // solar:check-circle-bold → checkmark-circle
     iconName: "checkmark-circle",
     color: "#10B981",
-    labelKey: "goalsMetTotal",
-    label: "Goals Met",
-    suffix: "",
+    labelKey: "fastingBloodSugar",
+    label: "Fasting",
+    suffix: " mg/dL",
   },
   {
-    // solar:chart-decrease-bold → trending-down
-    iconName: "trending-down",
+    iconName: "trending-up",
     color: "#798C73", // secondary from theme
-    labelKey: "a1cDrop",
-    label: "A1C Drop",
-    suffix: "%",
+    labelKey: "sleepQuality",
+    label: "Sleep Quality",
+    suffix: "",
   },
 ];
 
@@ -39,7 +36,8 @@ export default function ProfileStatsRow({ profile }) {
     <View style={styles.row}>
       {STATS.map((stat) => {
         const raw = profile?.[stat.labelKey];
-        const display = raw != null ? `${raw}${stat.suffix}` : "—";
+        const display =
+          raw != null && raw !== "" ? `${raw}${stat.suffix}` : "—";
         return (
           <View
             key={stat.label}
@@ -51,10 +49,17 @@ export default function ProfileStatsRow({ profile }) {
               },
             ]}
           >
-            <View style={[styles.iconCircle, { backgroundColor: stat.color + "18" }]}> 
+            <View
+              style={[
+                styles.iconCircle,
+                { backgroundColor: stat.color + "18" },
+              ]}
+            >
               <Ionicons name={stat.iconName} size={20} color={stat.color} />
             </View>
-            <Text style={[styles.value, { color: colors.foreground }]}>{display}</Text>
+            <Text style={[styles.value, { color: colors.foreground }]}>
+              {display}
+            </Text>
             <Text style={[styles.label, { color: colors.mutedForeground }]}>
               {stat.label}
             </Text>

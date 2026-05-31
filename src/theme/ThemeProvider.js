@@ -11,40 +11,45 @@ const ThemeContext = createContext({
 });
 
 const light = {
-  background: "#FDFBF9",
-  card: "#FFFFFF",
-  text: "#2C2825",
-  foreground: "#2C2825",
-  muted: "#78716C",
-  mutedForeground: "#78716C",
-  mutedBackground: "#F5F2EF",
-  border: "#E8E2DC",
-  primary: "#E07A5F",
-  secondary: "#798C73",
-  primaryForeground: "#FFFFFF",
-  borderSurface: "#E8E2DC",
-  cardBackground: "#FFFFFF",
-  mutedTextColor: "#78716C",
-  destructive: "#E28A82",
-  cardForeground: "#2C2825",
+  background: "#211613",
+  card: "#2D201C",
+  text: "#F4EAE4",
+  foreground: "#F4EAE4",
+  muted: "#3A2A25",
+  mutedForeground: "#9A8478",
+  mutedBackground: "#3A2A25",
+  border: "#402E29",
+  primary: "#D88939",
+  secondary: "#3A2A25",
+  accent: "#6A816A",
+  primaryForeground: "#211613",
+  borderSurface: "#402E29",
+  cardBackground: "#2D201C",
+  mutedTextColor: "#9A8478",
+  destructive: "#CE6C60",
+  cardForeground: "#F4EAE4",
+  secondaryForeground: "#F4EAE4",
 };
 
 const dark = {
-  background: "#231F1C",
-  card: "#2D2825",
-  text: "#F5F5F4",
-  foreground: "#F5F5F4",
-  muted: "#A8A29E",
-  mutedForeground: "#A8A29E",
-  border: "#3E3835",
-  primary: "#E07A5F",
-  secondary: "#798C73",
-  primaryForeground: "#FFFFFF",
-  borderSurface: "#3E3835",
-  cardBackground: "#2D2825",
-  mutedTextColor: "#A8A29E",
-  destructive: "#E28A82",
-  cardForeground: "#F5F5F4",
+  background: "#211613",
+  card: "#2D201C",
+  text: "#F4EAE4",
+  foreground: "#F4EAE4",
+  muted: "#3A2A25",
+  mutedForeground: "#9A8478",
+  mutedBackground: "#3A2A25",
+  border: "#402E29",
+  primary: "#D88939",
+  secondary: "#3A2A25",
+  accent: "#6A816A",
+  primaryForeground: "#211613",
+  borderSurface: "#402E29",
+  cardBackground: "#2D201C",
+  mutedTextColor: "#9A8478",
+  destructive: "#CE6C60",
+  cardForeground: "#F4EAE4",
+  secondaryForeground: "#F4EAE4",
 };
 
 export function ThemeProvider({ children }) {
@@ -81,18 +86,43 @@ export function ThemeProvider({ children }) {
     }
   };
 
-  const toggleTheme = () => setTheme(effectiveTheme === "dark" ? "light" : "dark");
+  const toggleTheme = () =>
+    setTheme(effectiveTheme === "dark" ? "light" : "dark");
 
   const typography = {
-    heading: Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" }),
-    headingMedium: Platform.select({ ios: "System", android: "sans-serif-medium", web: "system-ui" }),
-    body: Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" }),
-    medium: Platform.select({ ios: "System", android: "sans-serif-medium", web: "system-ui" }),
+    heading: Platform.select({
+      ios: "Georgia",
+      android: "serif",
+      web: "Georgia",
+    }),
+    headingMedium: Platform.select({
+      ios: "Georgia",
+      android: "serif",
+      web: "Georgia",
+    }),
+    body: Platform.select({
+      ios: "DM Sans",
+      android: "sans-serif",
+      web: "system-ui",
+    }),
+    medium: Platform.select({
+      ios: "DM Sans",
+      android: "sans-serif",
+      web: "system-ui",
+    }),
   };
 
-  const value = { theme: effectiveTheme, colors, typography, setTheme, toggleTheme };
+  const value = {
+    theme: effectiveTheme,
+    colors,
+    typography,
+    setTheme,
+    toggleTheme,
+  };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export const useTheme = () => useContext(ThemeContext);

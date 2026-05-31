@@ -1,6 +1,13 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, Platform, StatusBar } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { useTheme } from "../../../theme/ThemeProvider";
 import ReversiaMark from "../../../components/ReversiaMark";
 import AuthButton from "../components/AuthButton";
@@ -16,25 +23,70 @@ export default function AuthLandingScreen({ navigation }) {
 
   useEffect(() => {
     const ease = Easing.out(Easing.cubic);
-    logoOpacity.value = withDelay(100, withTiming(1, { duration: 500, easing: ease }));
-    logoScale.value = withDelay(100, withSpring(1, { damping: 14, stiffness: 110 }));
-    textOpacity.value = withDelay(320, withTiming(1, { duration: 460, easing: ease }));
-    textY.value = withDelay(320, withTiming(0, { duration: 460, easing: ease }));
-    cardOpacity.value = withDelay(520, withTiming(1, { duration: 460, easing: ease }));
-    cardY.value = withDelay(520, withTiming(0, { duration: 460, easing: ease }));
-  }, []);
+    logoOpacity.value = withDelay(
+      100,
+      withTiming(1, { duration: 500, easing: ease })
+    );
+    logoScale.value = withDelay(
+      100,
+      withSpring(1, { damping: 14, stiffness: 110 })
+    );
+    textOpacity.value = withDelay(
+      320,
+      withTiming(1, { duration: 460, easing: ease })
+    );
+    textY.value = withDelay(
+      320,
+      withTiming(0, { duration: 460, easing: ease })
+    );
+    cardOpacity.value = withDelay(
+      520,
+      withTiming(1, { duration: 460, easing: ease })
+    );
+    cardY.value = withDelay(
+      520,
+      withTiming(0, { duration: 460, easing: ease })
+    );
+  }, [logoOpacity, logoScale, textOpacity, textY, cardOpacity, cardY]);
 
-  const logoStyle = useAnimatedStyle(() => ({ opacity: logoOpacity.value, transform: [{ scale: logoScale.value }] }));
-  const textStyle = useAnimatedStyle(() => ({ opacity: textOpacity.value, transform: [{ translateY: textY.value }] }));
-  const cardStyle = useAnimatedStyle(() => ({ opacity: cardOpacity.value, transform: [{ translateY: cardY.value }] }));
+  const logoStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ translateY: textY.value }],
+  }));
+  const cardStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [{ translateY: cardY.value }],
+  }));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      <View style={[styles.ring, { width: 360, height: 360, borderRadius: 180, borderColor: colors.primary + "18" }]} />
-      <View style={[styles.ring, { width: 260, height: 260, borderRadius: 130, borderColor: colors.primary + "12" }]} />
-      <View style={[styles.ring, { width: 170, height: 170, borderRadius: 85, borderColor: colors.primary + "20" }]} />
+      <View
+        style={[
+          styles.ring,
+          styles.ringLarge,
+          { borderColor: colors.primary + "18" },
+        ]}
+      />
+      <View
+        style={[
+          styles.ring,
+          styles.ringMid,
+          { borderColor: colors.primary + "12" },
+        ]}
+      />
+      <View
+        style={[
+          styles.ring,
+          styles.ringSmall,
+          { borderColor: colors.primary + "20" },
+        ]}
+      />
 
       <View style={styles.topSection}>
         <Animated.View style={[styles.logoWrap, logoStyle]}>
@@ -48,17 +100,38 @@ export default function AuthLandingScreen({ navigation }) {
             <Text style={{ color: colors.primary }}>Re</Text>
             <Text style={{ color: colors.text }}>versia</Text>
           </Text>
-          <Text style={[styles.tagline, { color: colors.mutedForeground }]}>Reverse what can be reversed.</Text>
+          <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
+            Reverse what can be reversed.
+          </Text>
         </Animated.View>
       </View>
 
-      <Animated.View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, cardStyle]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>Begin your journey</Text>
-        <Text style={[styles.cardSubtitle, { color: colors.mutedForeground }]}>Track your habits, understand your body, and start reversing what can be reversed.</Text>
+      <Animated.View
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, borderColor: colors.border },
+          cardStyle,
+        ]}
+      >
+        <Text style={[styles.cardTitle, { color: colors.text }]}>
+          Begin your journey
+        </Text>
+        <Text style={[styles.cardSubtitle, { color: colors.mutedForeground }]}>
+          Track your habits, understand your body, and start reversing what can
+          be reversed.
+        </Text>
 
         <View style={styles.btnGroup}>
-          <AuthButton label="Create an account" onPress={() => navigation.navigate("SignUp")} variant="primary" />
-          <AuthButton label="Sign in" onPress={() => navigation.navigate("SignIn")} variant="outline" />
+          <AuthButton
+            label="Create an account"
+            onPress={() => navigation.navigate("SignUp")}
+            variant="primary"
+          />
+          <AuthButton
+            label="Sign in"
+            onPress={() => navigation.navigate("SignIn")}
+            variant="outline"
+          />
         </View>
       </Animated.View>
     </View>
@@ -78,6 +151,21 @@ const styles = StyleSheet.create({
     top: 120,
     alignSelf: "center",
     borderWidth: 1,
+  },
+  ringLarge: {
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+  },
+  ringMid: {
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+  },
+  ringSmall: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
   },
   topSection: {
     alignItems: "center",

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 
@@ -24,12 +30,22 @@ export default function AuthInput({
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const isPassword = !!secureTextEntry;
-  const borderColor = error ? ERROR_COLOR : focused ? colors.primary : colors.border;
+  const borderColor = error
+    ? ERROR_COLOR
+    : focused
+    ? colors.primary
+    : colors.border;
 
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={[styles.label, { color: colors.mutedForeground }]}>{label}</Text> : null}
-      <View style={[styles.inputRow, { borderColor, backgroundColor: colors.card }]}>
+      {label ? (
+        <Text style={[styles.label, { color: colors.mutedForeground }]}>
+          {label}
+        </Text>
+      ) : null}
+      <View
+        style={[styles.inputRow, { borderColor, backgroundColor: colors.card }]}
+      >
         {iconName ? (
           <Ionicons
             name={iconName}
@@ -56,8 +72,16 @@ export default function AuthInput({
           returnKeyType={returnKeyType || "done"}
         />
         {isPassword ? (
-          <TouchableOpacity onPress={() => setRevealed((r) => !r)} style={styles.eyeBtn} activeOpacity={0.65}>
-            <Ionicons name={revealed ? "eye-off-outline" : "eye-outline"} size={18} color={colors.mutedForeground} />
+          <TouchableOpacity
+            onPress={() => setRevealed((r) => !r)}
+            style={styles.eyeBtn}
+            activeOpacity={0.65}
+          >
+            <Ionicons
+              name={revealed ? "eye-off-outline" : "eye-outline"}
+              size={18}
+              color={colors.mutedForeground}
+            />
           </TouchableOpacity>
         ) : null}
       </View>

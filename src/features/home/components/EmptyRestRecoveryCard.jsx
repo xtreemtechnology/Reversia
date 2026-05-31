@@ -3,21 +3,65 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 
-export default function EmptyRestRecoveryCard() {
+function formatSleep(logs, userData) {
+  const latestSleep = (logs || []).find((log) => log?.category === "sleep");
+  if (latestSleep?.hours) {
+    const hours = Number(latestSleep.hours);
+    const minutes = Number(latestSleep.minutes || 0);
+    const quality = latestSleep.quality ? ` and ${latestSleep.quality}` : "";
+    return `${Number.isFinite(hours) ? hours : 0}${
+      minutes > 0 ? `h ${minutes}m` : "h"
+    }${quality}`;
+  }
+
+  if (userData?.typicalSleepHours) {
+    return `${userData.typicalSleepHours} hours`;
+  }
+
+  return null;
+}
+
+export default function EmptyRestRecoveryCard({ logs = [], userData }) {
   const { colors } = useTheme();
+  const sleepLabel = formatSleep(logs, userData);
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
-      <View style={[styles.glowBlob, { backgroundColor: colors.secondary + "24" }]} />
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
+      <View
+        style={[styles.glowBlob, { backgroundColor: colors.secondary + "24" }]}
+      />
       <View style={styles.row}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.secondary + "22" }]}>
+        <View
+          style={[
+            styles.iconWrap,
+            { backgroundColor: colors.secondary + "22" },
+          ]}
+        >
           <Ionicons name="moon" size={22} color={colors.secondary} />
         </View>
         <View style={styles.textGroup}>
-          <Text style={[styles.title, { color: colors.text }]}>Rest & Recovery</Text>
-          <Text style={[styles.body, { color: colors.mutedForeground }]}>Log your sleep tonight and Reversia will show you how rest shapes your energy and glucose stability.</Text>
-          <View style={[styles.placeholder, { borderColor: colors.secondary + "44" }]}>
-            <Text style={[styles.placeholderText, { color: colors.secondary }]}>No sleep logged yet</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Rest & Recovery
+          </Text>
+          <Text style={[styles.body, { color: colors.mutedForeground }]}>
+            {sleepLabel
+              ? `Your sleep record shows ${sleepLabel}. Reversia will use that to shape tomorrow's recovery guidance.`
+              : "Log your sleep tonight and Reversia will show you how rest shapes your energy and glucose stability."}
+          </Text>
+          <View
+            style={[
+              styles.placeholder,
+              { borderColor: colors.secondary + "44" },
+            ]}
+          >
+            <Text style={[styles.placeholderText, { color: colors.secondary }]}>
+              {sleepLabel ? sleepLabel : "No sleep logged yet"}
+            </Text>
           </View>
         </View>
       </View>

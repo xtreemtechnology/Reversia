@@ -1,12 +1,20 @@
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-const isSecureAvailable = typeof SecureStore !== "undefined" && SecureStore.getItemAsync;
+const isSecureAvailable =
+  Platform.OS !== "web" &&
+  typeof SecureStore !== "undefined" &&
+  SecureStore.getItemAsync;
+
+function toSecureKey(key) {
+  return String(key).replace(/[^A-Za-z0-9._-]/g, "_");
+}
 
 export async function getItem(key) {
   try {
     if (isSecureAvailable) {
-      const v = await SecureStore.getItemAsync(key);
+      const v = await SecureStore.getItemAsync(toSecureKey(key));
       if (v !== null && v !== undefined) return v;
     }
   } catch (e) {
@@ -24,8 +32,9 @@ export async function getItem(key) {
 export async function setItem(key, value) {
   try {
     if (isSecureAvailable) {
-      await SecureStore.setItemAsync(key, value, { keychainAccessible: SecureStore.ALWAYS_THIS_DEVICE_ONLY });
-      return;
+      await SecureStore.setItemAsync(toSecureKey(key), value, {
+        keychainAccessible: SecureStore.ALWAYS_THIS_DEVICE_ONLY,
+      });
     }
   } catch (e) {
     console.warn("secureStore set failed", e);
@@ -41,7 +50,7 @@ export async function setItem(key, value) {
 export async function removeItem(key) {
   try {
     if (isSecureAvailable) {
-      await SecureStore.deleteItemAsync(key);
+      await SecureStore.deleteItemAsync(toSecureKey(key));
     }
   } catch (e) {
     console.warn("secureStore delete failed", e);
@@ -59,12 +68,15 @@ export async function migrateKeys(keys = []) {
   if (!isSecureAvailable) return;
   for (const key of keys) {
     try {
-      const existingSecure = await SecureStore.getItemAsync(key);
+      const secureKey = toSecureKey(key);
+      const existingSecure = await SecureStore.getItemAsync(secureKey);
       if (existingSecure != null) continue; // already migrated
 
       const existing = await AsyncStorage.getItem(key);
       if (existing != null) {
-        await SecureStore.setItemAsync(key, existing, { keychainAccessible: SecureStore.ALWAYS_THIS_DEVICE_ONLY });
+        await SecureStore.setItemAsync(secureKey, existing, {
+          keychainAccessible: SecureStore.ALWAYS_THIS_DEVICE_ONLY,
+        });
         // keep the old copy for fallback (optional): remove AsyncStorage entry
         await AsyncStorage.removeItem(key);
       }

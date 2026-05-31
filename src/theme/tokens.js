@@ -1,17 +1,17 @@
 // Shared design tokens for onboarding + other screens
 export const T = {
-  BG: "#F2F0E8",
-  CARD: "#FFFFFF",
-  PRIMARY: "#22422F",
-  PRIMARY_LIGHT: "rgba(34,66,47,0.08)",
-  AMBER: "#ECA143",
-  AMBER_LIGHT: "rgba(236,161,67,0.12)",
-  MUTED: "#7A8F82",
-  TEXT: "#1A2E22",
-  BORDER: "#E8E4D8",
-  SAGE: "#DCE8DF",
-  WHITE: "#FFFFFF",
-  RED: "#EF4444",
+  BG: "#211613",
+  CARD: "#2D201C",
+  PRIMARY: "#D88939",
+  PRIMARY_LIGHT: "rgba(216,137,57,0.12)",
+  AMBER: "#E3B372",
+  AMBER_LIGHT: "rgba(227,179,114,0.12)",
+  MUTED: "#9A8478",
+  TEXT: "#F4EAE4",
+  BORDER: "#402E29",
+  SAGE: "#6A816A",
+  WHITE: "#F4EAE4",
+  RED: "#CE6C60",
 };
 
 export default T;

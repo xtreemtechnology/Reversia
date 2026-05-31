@@ -16,6 +16,7 @@ import { auth } from "./src/config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import WelcomeTransitionScreen from "./src/screens/welcome/WelcomeTransitionScreen";
 import PostOnboardingFlow from "./src/features/onboarding/post-onboarding";
+import { trackEvent } from "./src/utils/analytics";
 const ONBOARDING_KEY = "@reversia_onboarding_complete";
 const POST_ONBOARDING_KEY_PREFIX = "@reversia_post_onboarding_complete_";
 
@@ -26,7 +27,8 @@ export default function App() {
   const [showPostQuestionnaire, setShowPostQuestionnaire] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(null);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(null);
-  const [hasCompletedPostOnboarding, setHasCompletedPostOnboarding] = useState(null);
+  const [hasCompletedPostOnboarding, setHasCompletedPostOnboarding] =
+    useState(null);
 
   useEffect(() => {
     // Listen for post-onboarding requests (triggered after signup)
@@ -137,7 +139,7 @@ export default function App() {
       mounted = false;
       clearTimeout(t);
     };
-  }, [currentUser]);
+  }, [currentUser, onboardingDone]);
 
   return (
     <SafeAreaProvider>
@@ -242,7 +244,12 @@ function AppContent({
               }}
               onSkip={() => setShowPostQuestionnaire(false)}
             />
-          ) : currentUser ? (
+          ) : currentUser ||
+            (typeof __DEV__ !== "undefined" &&
+              __DEV__ &&
+              typeof window !== "undefined" &&
+              window.location &&
+              window.location.search.includes("forceApp=true")) ? (
             <AppNavigator />
           ) : (
             <AuthNavigator />
