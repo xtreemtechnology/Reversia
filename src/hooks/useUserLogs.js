@@ -8,6 +8,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { normalizeMealFromFirestore } from "../utils/mealNormalizer";
 
 const _cache = {
   uid: null,
@@ -67,10 +68,16 @@ export const useUserLogs = (maxLimit = 50, refreshTrigger = 0) => {
       unsubscribeFromLogs = onSnapshot(
         q,
         (snapshot) => {
-          const fetchedLogs = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
+          const fetchedLogs = snapshot.docs.map((doc) => {
+            const data = {
+              id: doc.id,
+              ...doc.data(),
+            };
+            if (data.category === "meal") {
+              return normalizeMealFromFirestore(data);
+            }
+            return data;
+          });
           _cache.set(user.uid, fetchedLogs);
           setLogs(fetchedLogs);
           setError(null);

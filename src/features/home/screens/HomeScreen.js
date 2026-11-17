@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SolarIcon from "../../../components/SolarIcon";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import { useUserProfile } from "../../../hooks/useUserProfile";
+import GlucoseTrendChart from "../components/GlucoseTrendChart";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -187,6 +188,7 @@ function useDerivedState(logs = []) {
     // Story progress steps
     const storySteps = [
       { label: "Body Check", done: bodyCheckToday },
+      { label: "Glucose", done: todayLogs.some((l) => l?.category === "glucose") },
       { label: "Breakfast Logged", done: breakfastLogged },
       { label: "Water Check-In", done: waterCount >= 4 },
       { label: "Lunch", done: lunchLogged },
@@ -327,7 +329,7 @@ function useDerivedState(logs = []) {
     let headerSub = "Your story continues today.";
     if (!bodyCheckToday && !breakfastLogged && waterCount === 0) {
       headerSub = "Here's what your body has been noticing.";
-    } else if (storyCompleted >= 4) {
+    } else if (storyCompleted >= 5) {
       headerSub = "You've captured most of today — well done.";
     } else if (storyCompleted >= 2) {
       headerSub = `${storyCompleted} moments captured. Keep going.`;
@@ -1290,6 +1292,21 @@ const wm = StyleSheet.create({
 });
 
 // ─────────────────────────────────────────────
+// Theme colors passed to chart components
+// ─────────────────────────────────────────────
+const HOME_COLORS = {
+  card: "#2D201C",
+  border: "rgba(255,255,255,0.05)",
+  text: "#F4EAE4",
+  textMuted: "#9A8478",
+  accent: "#D88939",
+  green: "#6A816A",
+  amber: "#D88939",
+  red: "#CE6C60",
+  background: "#211613",
+};
+
+// ─────────────────────────────────────────────
 // Root HomeScreen
 // ─────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
@@ -1338,6 +1355,7 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.profileImageWrapper}
+            onPress={() => navigation.navigate('Profile')}
           >
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.profileImage} />
@@ -1355,7 +1373,14 @@ export default function HomeScreen({ navigation }) {
           storyCompleted={storyCompleted}
         />
 
-        {/* ② Next Best Action */}
+        {/* ② Glucose Trend Chart */}
+        <GlucoseTrendChart
+          logs={logs}
+          colors={HOME_COLORS}
+          onPress={() => navigation.navigate("GlucoseLog")}
+        />
+
+        {/* ③ Next Best Action */}
         <NextBestAction action={nextAction} navigation={navigation} />
 
         {/* ③ Clarity Insight */}

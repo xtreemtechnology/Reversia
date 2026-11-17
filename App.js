@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StatusBar, DeviceEventEmitter } from "react-native";
+import { StatusBar, DeviceEventEmitter, AppState } from "react-native";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ThemeProvider, { useTheme } from "./src/theme/ThemeProvider";
@@ -17,6 +17,11 @@ import { onAuthStateChanged } from "firebase/auth";
 import WelcomeTransitionScreen from "./src/screens/welcome/WelcomeTransitionScreen";
 import PostOnboardingFlow from "./src/features/onboarding/post-onboarding";
 import { trackEvent } from "./src/utils/analytics";
+import {
+  scheduleAllReminders,
+  cancelAllReminders,
+} from "./src/utils/notificationService";
+import { syncOfflineQueue } from "./src/utils/offlineQueue";
 const ONBOARDING_KEY = "@reversia_onboarding_complete";
 const POST_ONBOARDING_KEY_PREFIX = "@reversia_post_onboarding_complete_";
 
@@ -104,6 +109,42 @@ export default function App() {
 
     return () => {
       mounted = false;
+    };
+  }, [currentUser?.uid]);
+
+  useEffect(() => {
+    let mounted = true;
+    if (currentUser?.uid) {
+      AsyncStorage.getItem(`@reversia_notifications_enabled_${currentUser.uid}`)
+        .then((val) => {
+          if (!mounted) return;
+          if (val === null || val === "true") {
+            scheduleAllReminders().catch(() => {});
+          } else {
+            cancelAllReminders().catch(() => {});
+          }
+        })
+        .catch(() => {});
+    } else if (currentUser === null && authChecked) {
+      cancelAllReminders().catch(() => {});
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser?.uid, authChecked]);
+
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    syncOfflineQueue().catch(() => {});
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        syncOfflineQueue().catch(() => {});
+      }
+    });
+
+    return () => {
+      sub?.remove?.();
     };
   }, [currentUser?.uid]);
 

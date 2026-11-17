@@ -19,6 +19,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { useProfile } from "../hooks/useProfile";
 import { showNotification } from "../../../components/Notification";
 import { confirm } from "../../../utils/confirmService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import ProfileHeader from "../components/ProfileHeader";
 import ProfileHeroCard from "../components/ProfileHeroCard";
@@ -61,6 +62,27 @@ export default function ProfileScreen({ navigation }) {
   const [authChecked, setAuthChecked] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [sendingVerification, setSendingVerification] = useState(false);
+
+  // Load notifications preference from AsyncStorage
+  useEffect(() => {
+    if (!userId) return;
+    AsyncStorage.getItem(`@reversia_notifications_enabled_${userId}`)
+      .then((val) => {
+        if (val !== null) setNotificationsEnabled(val === "true");
+      })
+      .catch(() => {});
+  }, [userId]);
+
+  const handleToggleNotifications = useCallback(async (val) => {
+    setNotificationsEnabled(val);
+    if (!userId) return;
+    try {
+      await AsyncStorage.setItem(
+        `@reversia_notifications_enabled_${userId}`,
+        String(val)
+      );
+    } catch (_) {}
+  }, [userId]);
 
   const [editVisible, setEditVisible] = useState(false);
   const [editPhotoURL, setEditPhotoURL] = useState("");
@@ -604,7 +626,7 @@ export default function ProfileScreen({ navigation }) {
 
         <ProfilePreferencesCard
           notificationsEnabled={notificationsEnabled}
-          setNotificationsEnabled={setNotificationsEnabled}
+          setNotificationsEnabled={handleToggleNotifications}
           isDarkMode={currentTheme === "dark"}
           onToggleDarkMode={async (val) => {
             try {
@@ -620,6 +642,16 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <TouchableOpacity
+          onPress={() => navigation.navigate("ExportReport")}
+          style={[styles.exportBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+          <Text style={[styles.exportBtnText, { color: colors.foreground }]}>Export Health Report</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={handleSignOut}
           activeOpacity={0.8}
           style={[
@@ -632,7 +664,7 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
 
         <Text style={[styles.version, { color: colors.mutedForeground }]}>
-          GlycoRev v1.0.0
+          Reversia v1.0.0
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -687,6 +719,20 @@ const styles = StyleSheet.create({
     color: "#EF4444",
     fontSize: 16,
     fontWeight: "700",
+  },
+  exportBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  exportBtnText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
   },
   version: {
     textAlign: "center",

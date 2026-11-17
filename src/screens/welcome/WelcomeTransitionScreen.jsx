@@ -7,6 +7,7 @@ import Animated, {
   withDelay,
   withSpring,
   withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,8 +63,9 @@ export default function WelcomeTransitionScreen({
         0,
         { duration: 520, easing: Easing.in(Easing.cubic) },
         (done) => {
-          if (done) {
-            onFinish?.();
+          'worklet';
+          if (done && onFinish) {
+            runOnJS(onFinish)();
           }
         }
       )

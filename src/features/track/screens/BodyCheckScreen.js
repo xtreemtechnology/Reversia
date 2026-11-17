@@ -13,6 +13,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 
 const MOODS = [
   { key: "great", emoji: "😄", label: "Great" },
@@ -76,9 +78,51 @@ export default function BodyCheckScreen({ navigation }) {
         source: "manual",
         createdAt: serverTimestamp(),
       });
+
+      // Mirror to SecureStorage for offline access
+      try {
+        const newEntry = {
+          category: "body_check",
+          type: "body_check",
+          mood: selectedMood,
+          symptoms: selectedSymptoms,
+          energyLevel,
+          sleepHours,
+          source: "manual",
+          createdAt: new Date().toISOString(),
+        };
+        const existing = await AsyncStorage.getItem("@reversia_offline_logs");
+        const logs = existing ? JSON.parse(existing) : [];
+        logs.push(newEntry);
+        await AsyncStorage.setItem("@reversia_offline_logs", JSON.stringify(logs));
+      } catch (_storageError) {
+        // Don't block UI on offline mirror failure
+      }
+
       navigation?.goBack();
     } catch (error) {
-      Alert.alert("Could not save", "Please try again in a moment.");
+      try {
+        await enqueueFailedWrite({
+          path: `users/${uid}/logs`,
+          data: {
+            category: "body_check",
+            type: "body_check",
+            mood: selectedMood,
+            symptoms: selectedSymptoms,
+            energyLevel,
+            sleepHours,
+            source: "manual",
+            date: new Date().toISOString().slice(0, 10),
+          },
+        });
+        Alert.alert(
+          "Saved Offline",
+          "Your check-in was saved locally and will sync when you are back online."
+        );
+        navigation?.goBack();
+      } catch (_) {
+        Alert.alert("Could not save", "Please try again in a moment.");
+      }
     } finally {
       setSaving(false);
     }

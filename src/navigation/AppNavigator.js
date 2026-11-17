@@ -9,6 +9,10 @@ import LogWaterScreen from "../features/track/screens/LogWaterScreen";
 import HydrationEntryScreen from "../features/track/screens/HydrationEntryScreen";
 import SleepEntryScreen from "../features/track/screens/SleepEntryScreen";
 import BodyCheckScreen from "../features/track/screens/BodyCheckScreen";
+import VoiceLogScreen from "../features/track/screens/VoiceLogScreen";
+import PhotoLogScreen from "../features/track/screens/PhotoLogScreen";
+import GlucoseLogScreen from "../features/track/screens/GlucoseLogScreen";
+import ExportReportScreen from "../features/profile/screens/ExportReportScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -58,6 +62,26 @@ export default function AppNavigator() {
       <Stack.Screen
         name="BodyCheck"
         component={BodyCheckScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="VoiceLog"
+        component={VoiceLogScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="PhotoLog"
+        component={PhotoLogScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="GlucoseLog"
+        component={GlucoseLogScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="ExportReport"
+        component={ExportReportScreen}
         options={{ presentation: "modal", headerShown: false }}
       />
     </Stack.Navigator>

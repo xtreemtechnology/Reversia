@@ -13,9 +13,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 
 const GOAL_GLASSES = 8;
 const ML_PER_GLASS = 250;
+const OFFLINE_LOGS_KEY = "@reversia_offline_logs";
 
 const QUICK_DRINKS = [
   {
@@ -47,6 +50,7 @@ const QUICK_DRINKS = [
 export default function LogWaterScreen({ navigation }) {
   const [glasses, setGlasses] = useState(3);
   const [saving, setSaving] = useState(false);
+  const [drinkType, setDrinkType] = useState("water");
 
   const add = () => {
     if (glasses < 12) {
@@ -88,14 +92,51 @@ export default function LogWaterScreen({ navigation }) {
     try {
       await addDoc(collection(db, "users", uid, "logs"), {
         category: "hydration",
+        drinkType,
         liters: Number((totalMl / 1000).toFixed(2)),
         glasses,
         source: "manual",
         createdAt: serverTimestamp(),
       });
+      // Mirror to offline cache
+      try {
+        const newEntry = {
+          category: "hydration",
+          drinkType,
+          liters: Number((totalMl / 1000).toFixed(2)),
+          glasses,
+          source: "manual",
+          createdAt: new Date().toISOString(),
+        };
+        const existing = await AsyncStorage.getItem(OFFLINE_LOGS_KEY);
+        const cached = existing ? JSON.parse(existing) : [];
+        cached.push(newEntry);
+        await AsyncStorage.setItem(OFFLINE_LOGS_KEY, JSON.stringify(cached));
+      } catch (_) {
+        // Don't block UI on offline mirror failure
+      }
       navigation?.goBack();
     } catch (error) {
-      Alert.alert("Could not save", "Please try again in a moment.");
+      try {
+        await enqueueFailedWrite({
+          path: `users/${uid}/logs`,
+          data: {
+            category: "hydration",
+            drinkType,
+            liters: Number((totalMl / 1000).toFixed(2)),
+            glasses,
+            source: "manual",
+            date: new Date().toISOString().slice(0, 10),
+          },
+        });
+        Alert.alert(
+          "Saved Offline",
+          "Your water log was saved locally and will automatically sync once online."
+        );
+        navigation?.goBack();
+      } catch (_) {
+        Alert.alert("Could not save", "Please try again in a moment.");
+      }
     } finally {
       setSaving(false);
     }
@@ -234,14 +275,19 @@ export default function LogWaterScreen({ navigation }) {
         <Text style={styles.sectionTitle}>What are you drinking?</Text>
         <View style={styles.drinksGrid}>
           {QUICK_DRINKS.map((drink) => {
-            const drinkBorderStyle = { borderColor: `${drink.color}33` };
-            const drinkBadgeStyle = { backgroundColor: drink.bg };
+            const drinkKey = drink.label.toLowerCase().replace(" ", "_");
+            const isSelected = drinkType === drinkKey;
+            const drinkBorderStyle = { borderColor: isSelected ? drink.color : `${drink.color}33` };
+            const drinkBadgeStyle = { backgroundColor: isSelected ? drink.bg : "transparent" };
             return (
               <TouchableOpacity
                 key={drink.label}
-                onPress={add}
+                onPress={() => {
+                  setDrinkType(drinkKey);
+                  add();
+                }}
                 activeOpacity={0.8}
-                style={[styles.drinkCard, drinkBorderStyle]}
+                style={[styles.drinkCard, drinkBorderStyle, isSelected && { borderWidth: 2 }]}
               >
                 <View style={[styles.drinkIconBadge, drinkBadgeStyle]}>
                   <Ionicons name={drink.icon} size={22} color={drink.color} />

@@ -5,7 +5,7 @@ import BottomNav from "../features/home/components/BottomNav";
 
 import { HomeScreen } from "../features/home";
 import { TrackScreen } from "../features/track";
-import { LearnScreen } from "../features/learn";
+import { LearnNavigator } from "../features/learn";
 import ProfileScreen from "../features/profile/screens/ProfileScreen";
 import FocusAnimatedScreen from "../components/FocusAnimatedScreen";
 
@@ -30,7 +30,7 @@ function TrackWrapper(props) {
 function LearnWrapper(props) {
   return (
     <FocusAnimatedScreen routeName={props.route.name}>
-      <LearnScreen {...props} />
+      <LearnNavigator {...props} />
     </FocusAnimatedScreen>
   );
 }

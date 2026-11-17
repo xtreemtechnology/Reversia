@@ -17,7 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.xtreemtech.reversia",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Reversia needs access to your camera to scan and analyze your meals.",
+        "NSMicrophoneUsageDescription": "Reversia needs access to your microphone to transcribe voice meal descriptions.",
+        "NSPhotoLibraryUsageDescription": "Reversia needs access to your photo library to select meal photos."
       }
     },
     "android": {
@@ -26,12 +29,41 @@
         "foregroundImage": "./assets/Reversia_logo_png.png",
         "backgroundColor": "#231F1C"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font", "expo-secure-store"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Reversia needs access to your camera to scan and analyze your meals."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Reversia needs access to your photos to allow you to select meal photos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/favicon.png",
+          "color": "#D88939"
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "eae4d01c-163d-40d0-8b50-c2bf86dcf194"

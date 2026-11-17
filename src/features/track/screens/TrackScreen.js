@@ -216,15 +216,9 @@ export default function TrackScreen({ navigation, route }) {
     setFavorites((current) => current.filter((item) => item.id !== id));
   };
 
-  const voiceAction = () =>
-    navigation?.navigate("MealEntry", {
-      mealType: latestMeal?.type || "Lunch",
-    });
-  const photoAction = () =>
-    navigation?.navigate("MealEntry", {
-      openCamera: true,
-      mealType: latestMeal?.type || "Lunch",
-    });
+  const voiceAction = () => navigation?.navigate("VoiceLog");
+  const photoAction = () => navigation?.navigate("PhotoLog");
+  const glucoseAction = () => navigation?.navigate("GlucoseLog");
 
   const saveBodyCheck = async () => {
     const mood = selectedMood;
@@ -407,6 +401,28 @@ export default function TrackScreen({ navigation, route }) {
             </View>
             <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
               Photo Log
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.92}
+            onPress={glucoseAction}
+            style={styles.voiceCard}
+          >
+            <View
+              style={[
+                styles.actionCircle,
+                { backgroundColor: "rgba(100,160,220,0.12)" },
+              ]}
+            >
+              <SolarIcon
+                name="drop-bold-duotone"
+                size={22}
+                color="#64A0DC"
+              />
+            </View>
+            <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
+              Log Glucose
             </Text>
           </TouchableOpacity>
         </View>

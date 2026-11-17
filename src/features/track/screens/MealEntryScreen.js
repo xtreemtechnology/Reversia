@@ -43,6 +43,8 @@ import { auth, db, storage } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { trackEvent } from "../../../utils/analytics";
 import secureStorage from "../../../utils/secureStorage";
+import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
+import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -638,13 +640,21 @@ export default function MealEntryScreen({ navigation, route }) {
         photoStoragePath = uploaded.path;
       }
 
-      const payload = {
-        type: mealType,
+      const normalizedData = normalizeMealForFirestore({
         name: mealLabel,
+        mealType: mealType ? mealType.toLowerCase() : "meal",
         notes: notes.trim(),
-        source: "manual",
+        source: photoDownloadUrl ? "photo" : "manual",
+        photoURL: photoDownloadUrl,
+      });
+
+      const payload = {
+        ...normalizedData,
+        // backward compatibility
+        type: normalizedData.mealType,
         photoUrl: photoDownloadUrl,
         photoStoragePath,
+        uid,
         createdAt: serverTimestamp(),
       };
 
@@ -676,9 +686,29 @@ export default function MealEntryScreen({ navigation, route }) {
 
       navigation.goBack();
     } catch (err) {
-      setError(
-        err?.message || "Could not save meal right now. Please try again."
-      );
+      try {
+        const mealLabel = mealName.trim() || `${mealType} meal`;
+        const normalizedData = normalizeMealForFirestore({
+          name: mealLabel,
+          mealType: mealType ? mealType.toLowerCase() : "meal",
+          notes: notes.trim(),
+          source: "manual",
+        });
+        await enqueueFailedWrite({
+          path: `users/${uid}/logs`,
+          data: {
+            ...normalizedData,
+            type: normalizedData.mealType,
+            uid,
+            category: "meal",
+          },
+        });
+        navigation.goBack();
+      } catch (_) {
+        setError(
+          err?.message || "Could not save meal right now. Please try again."
+        );
+      }
     } finally {
       setSaving(false);
     }

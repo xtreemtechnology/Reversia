@@ -14,46 +14,6 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
-const YESTERDAY_MEAL = {
-  name: "Grilled Chicken & Rice",
-  time: "7:42 PM · Yesterday",
-  calories: 620,
-  items: [
-    {
-      name: "Grilled Chicken Breast",
-      amount: "150g",
-      cal: 248,
-      protein: "46g",
-      carbs: "0g",
-      fat: "5g",
-    },
-    {
-      name: "White Rice",
-      amount: "1 cup",
-      cal: 206,
-      protein: "4g",
-      carbs: "45g",
-      fat: "0g",
-    },
-    {
-      name: "Steamed Broccoli",
-      amount: "80g",
-      cal: 28,
-      protein: "2g",
-      carbs: "5g",
-      fat: "0g",
-    },
-    {
-      name: "Olive Oil Drizzle",
-      amount: "1 tsp",
-      cal: 40,
-      protein: "0g",
-      carbs: "0g",
-      fat: "4.5g",
-    },
-  ],
-};
-
 const MACRO_COLORS = {
   Protein: "#6A816A",
   Carbs: "#D88939",
@@ -67,20 +27,20 @@ function getLatestMeal(logs) {
 }
 
 function mealLabel(meal) {
-  return meal?.name || meal?.type || YESTERDAY_MEAL.name;
+  return meal?.name || meal?.type || null;
 }
 
 function buildMealPreview(meal) {
   if (!meal) {
-    return YESTERDAY_MEAL;
+    return null;
   }
 
-  const itemName = meal.name || meal.type || YESTERDAY_MEAL.name;
+  const itemName = meal.name || meal.type || "Unknown meal";
   return {
     name: itemName,
     time: "Yesterday",
-    calories: meal.calories || YESTERDAY_MEAL.calories,
-    items: meal.items || YESTERDAY_MEAL.items,
+    calories: meal.calories || null,
+    items: meal.items || [],
   };
 }
 
@@ -92,15 +52,15 @@ export default function RepeatMealScreen({ navigation, route }) {
   const latestMeal = getLatestMeal(logs);
   const mealPreview = useMemo(() => buildMealPreview(latestMeal), [latestMeal]);
 
-  const totalProtein = mealPreview.items.reduce(
+  const totalProtein = (mealPreview?.items || []).reduce(
     (sum, item) => sum + Number.parseInt(item.protein, 10),
     0
   );
-  const totalCarbs = mealPreview.items.reduce(
+  const totalCarbs = (mealPreview?.items || []).reduce(
     (sum, item) => sum + Number.parseInt(item.carbs, 10),
     0
   );
-  const totalFat = mealPreview.items.reduce(
+  const totalFat = (mealPreview?.items || []).reduce(
     (sum, item) => sum + Number.parseFloat(item.fat),
     0
   );
@@ -108,7 +68,7 @@ export default function RepeatMealScreen({ navigation, route }) {
   const saveRepeatMeal = async () => {
     const uid = auth.currentUser?.uid;
 
-    if (!uid || logged) {
+    if (!uid || logged || !latestMeal) {
       return;
     }
 
@@ -126,6 +86,38 @@ export default function RepeatMealScreen({ navigation, route }) {
       setLogged(false);
     }
   };
+
+  // No meals logged yet — show friendly empty state
+  if (!mealPreview) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#211613" />
+
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation?.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Repeat Meal</Text>
+            <Text style={styles.headerSub}>No meals yet</Text>
+          </View>
+          <View style={styles.backBtn} />
+        </View>
+
+        <View style={styles.emptyStateWrap}>
+          <Ionicons name="restaurant-outline" size={48} color="#3A2A25" style={styles.emptyIcon} />
+          <Text style={styles.emptyTitle}>No meals logged yet</Text>
+          <Text style={styles.emptyBody}>
+            No meals logged yet — try logging your first meal
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -159,10 +151,12 @@ export default function RepeatMealScreen({ navigation, route }) {
               <Text style={styles.mealName}>{mealPreview.name}</Text>
               <Text style={styles.mealTime}>{mealPreview.time}</Text>
             </View>
+            {mealPreview.calories != null && (
             <View style={styles.calBadge}>
               <Text style={styles.calBadgeNum}>{mealPreview.calories}</Text>
               <Text style={styles.calBadgeLabel}>kcal</Text>
             </View>
+            )}
           </View>
 
           <View style={styles.macroRow}>

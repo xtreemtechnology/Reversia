@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   SafeAreaView,
@@ -13,54 +14,66 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth, db } from "../../../config/firebase";
+import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
+import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
-const RECENT_FOODS = [
-  {
-    name: "Boiled Egg",
-    amount: "2 large",
-    cal: 155,
-    protein: "13g",
-    carbs: "1g",
-    fat: "11g",
-  },
-  {
-    name: "Oatmeal",
-    amount: "1 cup",
-    cal: 166,
-    protein: "6g",
-    carbs: "28g",
-    fat: "3g",
-  },
-  {
-    name: "Banana",
-    amount: "1 medium",
-    cal: 89,
-    protein: "1g",
-    carbs: "23g",
-    fat: "0g",
-  },
-  {
-    name: "Grilled Chicken",
-    amount: "100g",
-    cal: 165,
-    protein: "31g",
-    carbs: "0g",
-    fat: "3g",
-  },
-  {
-    name: "Jollof Rice",
-    amount: "1 cup",
-    cal: 340,
-    protein: "7g",
-    carbs: "62g",
-    fat: "7g",
-  },
+// ---------------------------------------------------------------------------
+// Local Nigerian foods database (estimated macros per typical serving)
+// ---------------------------------------------------------------------------
+const NIGERIAN_FOODS = [
+  { name: "Jollof Rice", amount: "1 cup (200g)", cal: 340, protein: "7g", carbs: "62g", fat: "7g" },
+  { name: "Fried Rice", amount: "1 cup (200g)", cal: 360, protein: "8g", carbs: "58g", fat: "10g" },
+  { name: "Pounded Yam", amount: "1 wrap (250g)", cal: 295, protein: "3g", carbs: "68g", fat: "1g" },
+  { name: "Egusi Soup", amount: "1 bowl (200g)", cal: 310, protein: "14g", carbs: "8g", fat: "24g" },
+  { name: "Ofe Onugbu (Bitter Leaf Soup)", amount: "1 bowl (200g)", cal: 240, protein: "12g", carbs: "6g", fat: "18g" },
+  { name: "Banga Soup", amount: "1 bowl (200g)", cal: 280, protein: "11g", carbs: "7g", fat: "22g" },
+  { name: "Afang Soup", amount: "1 bowl (200g)", cal: 260, protein: "13g", carbs: "5g", fat: "20g" },
+  { name: "Edikang Ikong", amount: "1 bowl (200g)", cal: 270, protein: "14g", carbs: "5g", fat: "21g" },
+  { name: "Okra Soup", amount: "1 bowl (200g)", cal: 190, protein: "10g", carbs: "10g", fat: "13g" },
+  { name: "Ogbono Soup", amount: "1 bowl (200g)", cal: 300, protein: "12g", carbs: "7g", fat: "24g" },
+  { name: "Moi Moi", amount: "1 wrap (150g)", cal: 180, protein: "11g", carbs: "18g", fat: "6g" },
+  { name: "Akara", amount: "3 pieces (90g)", cal: 220, protein: "10g", carbs: "20g", fat: "11g" },
+  { name: "Fried Plantain (Dodo)", amount: "5 slices (100g)", cal: 220, protein: "1g", carbs: "36g", fat: "9g" },
+  { name: "Suya", amount: "1 stick (100g)", cal: 240, protein: "26g", carbs: "4g", fat: "13g" },
+  { name: "Chicken Stew", amount: "1 serving (200g)", cal: 290, protein: "24g", carbs: "8g", fat: "17g" },
+  { name: "Tomato Stew", amount: "1 serving (150g)", cal: 130, protein: "3g", carbs: "12g", fat: "8g" },
+  { name: "Yam Porridge", amount: "1 bowl (250g)", cal: 310, protein: "5g", carbs: "64g", fat: "5g" },
+  { name: "Beans (Ewa)", amount: "1 cup (200g)", cal: 230, protein: "15g", carbs: "38g", fat: "2g" },
+  { name: "Eba/Garri", amount: "1 wrap (200g)", cal: 330, protein: "2g", carbs: "80g", fat: "1g" },
+  { name: "Fufu", amount: "1 wrap (250g)", cal: 280, protein: "2g", carbs: "68g", fat: "1g" },
+  { name: "Amala", amount: "1 wrap (200g)", cal: 290, protein: "3g", carbs: "70g", fat: "1g" },
+  { name: "Tuwo Shinkafa", amount: "1 wrap (250g)", cal: 310, protein: "4g", carbs: "72g", fat: "1g" },
+  { name: "Semovita", amount: "1 wrap (200g)", cal: 300, protein: "8g", carbs: "65g", fat: "1g" },
+  { name: "Wheat Meal", amount: "1 wrap (200g)", cal: 290, protein: "10g", carbs: "60g", fat: "2g" },
+  { name: "Ofada Rice", amount: "1 cup (200g)", cal: 320, protein: "6g", carbs: "66g", fat: "3g" },
+  { name: "Basmati Rice", amount: "1 cup (186g)", cal: 240, protein: "5g", carbs: "53g", fat: "1g" },
+  { name: "Boiled Yam", amount: "1 slice (150g)", cal: 177, protein: "2g", carbs: "42g", fat: "0g" },
+  { name: "Boiled Plantain", amount: "1 medium (150g)", cal: 175, protein: "1g", carbs: "44g", fat: "0g" },
+  { name: "Pepper Soup", amount: "1 bowl (300g)", cal: 160, protein: "18g", carbs: "4g", fat: "7g" },
+  { name: "Oha Soup", amount: "1 bowl (200g)", cal: 250, protein: "12g", carbs: "6g", fat: "19g" },
+  { name: "Groundnut Soup", amount: "1 bowl (200g)", cal: 320, protein: "14g", carbs: "9g", fat: "26g" },
+  { name: "Miyan Kuka", amount: "1 bowl (200g)", cal: 180, protein: "9g", carbs: "8g", fat: "12g" },
+  { name: "Zobo (Hibiscus Tea)", amount: "1 glass (250ml)", cal: 40, protein: "0g", carbs: "10g", fat: "0g" },
+  { name: "Kunu", amount: "1 glass (250ml)", cal: 110, protein: "2g", carbs: "24g", fat: "1g" },
+  { name: "Palm Wine", amount: "1 glass (250ml)", cal: 100, protein: "1g", carbs: "18g", fat: "0g" },
+  { name: "Malt Drink", amount: "1 bottle (330ml)", cal: 170, protein: "3g", carbs: "38g", fat: "0g" },
+  { name: "Chapman", amount: "1 glass (350ml)", cal: 140, protein: "0g", carbs: "35g", fat: "0g" },
+  { name: "Fanta", amount: "1 bottle (350ml)", cal: 148, protein: "0g", carbs: "39g", fat: "0g" },
+  { name: "Coke", amount: "1 bottle (350ml)", cal: 140, protein: "0g", carbs: "39g", fat: "0g" },
+  // Extra common foods kept from original list
+  { name: "Boiled Egg", amount: "2 large", cal: 155, protein: "13g", carbs: "1g", fat: "11g" },
+  { name: "Oatmeal", amount: "1 cup", cal: 166, protein: "6g", carbs: "28g", fat: "3g" },
+  { name: "Banana", amount: "1 medium", cal: 89, protein: "1g", carbs: "23g", fat: "0g" },
+  { name: "Grilled Chicken", amount: "100g", cal: 165, protein: "31g", carbs: "0g", fat: "3g" },
 ];
 
 const DRINKS = ["Water", "Tea", "Juice", "Milk", "Soda"];
+
+const OFFLINE_LOGS_KEY = "@reversia_offline_logs";
 
 function buildDrinkFood(drink) {
   return {
@@ -73,11 +86,114 @@ function buildDrinkFood(drink) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Map an Open Food Facts product to our internal food shape
+// ---------------------------------------------------------------------------
+function mapOffProduct(product) {
+  const n = product.nutriments || {};
+  const cal = Math.round(n["energy-kcal_100g"] ?? 0);
+  const protein = Math.round(n["proteins_100g"] ?? 0);
+  const carbs = Math.round(n["carbohydrates_100g"] ?? 0);
+  const fat = Math.round(n["fat_100g"] ?? 0);
+  const name = product.product_name?.trim() || "Unknown";
+  const serving = product.serving_size || "100g";
+  return {
+    name,
+    amount: serving,
+    cal,
+    protein: `${protein}g`,
+    carbs: `${carbs}g`,
+    fat: `${fat}g`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Open Food Facts search
+// ---------------------------------------------------------------------------
+async function fetchOpenFoodFacts(query) {
+  const encoded = encodeURIComponent(query);
+  const url =
+    `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encoded}` +
+    `&search_simple=1&action=process&json=1&page_size=20` +
+    `&fields=product_name,nutriments,serving_size,brands`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`OFF responded with ${response.status}`);
+  const data = await response.json();
+  return (data.products || [])
+    .filter((p) => p.product_name?.trim())
+    .map(mapOffProduct);
+}
+
+// ---------------------------------------------------------------------------
+// Merge local + remote results, dedup by lowercase name
+// ---------------------------------------------------------------------------
+function mergeResults(local, remote) {
+  const seen = new Set(local.map((f) => f.name.toLowerCase()));
+  const deduped = remote.filter((f) => {
+    const key = f.name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return [...local, ...deduped];
+}
+
 export default function LogMealScreen({ navigation }) {
   const [mealType, setMealType] = useState("Lunch");
   const [search, setSearch] = useState("");
   const [addedFoods, setAddedFoods] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [searchResults, setSearchResults] = useState(NIGERIAN_FOODS);
+  const [searching, setSearching] = useState(false);
+
+  const debounceTimer = useRef(null);
+
+  // -------------------------------------------------------------------------
+  // Debounced search handler
+  // -------------------------------------------------------------------------
+  const handleSearch = useCallback((text) => {
+    setSearch(text);
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    debounceTimer.current = setTimeout(async () => {
+      const q = text.trim();
+
+      // Filter local list
+      const localMatches =
+        q.length === 0
+          ? NIGERIAN_FOODS
+          : NIGERIAN_FOODS.filter((f) =>
+              f.name.toLowerCase().includes(q.toLowerCase())
+            );
+
+      if (q.length < 2) {
+        setSearchResults(localMatches);
+        setSearching(false);
+        return;
+      }
+
+      // Show local results immediately while remote fetch is in-flight
+      setSearchResults(localMatches);
+      setSearching(true);
+
+      try {
+        const remoteResults = await fetchOpenFoodFacts(q);
+        setSearchResults(mergeResults(localMatches, remoteResults));
+      } catch (_err) {
+        // Graceful fallback — local results already set above
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+  }, []);
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
 
   const toggleFood = (food) => {
     setAddedFoods((current) =>
@@ -108,10 +224,9 @@ export default function LogMealScreen({ navigation }) {
     [addedFoods]
   );
 
-  const filteredFoods = RECENT_FOODS.filter((food) =>
-    food.name.toLowerCase().includes(search.toLowerCase())
-  );
-
+  // -------------------------------------------------------------------------
+  // Save meal to Firestore + mirror to AsyncStorage offline cache
+  // -------------------------------------------------------------------------
   const saveMeal = async () => {
     const uid = auth.currentUser?.uid;
 
@@ -126,25 +241,79 @@ export default function LogMealScreen({ navigation }) {
 
     setSaving(true);
     try {
-      await addDoc(collection(db, "users", uid, "logs"), {
-        category: "meal",
-        type: mealType,
+      const mealData = normalizeMealForFirestore({
         name: addedFoods.map((food) => food.name).join(", "),
-        foods: addedFoods,
-        totalCalories: totals.cal,
-        totalProtein: totals.protein,
-        totalCarbs: totals.carbs,
-        totalFat: totals.fat,
-        source: "manual",
-        createdAt: serverTimestamp(),
+        mealType,
+        calories: totals.cal,
+        protein: totals.protein,
+        carbs: totals.carbs,
+        fat: totals.fat,
+        source: "search",
+        date: new Date().toISOString().slice(0, 10),
       });
+
+      const logPayload = {
+        ...mealData,
+        category: "meal",
+        // preserve the per-food breakdown for display purposes
+        foods: addedFoods,
+        uid,
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, "users", uid, "logs"), logPayload);
+
+      // Mirror to AsyncStorage for offline access
+      try {
+        const existing = await AsyncStorage.getItem(OFFLINE_LOGS_KEY);
+        const offlineLogs = existing ? JSON.parse(existing) : [];
+        const offlineEntry = {
+          ...logPayload,
+          createdAt: new Date().toISOString(), // serverTimestamp not serialisable
+          _offlineUid: uid,
+        };
+        offlineLogs.push(offlineEntry);
+        await AsyncStorage.setItem(OFFLINE_LOGS_KEY, JSON.stringify(offlineLogs));
+      } catch (_storageErr) {
+        // Offline mirroring failure must not block the user
+      }
       navigation?.goBack();
     } catch (error) {
-      Alert.alert("Could not save", "Please try again in a moment.");
+      try {
+        const mealData = normalizeMealForFirestore({
+          name: addedFoods.map((food) => food.name).join(", "),
+          mealType,
+          calories: totals.cal,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+          source: "search",
+          date: new Date().toISOString().slice(0, 10),
+        });
+        await enqueueFailedWrite({
+          path: `users/${uid}/logs`,
+          data: {
+            ...mealData,
+            category: "meal",
+            foods: addedFoods,
+            uid,
+          },
+        });
+        Alert.alert(
+          "Saved Offline",
+          "Your meal was saved locally and will automatically sync once online."
+        );
+        navigation?.goBack();
+      } catch (_) {
+        Alert.alert("Could not save", "Please try again in a moment.");
+      }
     } finally {
       setSaving(false);
     }
   };
+
+  const displayedFoods = searchResults;
+  const sectionLabel = search.length > 0 ? "Results" : "Recent Foods";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -160,7 +329,7 @@ export default function LogMealScreen({ navigation }) {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Log Meal</Text>
-          <Text style={styles.headerSub}>Food & Drinks</Text>
+          <Text style={styles.headerSub}>Food &amp; Drinks</Text>
         </View>
         <View style={styles.backBtn} />
       </View>
@@ -242,48 +411,57 @@ export default function LogMealScreen({ navigation }) {
             placeholder="Search food or drink..."
             placeholderTextColor="#9A8478"
             value={search}
-            onChangeText={setSearch}
+            onChangeText={handleSearch}
           />
-          {search.length > 0 ? (
-            <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.8}>
+          {searching ? (
+            <ActivityIndicator size="small" color="#D88939" />
+          ) : search.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => handleSearch("")}
+              activeOpacity={0.8}
+            >
               <Ionicons name="close-circle" size={18} color="#9A8478" />
             </TouchableOpacity>
           ) : null}
         </View>
 
-        <Text style={styles.sectionTitle}>
-          {search.length > 0 ? "Results" : "Recent Foods"}
-        </Text>
+        <Text style={styles.sectionTitle}>{sectionLabel}</Text>
         <View style={styles.card}>
-          {filteredFoods.map((food, index) => {
-            const added = isAdded(food);
-            return (
-              <View key={food.name}>
-                <View style={styles.foodRow}>
-                  <View style={styles.foodTextWrap}>
-                    <Text style={styles.foodName}>{food.name}</Text>
-                    <Text style={styles.foodMeta}>
-                      {food.amount} · {food.cal} kcal · {food.protein} protein
-                    </Text>
+          {displayedFoods.length === 0 ? (
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyText}>No results found</Text>
+            </View>
+          ) : (
+            displayedFoods.map((food, index) => {
+              const added = isAdded(food);
+              return (
+                <View key={`${food.name}-${index}`}>
+                  <View style={styles.foodRow}>
+                    <View style={styles.foodTextWrap}>
+                      <Text style={styles.foodName}>{food.name}</Text>
+                      <Text style={styles.foodMeta}>
+                        {food.amount} · {food.cal} kcal · {food.protein} protein
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => toggleFood(food)}
+                      activeOpacity={0.8}
+                      style={[styles.addBtn, added && styles.addBtnActive]}
+                    >
+                      <Ionicons
+                        name={added ? "checkmark" : "add"}
+                        size={18}
+                        color={added ? "#211613" : "#D88939"}
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => toggleFood(food)}
-                    activeOpacity={0.8}
-                    style={[styles.addBtn, added && styles.addBtnActive]}
-                  >
-                    <Ionicons
-                      name={added ? "checkmark" : "add"}
-                      size={18}
-                      color={added ? "#211613" : "#D88939"}
-                    />
-                  </TouchableOpacity>
+                  {index < displayedFoods.length - 1 ? (
+                    <View style={styles.divider} />
+                  ) : null}
                 </View>
-                {index < filteredFoods.length - 1 ? (
-                  <View style={styles.divider} />
-                ) : null}
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </View>
 
         <View style={styles.card}>
@@ -509,6 +687,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 0.8,
+  },
+  emptyRow: {
+    paddingVertical: 24,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#9A8478",
   },
   foodRow: {
     flexDirection: "row",

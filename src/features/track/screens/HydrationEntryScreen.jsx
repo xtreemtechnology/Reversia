@@ -154,7 +154,8 @@ export default function HydrationEntryScreen({ navigation }) {
             activeOpacity={0.85}
             style={[
               styles.saveBtn,
-              { backgroundColor: colors.primary, opacity: saving ? 0.8 : 1 },
+              { backgroundColor: colors.primary },
+              saving && styles.saveBtnSaving,
             ]}
           >
             {saving ? (
@@ -206,5 +207,6 @@ const styles = StyleSheet.create({
   notesInput: { minHeight: 90, textAlignVertical: "top" },
   errorText: { color: "#C0392B", fontSize: 13 },
   saveBtn: { borderRadius: 999, paddingVertical: 14, alignItems: "center" },
+  saveBtnSaving: { opacity: 0.8 },
   saveBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
 });
