@@ -22,6 +22,12 @@ const NAV_ITEMS = [
   { label: "Home", route: "Home", icon: "home-smile", iconOut: "home-outline" },
   { label: "Plan", route: "Plan", icon: "map", iconOut: "map-outline" },
   {
+    label: "Foods",
+    route: "Foods",
+    icon: "restaurant",
+    iconOut: "restaurant-outline",
+  },
+  {
     label: "Track",
     route: "Track",
     icon: "add-circle",
