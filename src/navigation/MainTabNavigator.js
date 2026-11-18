@@ -6,6 +6,7 @@ import BottomNav from "../features/home/components/BottomNav";
 import { HomeScreen } from "../features/home";
 import { TrackScreen } from "../features/track";
 import { LearnNavigator } from "../features/learn";
+import { ReversalNavigator } from "../features/reversal";
 import ProfileScreen from "../features/profile/screens/ProfileScreen";
 import FocusAnimatedScreen from "../components/FocusAnimatedScreen";
 
@@ -23,6 +24,14 @@ function TrackWrapper(props) {
   return (
     <FocusAnimatedScreen routeName={props.route.name}>
       <TrackScreen {...props} />
+    </FocusAnimatedScreen>
+  );
+}
+
+function PlanWrapper(props) {
+  return (
+    <FocusAnimatedScreen routeName={props.route.name}>
+      <ReversalNavigator {...props} />
     </FocusAnimatedScreen>
   );
 }
@@ -80,6 +89,12 @@ export default function MainTabNavigator() {
         name="Home"
         component={HomeWrapper}
         options={{ tabBarLabel: "Home" }}
+      />
+
+      <Tab.Screen
+        name="Plan"
+        component={PlanWrapper}
+        options={{ tabBarLabel: "Plan" }}
       />
 
       <Tab.Screen

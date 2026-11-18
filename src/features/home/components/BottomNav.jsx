@@ -20,6 +20,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 
 const NAV_ITEMS = [
   { label: "Home", route: "Home", icon: "home-smile", iconOut: "home-outline" },
+  { label: "Plan", route: "Plan", icon: "map", iconOut: "map-outline" },
   {
     label: "Track",
     route: "Track",
