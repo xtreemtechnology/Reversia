@@ -44,7 +44,7 @@ const NAV_ITEMS = [
 const NAV_CONTENT_HEIGHT = 80;
 
 export default function BottomNav({ navigation, currentRouteName }) {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
 
   const wrapperStyle = useMemo(
     () => [styles.wrapper, { borderTopColor: colors.border }],
@@ -75,7 +75,7 @@ export default function BottomNav({ navigation, currentRouteName }) {
   return (
     <View style={wrapperStyle}>
       {/* Blur layer — mirrors backdrop-blur-xl */}
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={70} tint={theme === "dark" ? "dark" : "light"} style={StyleSheet.absoluteFill} />
       {/* Tint overlay on top of blur */}
       <View style={blurOverlayStyle} />
 

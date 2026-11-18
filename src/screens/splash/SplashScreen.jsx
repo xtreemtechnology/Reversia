@@ -16,13 +16,13 @@ import ReversiaMark from "../../components/ReversiaMark";
 const { width: W, height: H } = Dimensions.get("window");
 
 const C = {
-  background: "#231F1C",
-  primary: "#E07A5F",
-  secondary: "#798C73",
-  foreground: "#F5F5F4",
-  muted: "#3E3835",
-  mutedFg: "#A8A29E",
-  card: "#2D2825",
+  background: "#F5F1FF",
+  primary: "#8055E8",
+  secondary: "#A78BFA",
+  foreground: "#242033",
+  muted: "#E8E1F5",
+  mutedFg: "#756D84",
+  card: "#FFFFFF",
 };
 
 export default function SplashScreen({ onFinish }) {
@@ -169,7 +169,7 @@ export default function SplashScreen({ onFinish }) {
 
       <Animated.View style={[splashStyles.logoWrap, logoStyle]}>
         <LinearGradient
-          colors={[C.primary, "#C9614A"]}
+          colors={[C.primary, "#A78BFA"]}
           style={splashStyles.logoGradient}
           start={{ x: 0.1, y: 0.1 }}
           end={{ x: 0.9, y: 0.9 }}
@@ -257,13 +257,13 @@ const splashStyles = StyleSheet.create({
   textGroup: { alignItems: "center" },
   wordmark: {
     fontSize: 36,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: 14,
     color: C.mutedFg,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     letterSpacing: 0.3,
     marginTop: 10,
   },

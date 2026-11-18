@@ -368,7 +368,7 @@ export default function ProfileScreen({ navigation }) {
       <SafeAreaView
         style={[styles.centered, { backgroundColor: colors.background }]}
       >
-        <Ionicons name="warning" size={64} color="#E07A5F" />
+        <Ionicons name="warning" size={64} color="#8055E8" />
         <Text style={[styles.guardTitle, { color: colors.foreground }]}>
           Something went wrong
         </Text>
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
   guardTitle: {
     fontSize: 20,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   guardSub: {
     fontSize: 14,

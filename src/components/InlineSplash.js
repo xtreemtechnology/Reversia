@@ -73,7 +73,7 @@ export default function InlineSplash() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#231F1C" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
       <Animated.View style={[styles.glow, glowStyle]} />
       <Animated.View style={logoStyle}>
         <ReversiaMark size={112} />
@@ -85,7 +85,7 @@ export default function InlineSplash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#231F1C",
+    backgroundColor: "#F5F1FF",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     backgroundColor: "rgba(224, 122, 95, 0.18)",
-    shadowColor: "#E07A5F",
+    shadowColor: "#8055E8",
     shadowOpacity: 0.4,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 0 },

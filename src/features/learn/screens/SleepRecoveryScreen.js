@@ -23,7 +23,7 @@ const sl = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#9A8478",
+    color: "#756D84",
     marginBottom: 10,
   },
 });
@@ -49,19 +49,19 @@ export default function SleepRecoveryScreen({ navigation }) {
     {
       label: "Light Sleep",
       pct: 50,
-      color: "#9A8478",
+      color: "#756D84",
       desc: "Processing memories, muscle repair begins",
     },
     {
       label: "Deep Sleep",
       pct: 20,
-      color: "#6A816A",
+      color: "#8B75C8",
       desc: "Full body repair, immune strengthening",
     },
     {
       label: "REM Sleep",
       pct: 25,
-      color: "#D88939",
+      color: "#8055E8",
       desc: "Emotional processing, mental clarity",
     },
     {
@@ -76,7 +76,7 @@ export default function SleepRecoveryScreen({ navigation }) {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
@@ -156,7 +156,7 @@ export default function SleepRecoveryScreen({ navigation }) {
           <Text style={[styles.bodyText, { color: colors.mutedForeground }]}>
             The difference between waking up "Normal" and "Tired" is often
             determined in the{" "}
-            <Text style={{ color: "#D88939", fontWeight: "700" }}>
+            <Text style={{ color: "#8055E8", fontWeight: "700" }}>
               last 2 hours before bed
             </Text>{" "}
             — what you ate, your screen exposure, and your hydration level.
@@ -220,12 +220,12 @@ export default function SleepRecoveryScreen({ navigation }) {
           {[
             {
               icon: "restaurant-outline",
-              color: "#D88939",
+              color: "#8055E8",
               text: "Eating a heavy meal within 2 hours of sleep raises body temperature and delays deep sleep entry.",
             },
             {
               icon: "water-outline",
-              color: "#E3B372",
+              color: "#A78BFA",
               text: "Low daytime hydration increases cortisol, which makes it harder to reach deep sleep stages.",
             },
             {
@@ -279,7 +279,7 @@ export default function SleepRecoveryScreen({ navigation }) {
               <Ionicons
                 name="checkmark-circle-outline"
                 size={18}
-                color="#6A816A"
+                color="#8B75C8"
                 style={{ marginRight: 12 }}
               />
               <Text style={[styles.checkText, { color: colors.foreground }]}>
@@ -300,7 +300,7 @@ export default function SleepRecoveryScreen({ navigation }) {
           <Ionicons
             name={logged ? "checkmark-circle" : "happy-outline"}
             size={18}
-            color="#211613"
+            color="#F5F1FF"
             style={{ marginRight: 8 }}
           />
           <Text style={styles.ctaBtnText}>
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   stagePct: { fontSize: 14, fontWeight: "700" },
   stageTrack: {
     height: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 2,
     marginBottom: 6,
     overflow: "hidden",
@@ -407,6 +407,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: 24,
   },
-  ctaBtnDone: { backgroundColor: "#6A816A" },
-  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#211613" },
+  ctaBtnDone: { backgroundColor: "#8B75C8" },
+  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
 });

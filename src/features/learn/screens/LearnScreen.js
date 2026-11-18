@@ -54,28 +54,28 @@ function deriveFindings(logs) {
     findings.push({
       text: `You've logged breakfast ${breakfast.length} times — days with breakfast show more complete stories.`,
       icon: "restaurant-outline",
-      color: "#D88939",
+      color: "#8055E8",
     });
 
   if (water.length >= 2)
     findings.push({
       text: `${water.length} water logs recorded. Hydration consistency is building.`,
       icon: "water-outline",
-      color: "#E3B372",
+      color: "#A78BFA",
     });
 
   if (checks.length >= 3)
     findings.push({
       text: `${checks.length} body check-ins completed. That's enough to start seeing mood patterns.`,
       icon: "happy-outline",
-      color: "#6A816A",
+      color: "#8B75C8",
     });
 
   if (meals.length >= 5)
     findings.push({
       text: `${meals.length} meals logged. Reversia can begin connecting meals to how you felt after.`,
       icon: "leaf-outline",
-      color: "#6A816A",
+      color: "#8B75C8",
     });
 
   // Fallback when user has no data yet
@@ -84,12 +84,12 @@ function deriveFindings(logs) {
       {
         text: "Log your first meals and body check-ins to unlock real findings.",
         icon: "ellipse-outline",
-        color: "#9A8478",
+        color: "#756D84",
       },
       {
         text: "Reversia learns from your patterns — the more you log, the sharper the picture.",
         icon: "ellipse-outline",
-        color: "#9A8478",
+        color: "#756D84",
       }
     );
   }
@@ -249,19 +249,19 @@ const pi = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  badgeReady: { backgroundColor: "rgba(106,129,106,0.18)" },
+  badgeReady: { backgroundColor: "rgba(128,85,232,0.18)" },
   badgePending: { backgroundColor: "rgba(154,132,120,0.15)" },
   badgeDot: { width: 6, height: 6, borderRadius: 3 },
-  badgeDotReady: { backgroundColor: "#6A816A" },
-  badgeDotPending: { backgroundColor: "#9A8478" },
+  badgeDotReady: { backgroundColor: "#8B75C8" },
+  badgeDotPending: { backgroundColor: "#756D84" },
   badgeText: {
     fontSize: 10,
     letterSpacing: 1,
     textTransform: "uppercase",
     fontWeight: "700",
   },
-  badgeTextReady: { color: "#6A816A" },
-  badgeTextPending: { color: "#9A8478" },
+  badgeTextReady: { color: "#8B75C8" },
+  badgeTextPending: { color: "#756D84" },
   title: { fontSize: 24, lineHeight: 30, fontWeight: "700", marginBottom: 10 },
   bodyText: { fontSize: 14, lineHeight: 21, marginBottom: 16 },
   whyBox: {
@@ -276,13 +276,13 @@ const pi = StyleSheet.create({
   flex1: { flex: 1 },
   lockIcon: { marginRight: 7 },
   cta: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 15,
   },
-  ctaText: { color: "#211613", fontSize: 14, fontWeight: "800" },
+  ctaText: { color: "#F5F1FF", fontSize: 14, fontWeight: "800" },
   ctaDisabled: {
     borderRadius: 18,
     paddingVertical: 14,
@@ -304,7 +304,7 @@ function WhatWeveLearned({ findings, colors, isAI = false }) {
     >
       <View style={wl.headerRow}>
         <View style={wl.iconBadge}>
-          <Ionicons name={isAI ? "sparkles-outline" : "bulb-outline"} size={17} color="#D88939" />
+          <Ionicons name={isAI ? "sparkles-outline" : "bulb-outline"} size={17} color="#8055E8" />
         </View>
         <View>
           <Text style={[wl.title, { color: colors.foreground }]}>
@@ -378,7 +378,7 @@ function RecommendedReads({ navigation, colors }) {
       title: "The Hydration-Mood Connection",
       body: "How 2 extra glasses can improve your focus.",
       icon: "water-sun-bold-duotone",
-      tint: { bg: "rgba(227,179,114,0.12)", fg: "#E3B372" },
+      tint: { bg: "rgba(167,139,250,0.12)", fg: "#A78BFA" },
       route: "HydrationConnection",
     },
     {
@@ -392,7 +392,7 @@ function RecommendedReads({ navigation, colors }) {
       title: "Protein & Sustained Energy",
       body: "Why a protein anchor changes your afternoon.",
       icon: "dumbbell-bold-duotone",
-      tint: { bg: "rgba(106,129,106,0.12)", fg: "#6A816A" },
+      tint: { bg: "rgba(128,85,232,0.10)", fg: "#8B75C8" },
       route: "ProteinEnergy",
     },
   ];
@@ -492,7 +492,7 @@ function ActiveExperiment({ experimentStep, onAdvance, onOpenDetail, colors }) {
             <View key={i} style={ex.dayCol}>
               <View style={[ex.dot, done && ex.dotDone, curr && ex.dotCurrent]}>
                 {done ? (
-                  <Ionicons name="checkmark" size={10} color="#211613" />
+                  <Ionicons name="checkmark" size={10} color="#F5F1FF" />
                 ) : (
                   <Text style={[ex.dotNum, curr && ex.dotNumCurrent]}>
                     {i + 1}
@@ -586,7 +586,7 @@ const ex = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(106,129,106,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
   },
   title: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
   body: { fontSize: 14, lineHeight: 20, marginBottom: 20 },
@@ -601,28 +601,28 @@ const ex = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1.5,
-    borderColor: "#402E29",
+    borderColor: "#E8E1F5",
     alignItems: "center",
     justifyContent: "center",
   },
-  dotDone: { backgroundColor: "#D88939", borderColor: "#D88939" },
-  dotCurrent: { borderColor: "#D88939" },
-  dotNum: { fontSize: 11, color: "#9A8478", fontWeight: "700" },
-  dotNumCurrent: { color: "#D88939" },
-  dayLabel: { fontSize: 9, color: "#9A8478", fontWeight: "600" },
-  dayLabelDone: { color: "#6A816A" },
-  dayLabelCurrent: { color: "#D88939" },
+  dotDone: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
+  dotCurrent: { borderColor: "#8055E8" },
+  dotNum: { fontSize: 11, color: "#756D84", fontWeight: "700" },
+  dotNumCurrent: { color: "#8055E8" },
+  dayLabel: { fontSize: 9, color: "#756D84", fontWeight: "600" },
+  dayLabelDone: { color: "#8B75C8" },
+  dayLabelCurrent: { color: "#8055E8" },
 
   track: {
     height: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 2,
     marginBottom: 8,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: "#6A816A", borderRadius: 2 },
+  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
   progressLabelRow: { marginBottom: 18 },
   progressLabel: { fontSize: 12 },
 
@@ -661,7 +661,7 @@ function PastDiscoveries({ discoveries, colors }) {
     >
       <View style={pd.headerRow}>
         <View style={pd.iconBadge}>
-          <Ionicons name="ribbon-outline" size={16} color="#6A816A" />
+          <Ionicons name="ribbon-outline" size={16} color="#8B75C8" />
         </View>
         <View>
           <Text style={[pd.title, { color: colors.foreground }]}>
@@ -723,13 +723,13 @@ const pd = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#6A816A",
+    backgroundColor: "#8B75C8",
     marginTop: 5,
   },
   line: {
     width: 1.5,
     flex: 1,
-    backgroundColor: "rgba(106,129,106,0.20)",
+    backgroundColor: "rgba(128,85,232,0.18)",
     marginTop: 4,
     minHeight: 20,
   },
@@ -851,7 +851,7 @@ export default function LearnScreen({ navigation }) {
       const aiItems = aiInsights.insights.slice(1).map((text) => ({
         text,
         icon: "sparkles-outline",
-        color: "#D88939",
+        color: "#8055E8",
       }));
       return [...aiItems, ...rawFindings].slice(0, 4);
     }

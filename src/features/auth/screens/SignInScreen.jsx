@@ -48,7 +48,7 @@ export default function SignInScreen({ navigation }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <TouchableOpacity
         onPress={() => navigation.goBack()}
@@ -198,13 +198,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 23,
   },
   form: {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 14,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
   },
   errorBanner: {
     flexDirection: "row",
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: "#E28A82",
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 20,
   },
   ctaGroup: {
@@ -248,6 +248,6 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
 });

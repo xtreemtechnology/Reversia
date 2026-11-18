@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#231F1C",
+    backgroundColor: "#F5F1FF",
   },
   title: {
     fontSize: 20,
@@ -46,5 +46,5 @@ const styles = StyleSheet.create({
     color: "#FCA5A5",
   },
   message: { fontSize: 14, marginBottom: 8, marginTop: 10, color: "#E7E5E4" },
-  stack: { fontSize: 12, marginTop: 10, color: "#A8A29E" },
+  stack: { fontSize: 12, marginTop: 10, color: "#756D84" },
 });

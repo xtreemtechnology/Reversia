@@ -74,11 +74,11 @@ function buildTimeline(logs) {
     const time = formatTime(toDate(log.createdAt));
     if (log.category === "meal") {
       const name = log.name || log.type || "Meal";
-      return { time, event: `${log.type ? log.type.charAt(0).toUpperCase() + log.type.slice(1) : "Meal"} logged`, detail: name, icon: "restaurant-outline", color: "#D88939" };
+      return { time, event: `${log.type ? log.type.charAt(0).toUpperCase() + log.type.slice(1) : "Meal"} logged`, detail: name, icon: "restaurant-outline", color: "#8055E8" };
     }
     if (log.category === "water" || log.category === "hydration") {
       const glasses = log.glasses ? `${log.glasses} glass${log.glasses !== 1 ? "es" : ""}` : log.liters ? `${log.liters}L` : "Water";
-      return { time, event: "Water logged", detail: glasses, icon: "water-outline", color: "#6A816A" };
+      return { time, event: "Water logged", detail: glasses, icon: "water-outline", color: "#8B75C8" };
     }
     if (log.category === "sleep") {
       return { time, event: "Sleep logged", detail: `${log.duration || log.hours || "?"}h · ${log.quality || ""}`, icon: "moon-outline", color: "#7B8FD8" };
@@ -91,7 +91,7 @@ function buildTimeline(logs) {
     if (log.category === "glucose") {
       return { time, event: "Glucose logged", detail: `${log.value} ${log.unit || "mg/dL"} · ${log.context || ""}`, icon: "analytics-outline", color: "#64A0DC" };
     }
-    return { time, event: "Log entry", detail: log.category || "", icon: "ellipse-outline", color: "#9A8478" };
+    return { time, event: "Log entry", detail: log.category || "", icon: "ellipse-outline", color: "#756D84" };
   });
 
   return { dayLabel, items };
@@ -112,16 +112,16 @@ function buildObservations(logs) {
 
   const lowWaterDays = water.length < 3;
   if (lowWaterDays) {
-    obs.push({ label: "Water intake could be higher", impact: "Hydration affects focus and mood throughout the day", color: "#E3B372" });
+    obs.push({ label: "Water intake could be higher", impact: "Hydration affects focus and mood throughout the day", color: "#A78BFA" });
   }
 
   const tiredChecks = checks.filter((l) => l?.symptoms?.some((s) => ["Tired", "Fatigue", "Brain Fog", "Low Energy"].includes(s)) || l?.energy <= 4);
   if (tiredChecks.length > 0) {
-    obs.push({ label: `${tiredChecks.length} low-energy check-in${tiredChecks.length > 1 ? "s" : ""} logged`, impact: "These moments help Reversia identify what triggered the dip", color: "#D88939" });
+    obs.push({ label: `${tiredChecks.length} low-energy check-in${tiredChecks.length > 1 ? "s" : ""} logged`, impact: "These moments help Reversia identify what triggered the dip", color: "#8055E8" });
   }
 
   if (obs.length === 0) {
-    obs.push({ label: "Keep logging to unlock observations", impact: "Reversia needs more data to identify meaningful patterns", color: "#9A8478" });
+    obs.push({ label: "Keep logging to unlock observations", impact: "Reversia needs more data to identify meaningful patterns", color: "#756D84" });
   }
 
   return obs.slice(0, 3);
@@ -145,7 +145,7 @@ function confidenceLabel(score) {
   return "No data yet";
 }
 
-function SectionLabel({ text, color = "#9A8478" }) {
+function SectionLabel({ text, color = "#756D84" }) {
   return <Text style={[sl.text, { color }]}>{text.toUpperCase()}</Text>;
 }
 
@@ -202,7 +202,7 @@ export default function InsightDetailScreen({ navigation }) {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -238,10 +238,10 @@ export default function InsightDetailScreen({ navigation }) {
           <View
             style={[
               styles.heroIconBadge,
-              { backgroundColor: "rgba(216,137,57,0.15)" },
+              { backgroundColor: "rgba(128,85,232,0.14)" },
             ]}
           >
-            <Ionicons name="analytics-outline" size={22} color="#D88939" />
+            <Ionicons name="analytics-outline" size={22} color="#8055E8" />
           </View>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
             {mealName} appears in your low-energy afternoons.
@@ -383,8 +383,8 @@ export default function InsightDetailScreen({ navigation }) {
             style={[
               styles.experimentCard,
               {
-                backgroundColor: "rgba(216,137,57,0.08)",
-                borderColor: "rgba(216,137,57,0.20)",
+                backgroundColor: "rgba(128,85,232,0.08)",
+                borderColor: "rgba(128,85,232,0.20)",
               },
             ]}
           >
@@ -392,7 +392,7 @@ export default function InsightDetailScreen({ navigation }) {
               <Ionicons
                 name="flask-outline"
                 size={18}
-                color="#D88939"
+                color="#8055E8"
                 style={{ marginRight: 8 }}
               />
               <Text style={[styles.expTitle, { color: colors.foreground }]}>
@@ -469,12 +469,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1,
-    borderColor: "#402E29",
+    borderColor: "#E8E1F5",
   },
-  dotFilled: { backgroundColor: "#D88939", borderColor: "#D88939" },
-  confidenceVal: { fontSize: 11, color: "#D88939", fontWeight: "600" },
+  dotFilled: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
+  confidenceVal: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
   sectionBlock: { paddingHorizontal: 24, marginBottom: 20 },
   card: {
     borderRadius: 22,
@@ -515,11 +515,11 @@ const styles = StyleSheet.create({
   expTitle: { fontSize: 15, fontWeight: "700", flex: 1 },
   expBody: { fontSize: 13, lineHeight: 19, marginBottom: 16 },
   expBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 16,
     paddingVertical: 13,
     alignItems: "center",
   },
-  expBtnText: { fontSize: 14, fontWeight: "700", color: "#211613" },
+  expBtnText: { fontSize: 14, fontWeight: "700", color: "#F5F1FF" },
   emptyTimeline: { paddingVertical: 10 },
 });

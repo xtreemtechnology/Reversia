@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   card: {
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   emptyBody: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 22,
   },
 });

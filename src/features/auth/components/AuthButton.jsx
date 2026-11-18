@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   disabled: {

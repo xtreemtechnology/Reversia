@@ -5,55 +5,55 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const ThemeContext = createContext({
   theme: "light",
   colors: {},
-  typography: { heading: "PlusJakartaSans", body: "DMSans" },
+  typography: { heading: "System", body: "System" },
   setTheme: async () => {},
   toggleTheme: async () => {},
 });
 
 const light = {
-  background: "#211613",
-  card: "#2D201C",
-  text: "#F4EAE4",
-  foreground: "#F4EAE4",
-  muted: "#3A2A25",
-  mutedForeground: "#9A8478",
-  mutedBackground: "#3A2A25",
-  border: "#402E29",
-  primary: "#D88939",
-  secondary: "#3A2A25",
-  accent: "#6A816A",
-  primaryForeground: "#211613",
-  borderSurface: "#402E29",
-  cardBackground: "#2D201C",
-  mutedTextColor: "#9A8478",
-  destructive: "#CE6C60",
-  cardForeground: "#F4EAE4",
-  secondaryForeground: "#F4EAE4",
+  background: "#F5F1FF",
+  card: "#FFFFFF",
+  text: "#242033",
+  foreground: "#242033",
+  muted: "#F0E9FF",
+  mutedForeground: "#756D84",
+  mutedBackground: "#F0E9FF",
+  border: "#E8E1F5",
+  primary: "#8055E8",
+  secondary: "#A78BFA",
+  accent: "#8B75C8",
+  primaryForeground: "#FFFFFF",
+  borderSurface: "#E8E1F5",
+  cardBackground: "#FFFFFF",
+  mutedTextColor: "#756D84",
+  destructive: "#D96C83",
+  cardForeground: "#242033",
+  secondaryForeground: "#242033",
 };
 
 const dark = {
-  background: "#211613",
-  card: "#2D201C",
-  text: "#F4EAE4",
-  foreground: "#F4EAE4",
-  muted: "#3A2A25",
-  mutedForeground: "#9A8478",
-  mutedBackground: "#3A2A25",
-  border: "#402E29",
-  primary: "#D88939",
-  secondary: "#3A2A25",
-  accent: "#6A816A",
-  primaryForeground: "#211613",
-  borderSurface: "#402E29",
-  cardBackground: "#2D201C",
-  mutedTextColor: "#9A8478",
-  destructive: "#CE6C60",
-  cardForeground: "#F4EAE4",
-  secondaryForeground: "#F4EAE4",
+  background: "#171322",
+  card: "#241D35",
+  text: "#F7F3FF",
+  foreground: "#F7F3FF",
+  muted: "#302744",
+  mutedForeground: "#B8ACC9",
+  mutedBackground: "#302744",
+  border: "#403454",
+  primary: "#A78BFA",
+  secondary: "#C4B2FF",
+  accent: "#8B75C8",
+  primaryForeground: "#171322",
+  borderSurface: "#403454",
+  cardBackground: "#241D35",
+  mutedTextColor: "#B8ACC9",
+  destructive: "#F08BA0",
+  cardForeground: "#F7F3FF",
+  secondaryForeground: "#F7F3FF",
 };
 
 export function ThemeProvider({ children }) {
-  // We prefer a deliberate choice: default to dark to preserve brand identity.
+  // Keep the default appearance aligned with the new light lavender companion design.
   const [localTheme, setLocalTheme] = useState(null);
   const THEME_KEY = "APP_THEME";
 
@@ -73,8 +73,8 @@ export function ThemeProvider({ children }) {
     };
   }, []);
 
-  // Default to dark when the user hasn't selected a preference.
-  const effectiveTheme = localTheme || "dark";
+  // Default to the light lavender companion experience shown in the redesign reference.
+  const effectiveTheme = localTheme || "light";
   const colors = effectiveTheme === "dark" ? dark : light;
 
   const setTheme = async (theme) => {
@@ -90,26 +90,10 @@ export function ThemeProvider({ children }) {
     setTheme(effectiveTheme === "dark" ? "light" : "dark");
 
   const typography = {
-    heading: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      web: "Georgia",
-    }),
-    headingMedium: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      web: "Georgia",
-    }),
-    body: Platform.select({
-      ios: "DM Sans",
-      android: "sans-serif",
-      web: "system-ui",
-    }),
-    medium: Platform.select({
-      ios: "DM Sans",
-      android: "sans-serif",
-      web: "system-ui",
-    }),
+    heading: Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" }),
+    headingMedium: Platform.select({ ios: "System", android: "sans-serif-medium", web: "system-ui" }),
+    body: Platform.select({ ios: "System", android: "sans-serif", web: "system-ui" }),
+    medium: Platform.select({ ios: "System", android: "sans-serif-medium", web: "system-ui" }),
   };
 
   const value = {

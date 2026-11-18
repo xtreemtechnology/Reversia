@@ -22,7 +22,7 @@ const STATS = [
   },
   {
     iconName: "trending-up",
-    color: "#798C73", // secondary from theme
+    color: "#A78BFA", // secondary from theme
     labelKey: "sleepQuality",
     label: "Sleep Quality",
     suffix: "",
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 20,
     fontWeight: "800",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   label: {
     fontSize: 11,

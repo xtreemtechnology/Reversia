@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 26,
     fontWeight: "800",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   avatarAction: {
     flexDirection: "row",
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   avatarActionText: {
     fontSize: 13,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   editBadge: {
     position: "absolute",
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 22,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   email: {
     fontSize: 13,

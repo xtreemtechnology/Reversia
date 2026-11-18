@@ -28,7 +28,7 @@ const sl = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#9A8478",
+    color: "#756D84",
     marginBottom: 10,
   },
 });
@@ -139,7 +139,7 @@ export default function ExperimentDetailScreen({ navigation }) {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
@@ -169,8 +169,8 @@ export default function ExperimentDetailScreen({ navigation }) {
           style={[
             styles.progressCard,
             {
-              backgroundColor: "rgba(106,129,106,0.08)",
-              borderColor: "rgba(106,129,106,0.20)",
+              backgroundColor: "rgba(128,85,232,0.08)",
+              borderColor: "rgba(128,85,232,0.18)",
             },
           ]}
         >
@@ -178,10 +178,10 @@ export default function ExperimentDetailScreen({ navigation }) {
             <View
               style={[
                 styles.progressIcon,
-                { backgroundColor: "rgba(106,129,106,0.15)" },
+                { backgroundColor: "rgba(128,85,232,0.12)" },
               ]}
             >
-              <Ionicons name="walk-outline" size={26} color="#6A816A" />
+              <Ionicons name="walk-outline" size={26} color="#8B75C8" />
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -202,15 +202,15 @@ export default function ExperimentDetailScreen({ navigation }) {
                 styles.pctBadge,
                 {
                   backgroundColor: isDone
-                    ? "rgba(106,129,106,0.20)"
-                    : "rgba(216,137,57,0.15)",
+                    ? "rgba(128,85,232,0.18)"
+                    : "rgba(128,85,232,0.14)",
                 },
               ]}
             >
               <Text
                 style={[
                   styles.pctNum,
-                  { color: isDone ? "#6A816A" : "#D88939" },
+                  { color: isDone ? "#8B75C8" : "#8055E8" },
                 ]}
               >
                 {pct}%
@@ -232,10 +232,10 @@ export default function ExperimentDetailScreen({ navigation }) {
                     ]}
                   >
                     {done ? (
-                      <Ionicons name="checkmark" size={11} color="#211613" />
+                      <Ionicons name="checkmark" size={11} color="#F5F1FF" />
                     ) : (
                       <Text
-                        style={[styles.dotNum, curr && { color: "#D88939" }]}
+                        style={[styles.dotNum, curr && { color: "#8055E8" }]}
                       >
                         {i + 1}
                       </Text>
@@ -244,8 +244,8 @@ export default function ExperimentDetailScreen({ navigation }) {
                   <Text
                     style={[
                       styles.dayLabel,
-                      done && { color: "#6A816A" },
-                      curr && { color: "#D88939" },
+                      done && { color: "#8B75C8" },
+                      curr && { color: "#8055E8" },
                     ]}
                   >
                     {done ? "✓" : `D${i + 1}`}
@@ -323,14 +323,14 @@ export default function ExperimentDetailScreen({ navigation }) {
                 styles.noteCard,
                 {
                   backgroundColor: colors.card,
-                  borderColor: "rgba(216,137,57,0.25)",
+                  borderColor: "rgba(128,85,232,0.25)",
                 },
               ]}
             >
               <Ionicons
                 name="arrow-forward-circle"
                 size={16}
-                color="#D88939"
+                color="#8055E8"
                 style={{ marginRight: 10 }}
               />
               <Text style={[styles.noteText, { color: colors.foreground }]}>
@@ -351,13 +351,13 @@ export default function ExperimentDetailScreen({ navigation }) {
             },
             {
               icon: "flash-outline",
-              color: "#D88939",
+              color: "#8055E8",
               label: "Morning energy",
               desc: "Log your body check-in when you wake up.",
             },
             {
               icon: "restaurant-outline",
-              color: "#6A816A",
+              color: "#8B75C8",
               label: "Evening cravings",
               desc: "Do you feel less hungry before bed?",
             },
@@ -433,7 +433,7 @@ export default function ExperimentDetailScreen({ navigation }) {
                 </View>
                 <View style={styles.compareDivider} />
                 <View style={styles.compareCol}>
-                  <Text style={[styles.compareLabel, { color: "#D88939" }]}>During Walk Test</Text>
+                  <Text style={[styles.compareLabel, { color: "#8055E8" }]}>During Walk Test</Text>
                   <Text style={[styles.compareVal, { color: comparison.energyImproved ? "#10B981" : colors.foreground }]}>
                     {comparison.duringEnergy} / 10 {comparison.energyImproved ? "↑" : ""}
                   </Text>
@@ -502,7 +502,7 @@ export default function ExperimentDetailScreen({ navigation }) {
             <Ionicons
               name="refresh"
               size={14}
-              color="#9A8478"
+              color="#756D84"
               style={{ marginRight: 7 }}
             />
             <Text style={styles.restartText}>Restart experiment</Text>
@@ -573,23 +573,23 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1.5,
-    borderColor: "#402E29",
+    borderColor: "#E8E1F5",
     alignItems: "center",
     justifyContent: "center",
   },
-  dotDone: { backgroundColor: "#D88939", borderColor: "#D88939" },
-  dotCurrent: { borderColor: "#D88939" },
-  dotNum: { fontSize: 11, color: "#9A8478", fontWeight: "700" },
-  dayLabel: { fontSize: 9, color: "#9A8478", fontWeight: "600" },
+  dotDone: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
+  dotCurrent: { borderColor: "#8055E8" },
+  dotNum: { fontSize: 11, color: "#756D84", fontWeight: "700" },
+  dayLabel: { fontSize: 9, color: "#756D84", fontWeight: "600" },
   track: {
     height: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 2,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: "#6A816A", borderRadius: 2 },
+  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
   progressLabelRow: { marginBottom: 18 },
   progressLabel: { fontSize: 12 },
   btn: {
@@ -681,18 +681,18 @@ const styles = StyleSheet.create({
   secBtnText: { fontSize: 14, fontWeight: "700" },
   primaryBtn: {
     flex: 2,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 18,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryBtnText: { fontSize: 14, fontWeight: "800", color: "#211613" },
+  primaryBtnText: { fontSize: 14, fontWeight: "800", color: "#F5F1FF" },
   restartBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
   },
-  restartText: { fontSize: 13, color: "#9A8478" },
+  restartText: { fontSize: 13, color: "#756D84" },
 });

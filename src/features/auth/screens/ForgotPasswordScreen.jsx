@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen({ navigation, route }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <TouchableOpacity
         onPress={() => navigation.goBack()}
@@ -156,13 +156,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 23,
   },
   ctaGroup: {

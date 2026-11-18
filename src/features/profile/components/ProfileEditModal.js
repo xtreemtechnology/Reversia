@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     marginBottom: 4,
   },
   fieldGroup: {
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: "600",
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
   },
   actions: {
     flexDirection: "row",

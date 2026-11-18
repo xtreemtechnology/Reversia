@@ -15,6 +15,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
+import MoodFace from "../../../components/MoodFace";
 
 const MOODS = [
   { key: "great", emoji: "😄", label: "Great" },
@@ -38,8 +39,8 @@ const SYMPTOMS = [
 const ENERGY_LEVELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const SLEEP_HOURS = ["4", "5", "6", "7", "8", "9", "10+"];
 
-export default function BodyCheckScreen({ navigation }) {
-  const [selectedMood, setSelectedMood] = useState(null);
+export default function BodyCheckScreen({ navigation, route }) {
+  const [selectedMood, setSelectedMood] = useState(route?.params?.initialMood || null);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [energyLevel, setEnergyLevel] = useState(null);
   const [sleepHours, setSleepHours] = useState(null);
@@ -132,7 +133,7 @@ export default function BodyCheckScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -140,7 +141,7 @@ export default function BodyCheckScreen({ navigation }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Body Check</Text>
@@ -156,7 +157,7 @@ export default function BodyCheckScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={styles.cardIconBadge}>
-              <Ionicons name="happy-outline" size={18} color="#6A816A" />
+              <Ionicons name="happy-outline" size={18} color="#8B75C8" />
             </View>
             <Text style={styles.cardLabel}>Overall Mood</Text>
           </View>
@@ -170,7 +171,7 @@ export default function BodyCheckScreen({ navigation }) {
                   activeOpacity={0.8}
                   style={[styles.moodItem, active && styles.moodItemActive]}
                 >
-                  <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+                  <MoodFace mood={mood.key} size={42} selected={active} />
                   <Text
                     style={[styles.moodLabel, active && styles.moodLabelActive]}
                   >
@@ -185,7 +186,7 @@ export default function BodyCheckScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={[styles.cardIconBadge, styles.energyBadge]}>
-              <Ionicons name="flash-outline" size={18} color="#D88939" />
+              <Ionicons name="flash-outline" size={18} color="#8055E8" />
             </View>
             <Text style={styles.cardLabel}>Energy Level</Text>
             {energyLevel ? (
@@ -223,7 +224,7 @@ export default function BodyCheckScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={[styles.cardIconBadge, styles.sleepBadge]}>
-              <Ionicons name="moon-outline" size={18} color="#E3B372" />
+              <Ionicons name="moon-outline" size={18} color="#A78BFA" />
             </View>
             <Text style={styles.cardLabel}>Sleep Last Night</Text>
             {sleepHours ? (
@@ -309,7 +310,7 @@ export default function BodyCheckScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#211613",
+    backgroundColor: "#F5F1FF",
   },
   scroll: {
     paddingBottom: 48,
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -337,21 +338,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   headerSub: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -362,16 +363,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(106,129,106,0.15)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
   energyBadge: {
-    backgroundColor: "rgba(216,137,57,0.15)",
+    backgroundColor: "rgba(128,85,232,0.14)",
   },
   sleepBadge: {
-    backgroundColor: "rgba(227,179,114,0.15)",
+    backgroundColor: "rgba(167,139,250,0.16)",
   },
   symptomBadge: {
     backgroundColor: "rgba(206,108,96,0.15)",
@@ -379,19 +380,19 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     flex: 1,
   },
   cardOptional: {
     fontSize: 11,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "500",
   },
   cardValueBadge: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#D88939",
-    backgroundColor: "rgba(216,137,57,0.15)",
+    color: "#8055E8",
+    backgroundColor: "rgba(128,85,232,0.14)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -407,24 +408,24 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: "transparent",
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     marginHorizontal: 3,
   },
   moodItemActive: {
-    borderColor: "#6A816A",
-    backgroundColor: "rgba(106,129,106,0.15)",
+    borderColor: "#8B75C8",
+    backgroundColor: "rgba(128,85,232,0.12)",
   },
   moodEmoji: {
     fontSize: 22,
   },
   moodLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 4,
     fontWeight: "500",
   },
   moodLabelActive: {
-    color: "#6A816A",
+    color: "#8B75C8",
     fontWeight: "700",
   },
   scaleRow: {
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
@@ -446,16 +447,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scaleBtnActive: {
-    backgroundColor: "rgba(216,137,57,0.15)",
-    borderColor: "#D88939",
+    backgroundColor: "rgba(128,85,232,0.14)",
+    borderColor: "#8055E8",
   },
   scaleBtnText: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "600",
   },
   scaleBtnTextActive: {
-    color: "#D88939",
+    color: "#8055E8",
     fontWeight: "700",
   },
   scaleLabels: {
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
   },
   scaleLabelText: {
     fontSize: 11,
-    color: "#9A8478",
+    color: "#756D84",
   },
   chipWrap: {
     flexDirection: "row",
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
@@ -486,7 +487,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "500",
   },
   chipTextActive: {
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -503,11 +504,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveBtnDisabled: {
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
   },
   saveBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#211613",
+    color: "#F5F1FF",
   },
 });

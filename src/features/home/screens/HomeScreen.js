@@ -20,6 +20,9 @@ import SolarIcon from "../../../components/SolarIcon";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import { useUserProfile } from "../../../hooks/useUserProfile";
 import GlucoseTrendChart from "../components/GlucoseTrendChart";
+import { LinearGradient } from "expo-linear-gradient";
+import CompanionBuddy from "../../../components/CompanionBuddy";
+import MoodFace from "../../../components/MoodFace";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -210,8 +213,8 @@ function useDerivedState(logs = []) {
     if (!bodyCheckToday) {
       nextAction = {
         icon: "happy-outline",
-        iconColor: "#6A816A",
-        iconBg: "rgba(106,129,106,0.15)",
+        iconColor: "#8B75C8",
+        iconBg: "rgba(128,85,232,0.12)",
         title: "Log a body check-in",
         impact: latestMeal
           ? `You already logged ${latestMealLabel}; a body check-in completes the morning picture.`
@@ -223,8 +226,8 @@ function useDerivedState(logs = []) {
     } else if (waterCount < 3) {
       nextAction = {
         icon: "water-outline",
-        iconColor: "#E3B372",
-        iconBg: "rgba(227,179,114,0.15)",
+        iconColor: "#A78BFA",
+        iconBg: "rgba(167,139,250,0.16)",
         title: "Drink a glass of water",
         impact: latestMeal
           ? `${latestMealLabel} is already in your log. Water helps the app see how that meal is landing.`
@@ -236,7 +239,7 @@ function useDerivedState(logs = []) {
     } else if (!lunchLogged) {
       nextAction = {
         icon: "restaurant-outline",
-        iconColor: "#9A8478",
+        iconColor: "#756D84",
         iconBg: "rgba(154,132,120,0.15)",
         title: "Log your lunch",
         impact: lunchImpact,
@@ -247,8 +250,8 @@ function useDerivedState(logs = []) {
     } else if (waterCount < waterGoal) {
       nextAction = {
         icon: "water-outline",
-        iconColor: "#E3B372",
-        iconBg: "rgba(227,179,114,0.15)",
+        iconColor: "#A78BFA",
+        iconBg: "rgba(167,139,250,0.16)",
         title: `${waterGoal - waterCount} more glasses to hit your goal`,
         impact: latestMeal
           ? `You're on track after ${latestMealLabel}. Keep hydration going to keep the pattern readable.`
@@ -260,8 +263,8 @@ function useDerivedState(logs = []) {
     } else {
       nextAction = {
         icon: "moon-outline",
-        iconColor: "#D88939",
-        iconBg: "rgba(216,137,57,0.15)",
+        iconColor: "#8055E8",
+        iconBg: "rgba(128,85,232,0.14)",
         title: latestMeal
           ? `${latestMealLabel} is already shaping today`
           : "You're doing well today",
@@ -407,7 +410,7 @@ function TodaysStoryProgress({ storySteps, storyCompleted }) {
             <Ionicons
               name={s.done ? "checkmark-circle" : "ellipse-outline"}
               size={12}
-              color={s.done ? "#6A816A" : "#402E29"}
+              color={s.done ? "#8B75C8" : "#E8E1F5"}
               style={sp.pillIcon}
             />
             <Text style={[sp.pillText, s.done && sp.pillTextDone]}>
@@ -422,7 +425,7 @@ function TodaysStoryProgress({ storySteps, storyCompleted }) {
           <Ionicons
             name="partly-sunny-outline"
             size={13}
-            color="#9A8478"
+            color="#756D84"
             style={sp.nudgeIcon}
           />
           <Text style={sp.nudgeText}>
@@ -436,20 +439,20 @@ function TodaysStoryProgress({ storySteps, storyCompleted }) {
 
 const sp = StyleSheet.create({
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   topRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 14 },
   titleCol: { flex: 1 },
   label: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#9A8478",
+    color: "#756D84",
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -457,33 +460,33 @@ const sp = StyleSheet.create({
   headline: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     lineHeight: 22,
   },
   pctBadge: {
-    backgroundColor: "rgba(106,129,106,0.15)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 8,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(106,129,106,0.25)",
+    borderColor: "rgba(128,85,232,0.22)",
   },
-  pctNum: { fontSize: 18, fontWeight: "700", color: "#6A816A" },
-  pctSub: { fontSize: 9, color: "#9A8478", marginTop: 1 },
+  pctNum: { fontSize: 18, fontWeight: "700", color: "#8B75C8" },
+  pctSub: { fontSize: 9, color: "#756D84", marginTop: 1 },
   track: {
     height: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 2,
     marginBottom: 16,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: "#6A816A", borderRadius: 2 },
+  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 14 },
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -492,11 +495,11 @@ const sp = StyleSheet.create({
   },
   pillIcon: { marginRight: 5 },
   pillDone: {
-    backgroundColor: "rgba(106,129,106,0.12)",
-    borderColor: "rgba(106,129,106,0.25)",
+    backgroundColor: "rgba(128,85,232,0.10)",
+    borderColor: "rgba(128,85,232,0.22)",
   },
-  pillText: { fontSize: 11, color: "#9A8478", fontWeight: "500" },
-  pillTextDone: { color: "#6A816A", fontWeight: "600" },
+  pillText: { fontSize: 11, color: "#756D84", fontWeight: "500" },
+  pillTextDone: { color: "#8B75C8", fontWeight: "600" },
   nudge: {
     flexDirection: "row",
     alignItems: "center",
@@ -505,7 +508,7 @@ const sp = StyleSheet.create({
     padding: 10,
   },
   nudgeIcon: { marginRight: 6 },
-  nudgeText: { fontSize: 12, color: "#9A8478", flex: 1, lineHeight: 17 },
+  nudgeText: { fontSize: 12, color: "#756D84", flex: 1, lineHeight: 17 },
 });
 
 // ─────────────────────────────────────────────
@@ -554,24 +557,24 @@ function NextBestAction({ action, navigation }) {
 
 const nb = StyleSheet.create({
   outer: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 4,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     overflow: "hidden",
   },
   inner: {
-    backgroundColor: "rgba(216,137,57,0.07)",
+    backgroundColor: "rgba(128,85,232,0.08)",
     borderRadius: 24,
     padding: 20,
   },
   sectionLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#9A8478",
+    color: "#756D84",
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 14,
@@ -594,11 +597,11 @@ const nb = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     marginBottom: 5,
     lineHeight: 22,
   },
-  impact: { fontSize: 13, color: "#9A8478", lineHeight: 18 },
+  impact: { fontSize: 13, color: "#756D84", lineHeight: 18 },
   ctaBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -622,7 +625,7 @@ function ClarityCard({ clarity }) {
       <View style={cc.glowBottomLeft} />
       <View style={cc.headerRow}>
         <View style={cc.iconBadge}>
-          <SolarIcon name="focus-star-bold" size={20} color="#6A816A" />
+          <SolarIcon name="focus-star-bold" size={20} color="#8B75C8" />
         </View>
         <View style={cc.headerTextCol}>
           <Text style={cc.title}>{clarity.title}</Text>
@@ -645,7 +648,7 @@ function ClarityCard({ clarity }) {
         <Ionicons
           name="git-branch-outline"
           size={12}
-          color="#D88939"
+          color="#8055E8"
           style={cc.patternIcon}
         />
         <Text style={cc.patternText}>{clarity.patternText}</Text>
@@ -656,13 +659,13 @@ function ClarityCard({ clarity }) {
 
 const cc = StyleSheet.create({
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     overflow: "hidden",
   },
   glowTopRight: {
@@ -672,7 +675,7 @@ const cc = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
   },
   glowBottomLeft: {
     position: "absolute",
@@ -681,7 +684,7 @@ const cc = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(106,129,106,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
   },
   headerRow: {
     flexDirection: "row",
@@ -693,40 +696,40 @@ const cc = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(106,129,106,0.20)",
+    backgroundColor: "rgba(128,85,232,0.18)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
     marginTop: 2,
   },
-  title: { fontSize: 18, fontWeight: "700", color: "#F4EAE4", marginBottom: 6 },
+  title: { fontSize: 18, fontWeight: "700", color: "#242033", marginBottom: 6 },
   confidenceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  confidenceLabel: { fontSize: 11, color: "#9A8478" },
+  confidenceLabel: { fontSize: 11, color: "#756D84" },
   dotRow: { flexDirection: "row", gap: 3 },
   dot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1,
-    borderColor: "#402E29",
+    borderColor: "#E8E1F5",
   },
-  dotFilled: { backgroundColor: "#D88939", borderColor: "#D88939" },
-  confidenceVal: { fontSize: 11, color: "#D88939", fontWeight: "600" },
-  body: { fontSize: 14, color: "#9A8478", lineHeight: 21, marginBottom: 14 },
+  dotFilled: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
+  confidenceVal: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
+  body: { fontSize: 14, color: "#756D84", lineHeight: 21, marginBottom: 14 },
   patternChip: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
   },
   patternIcon: { marginRight: 5 },
-  patternText: { fontSize: 11, color: "#D88939", fontWeight: "600" },
+  patternText: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
 });
 
 // ─────────────────────────────────────────────
@@ -813,7 +816,7 @@ function TodaysFocusCard({
     <View style={tf.outer}>
       <View style={tf.inner}>
         <View style={tf.headerRow}>
-          <SolarIcon name="sun-fog-bold" size={18} color="#D88939" />
+          <SolarIcon name="sun-fog-bold" size={18} color="#8055E8" />
           <Text style={tf.overline}>TODAY'S FOCUS</Text>
         </View>
         <Text style={tf.headline}>{headline}</Text>
@@ -822,7 +825,7 @@ function TodaysFocusCard({
             <Ionicons
               name="arrow-forward-circle"
               size={15}
-              color="#D88939"
+              color="#8055E8"
               style={tf.actionIcon}
             />
             <Text style={tf.actionLabel}>RECOMMENDED ACTION</Text>
@@ -834,7 +837,7 @@ function TodaysFocusCard({
             <Ionicons
               name="information-circle"
               size={17}
-              color="#9A8478"
+              color="#756D84"
               style={tf.whyIcon}
             />
             <View style={tf.whyTextCol}>
@@ -850,17 +853,17 @@ function TodaysFocusCard({
 
 const tf = StyleSheet.create({
   outer: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 4,
     marginHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     overflow: "hidden",
   },
   inner: {
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 24,
     padding: 20,
   },
@@ -868,7 +871,7 @@ const tf = StyleSheet.create({
   overline: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#D88939",
+    color: "#8055E8",
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginLeft: 8,
@@ -876,18 +879,18 @@ const tf = StyleSheet.create({
   headline: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     lineHeight: 30,
     letterSpacing: -0.3,
     marginBottom: 14,
   },
   actionBox: {
-    backgroundColor: "rgba(216,137,57,0.12)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     borderRadius: 14,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
   },
   actionLabelRow: {
     flexDirection: "row",
@@ -898,10 +901,10 @@ const tf = StyleSheet.create({
   actionLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#D88939",
+    color: "#8055E8",
     letterSpacing: 0.6,
   },
-  actionBody: { fontSize: 13, color: "#F4EAE4", lineHeight: 19, opacity: 0.85 },
+  actionBody: { fontSize: 13, color: "#242033", lineHeight: 19, opacity: 0.85 },
   whyBox: {
     backgroundColor: "rgba(33,22,19,0.40)",
     borderRadius: 14,
@@ -913,10 +916,10 @@ const tf = StyleSheet.create({
   whyTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     marginBottom: 4,
   },
-  whyBody: { fontSize: 13, color: "#9A8478", lineHeight: 19 },
+  whyBody: { fontSize: 13, color: "#756D84", lineHeight: 19 },
 });
 
 // ─────────────────────────────────────────────
@@ -929,8 +932,8 @@ function QuickActions({ navigation, derived }) {
     {
       icon: "body-check-bold",
       isSolar: true,
-      color: "#6A816A",
-      bg: "rgba(106,129,106,0.15)",
+      color: "#8B75C8",
+      bg: "rgba(128,85,232,0.12)",
       label: "Body Check",
       sub: bodyCheckToday ? "Checked in today" : "Log how you feel",
       dimmed: bodyCheckToday,
@@ -939,8 +942,8 @@ function QuickActions({ navigation, derived }) {
     {
       icon: "repeat-meal-bold",
       isSolar: true,
-      color: "#D88939",
-      bg: "rgba(216,137,57,0.15)",
+      color: "#8055E8",
+      bg: "rgba(128,85,232,0.14)",
       label: "Repeat Meal",
       sub: latestMeal
         ? `Repeat ${latestMeal.type || "last"} meal`
@@ -954,7 +957,7 @@ function QuickActions({ navigation, derived }) {
     {
       icon: "plate-bold-duotone",
       isSolar: true,
-      color: "#9A8478",
+      color: "#756D84",
       bg: "rgba(154,132,120,0.15)",
       label: "Log Meal",
       sub: lunchLogged ? "Lunch already logged" : "No lunch logged yet",
@@ -964,8 +967,8 @@ function QuickActions({ navigation, derived }) {
     {
       icon: "water-outline",
       isSolar: false,
-      color: "#E3B372",
-      bg: "rgba(227,179,114,0.15)",
+      color: "#A78BFA",
+      bg: "rgba(167,139,250,0.16)",
       label: "Log Water",
       sub:
         waterCount > 0
@@ -999,7 +1002,7 @@ function QuickActions({ navigation, derived }) {
               <Ionicons
                 name="checkmark-circle"
                 size={13}
-                color="#6A816A"
+                color="#8B75C8"
                 style={qa.doneIcon}
               />
               <Text style={qa.doneBadgeText}>Done</Text>
@@ -1019,14 +1022,14 @@ const qa = StyleSheet.create({
     paddingHorizontal: 24,
   },
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     width: "47.5%",
     paddingVertical: 20,
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     marginBottom: 16,
   },
   cardDimmed: { opacity: 0.65 },
@@ -1041,12 +1044,12 @@ const qa = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     textAlign: "center",
   },
   sub: {
     fontSize: 11,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 4,
     textAlign: "center",
     paddingHorizontal: 8,
@@ -1056,13 +1059,13 @@ const qa = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
-    backgroundColor: "rgba(106,129,106,0.12)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
   doneIcon: { marginRight: 3 },
-  doneBadgeText: { fontSize: 10, color: "#6A816A", fontWeight: "700" },
+  doneBadgeText: { fontSize: 10, color: "#8B75C8", fontWeight: "700" },
 });
 
 // ─────────────────────────────────────────────
@@ -1081,7 +1084,7 @@ function RecentWins({ wins }) {
       <View style={rw.card}>
         <View style={rw.headerRow}>
           <View style={rw.iconBadge}>
-            <Ionicons name="ribbon-outline" size={18} color="#6A816A" />
+            <Ionicons name="ribbon-outline" size={18} color="#8B75C8" />
           </View>
           <View>
             <Text style={rw.title}>Recent Wins</Text>
@@ -1100,7 +1103,7 @@ function RecentWins({ wins }) {
     <View style={rw.card}>
       <View style={rw.headerRow}>
         <View style={rw.iconBadge}>
-          <Ionicons name="ribbon-outline" size={18} color="#6A816A" />
+          <Ionicons name="ribbon-outline" size={18} color="#8B75C8" />
         </View>
         <View>
           <Text style={rw.title}>Recent Wins</Text>
@@ -1125,13 +1128,13 @@ function RecentWins({ wins }) {
 
 const rw = StyleSheet.create({
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   headerRow: {
     flexDirection: "row",
@@ -1143,37 +1146,37 @@ const rw = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "rgba(106,129,106,0.15)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 16, fontWeight: "700", color: "#F4EAE4" },
-  subtitle: { fontSize: 12, color: "#9A8478", marginTop: 2 },
+  title: { fontSize: 16, fontWeight: "700", color: "#242033" },
+  subtitle: { fontSize: 12, color: "#756D84", marginTop: 2 },
   winRow: { flexDirection: "row", alignItems: "flex-start" },
   timelineCol: { width: 20, alignItems: "center", marginRight: 14 },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#6A816A",
+    backgroundColor: "#8B75C8",
     marginTop: 5,
   },
   line: {
     width: 1.5,
     flex: 1,
-    backgroundColor: "rgba(106,129,106,0.20)",
+    backgroundColor: "rgba(128,85,232,0.18)",
     marginTop: 4,
     minHeight: 22,
   },
   winTextCol: { flex: 1, paddingBottom: 18 },
   winText: {
     fontSize: 14,
-    color: "#F4EAE4",
+    color: "#242033",
     fontWeight: "500",
     lineHeight: 20,
   },
-  winWhen: { fontSize: 11, color: "#9A8478", marginTop: 3 },
-  emptyState: { fontSize: 13, color: "#9A8478", lineHeight: 19 },
+  winWhen: { fontSize: 11, color: "#756D84", marginTop: 3 },
+  emptyState: { fontSize: 13, color: "#756D84", lineHeight: 19 },
 });
 
 // ─────────────────────────────────────────────
@@ -1188,7 +1191,7 @@ function WeeklyMomentum({ momentum }) {
     <View style={wm.card}>
       <View style={wm.headerRow}>
         <View style={wm.iconBadge}>
-          <Ionicons name="trending-up-outline" size={18} color="#D88939" />
+          <Ionicons name="trending-up-outline" size={18} color="#8055E8" />
         </View>
         <View>
           <Text style={wm.title}>Weekly Momentum</Text>
@@ -1203,7 +1206,7 @@ function WeeklyMomentum({ momentum }) {
       ) : (
         momentum.map((item, index) => {
           const delta = item.current - item.previous;
-          const deltaColor = delta >= 0 ? "#6A816A" : "#CE6C60";
+          const deltaColor = delta >= 0 ? "#8B75C8" : "#CE6C60";
           const deltaLabel =
             item.previous === 0
               ? item.current > 0
@@ -1244,13 +1247,13 @@ function WeeklyMomentum({ momentum }) {
 
 const wm = StyleSheet.create({
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   headerRow: {
     flexDirection: "row",
@@ -1262,12 +1265,12 @@ const wm = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "rgba(216,137,57,0.15)",
+    backgroundColor: "rgba(128,85,232,0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 16, fontWeight: "700", color: "#F4EAE4" },
-  subtitle: { fontSize: 12, color: "#9A8478", marginTop: 2 },
+  title: { fontSize: 16, fontWeight: "700", color: "#242033" },
+  subtitle: { fontSize: 12, color: "#756D84", marginTop: 2 },
   trendRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1278,32 +1281,32 @@ const wm = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.04)",
   },
-  trendLabel: { fontSize: 14, color: "#F4EAE4", fontWeight: "500" },
+  trendLabel: { fontSize: 14, color: "#242033", fontWeight: "500" },
   trendRight: { flexDirection: "row", alignItems: "center" },
   trendCurrent: {
     fontSize: 12,
-    color: "#F4EAE4",
+    color: "#242033",
     fontWeight: "600",
     marginRight: 6,
   },
   trendArrow: { marginRight: 3 },
   trendDelta: { fontSize: 14, fontWeight: "700" },
-  emptyState: { fontSize: 13, color: "#9A8478", lineHeight: 19 },
+  emptyState: { fontSize: 13, color: "#756D84", lineHeight: 19 },
 });
 
 // ─────────────────────────────────────────────
 // Theme colors passed to chart components
 // ─────────────────────────────────────────────
 const HOME_COLORS = {
-  card: "#2D201C",
-  border: "rgba(255,255,255,0.05)",
-  text: "#F4EAE4",
-  textMuted: "#9A8478",
-  accent: "#D88939",
-  green: "#6A816A",
-  amber: "#D88939",
+  card: "#FFFFFF",
+  border: "#E8E1F5",
+  text: "#242033",
+  textMuted: "#756D84",
+  accent: "#8055E8",
+  green: "#8B75C8",
+  amber: "#8055E8",
   red: "#CE6C60",
-  background: "#211613",
+  background: "#F5F1FF",
 };
 
 // ─────────────────────────────────────────────
@@ -1339,7 +1342,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -1365,6 +1368,54 @@ export default function HomeScreen({ navigation }) {
               </View>
             )}
           </TouchableOpacity>
+        </View>
+
+        {/* Companion check-in — a quick, friendly entry point into the existing body-check flow. */}
+        <View style={styles.moodCard}>
+          <LinearGradient
+            pointerEvents="none"
+            colors={["#FFFFFF", "#F2ECFF"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.moodCardHeader}>
+            <View style={styles.moodCardCopy}>
+              <Text style={styles.moodEyebrow}>A MOMENT FOR YOU</Text>
+              <Text style={styles.moodTitle}>How are you feeling today?</Text>
+              <Text style={styles.moodSubtitle}>A quick check-in helps Reversia understand your day.</Text>
+            </View>
+            <View style={styles.moodBuddy}>
+              <CompanionBuddy size={66} />
+            </View>
+          </View>
+          <View style={styles.moodChoices}>
+            {[
+              { key: "great", label: "Great", emoji: "😄", tint: "#E8DFFF" },
+              { key: "good", label: "Good", emoji: "🙂", tint: "#EDE5FF" },
+              { key: "okay", label: "Okay", emoji: "😐", tint: "#F1EDFA" },
+              { key: "low", label: "Low", emoji: "😔", tint: "#E8EAFB" },
+              { key: "rough", label: "Rough", emoji: "😣", tint: "#F9E8F0" },
+            ].map((mood) => (
+              <TouchableOpacity
+                key={mood.key}
+                activeOpacity={0.78}
+                accessibilityRole="button"
+                accessibilityLabel={`Feeling ${mood.label}. Continue to body check-in`}
+                onPress={() => navigation.navigate("BodyCheck", { initialMood: mood.key })}
+                style={styles.moodChoice}
+              >
+                <View style={styles.moodEmojiWrap}><MoodFace mood={mood.key} size={44} /></View>
+                <Text style={styles.moodChoiceLabel}>{mood.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {bodyCheckToday ? (
+            <View style={styles.moodDoneRow}>
+              <Ionicons name="checkmark-circle" size={15} color="#6D55B5" />
+              <Text style={styles.moodDoneText}>You've checked in today — you can add another anytime.</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* ① Story Progress */}
@@ -1411,7 +1462,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#211613" },
+  container: { flex: 1, backgroundColor: "#F5F1FF" },
   scrollContent: { paddingBottom: 120 },
 
   header: {
@@ -1427,12 +1478,12 @@ const styles = StyleSheet.create({
   greetingTitle: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     letterSpacing: -0.5,
   },
   greetingSub: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 5,
     lineHeight: 18,
   },
@@ -1449,18 +1500,45 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
   },
   profileFallbackText: {
-    color: "#D88939",
+    color: "#8055E8",
     fontSize: 18,
     fontWeight: "700",
   },
 
+  moodCard: {
+    marginHorizontal: 20,
+    marginBottom: 22,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: "#E8E1F5",
+    overflow: "hidden",
+    shadowColor: "#6E50B5",
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  moodCardHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  moodCardCopy: { flex: 1, paddingRight: 12 },
+  moodEyebrow: { color: "#8055E8", fontSize: 10, fontWeight: "800", letterSpacing: 1.25, marginBottom: 7 },
+  moodTitle: { color: "#242033", fontSize: 19, lineHeight: 25, fontWeight: "800", letterSpacing: -0.35 },
+  moodSubtitle: { color: "#756D84", fontSize: 12, lineHeight: 18, marginTop: 5, maxWidth: 280 },
+  moodBuddy: { width: 68, height: 68, alignItems: "center", justifyContent: "center", marginTop: -8, marginRight: -5 },
+  moodChoices: { flexDirection: "row", justifyContent: "space-between", marginTop: 18, gap: 5 },
+  moodChoice: { flex: 1, alignItems: "center", gap: 7 },
+  moodEmojiWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(128,85,232,0.08)" },
+  moodEmoji: { fontSize: 23 },
+  moodChoiceLabel: { color: "#5D566B", fontSize: 10, fontWeight: "600" },
+  moodDoneRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#E8E1F5" },
+  moodDoneText: { color: "#6D55B5", fontSize: 11, flex: 1 },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     paddingHorizontal: 26,
     marginBottom: 14,
     marginTop: 4,

@@ -105,13 +105,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     marginBottom: 2,
   },
   body: {
     fontSize: 14,
     lineHeight: 21,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   placeholder: {
     marginTop: 10,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 12,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
   },
 });

@@ -67,11 +67,11 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   const theme = useTheme();
   const colors = useMemo(
     () => ({
-      background: "#231F1C",
-      foreground: "#F5F5F4",
-      muted: "#A8A29E",
-      card: "#2D2825",
-      primary: "#E07A5F",
+      background: "#F5F1FF",
+      foreground: "#242033",
+      muted: "#756D84",
+      card: "#FFFFFF",
+      primary: "#8055E8",
       ...theme.colors,
     }),
     [theme]

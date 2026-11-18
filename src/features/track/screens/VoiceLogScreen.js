@@ -77,8 +77,8 @@ const wave = StyleSheet.create({
     borderRadius: 2,
     marginHorizontal: 3,
   },
-  active: { backgroundColor: "#D88939" },
-  inactive: { backgroundColor: "#3A2A25" },
+  active: { backgroundColor: "#8055E8" },
+  inactive: { backgroundColor: "#F0E9FF" },
 });
 
 export default function VoiceLogScreen({ navigation, route }) {
@@ -189,14 +189,14 @@ export default function VoiceLogScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
           style={styles.backBtn}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Voice Log</Text>
@@ -212,7 +212,7 @@ export default function VoiceLogScreen({ navigation, route }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={styles.iconBadge}>
-              <Ionicons name="restaurant-outline" size={15} color="#9A8478" />
+              <Ionicons name="restaurant-outline" size={15} color="#756D84" />
             </View>
             <Text style={styles.cardLabel}>Meal Type</Text>
           </View>
@@ -257,7 +257,7 @@ export default function VoiceLogScreen({ navigation, route }) {
           {transcribing ? (
             <ActivityIndicator
               size="large"
-              color="#D88939"
+              color="#8055E8"
               style={{ marginVertical: 22 }}
             />
           ) : (
@@ -281,18 +281,18 @@ export default function VoiceLogScreen({ navigation, route }) {
             style={[
               styles.micBtn,
               isRecording && styles.micBtnActive,
-              transcribing && { backgroundColor: "#3A2A25" },
+              transcribing && { backgroundColor: "#F0E9FF" },
             ]}
           >
             {transcribing ? (
-              <ActivityIndicator size="small" color="#D88939" />
+              <ActivityIndicator size="small" color="#8055E8" />
             ) : isRecording ? (
-              <Ionicons name="stop" size={28} color="#211613" />
+              <Ionicons name="stop" size={28} color="#F5F1FF" />
             ) : (
               <Ionicons
                 name="mic"
                 size={28}
-                color={hasRecorded ? "#F4EAE4" : "#211613"}
+                color={hasRecorded ? "#242033" : "#F5F1FF"}
               />
             )}
           </TouchableOpacity>
@@ -312,7 +312,7 @@ export default function VoiceLogScreen({ navigation, route }) {
           <View style={styles.transcriptCard}>
             <View style={styles.cardLabelRow}>
               <View style={[styles.iconBadge, styles.iconBadgeMuted]}>
-                <Ionicons name="text-outline" size={15} color="#6A816A" />
+                <Ionicons name="text-outline" size={15} color="#8B75C8" />
               </View>
               <Text style={styles.cardLabel}>What I heard</Text>
               <TouchableOpacity
@@ -330,7 +330,7 @@ export default function VoiceLogScreen({ navigation, route }) {
               <Ionicons
                 name="information-circle"
                 size={14}
-                color="#9A8478"
+                color="#756D84"
                 style={styles.iconMR7}
               />
               <Text style={styles.transcriptHintText}>
@@ -344,7 +344,7 @@ export default function VoiceLogScreen({ navigation, route }) {
           <View style={styles.card}>
             <View style={styles.cardLabelRow}>
               <View style={styles.iconBadge}>
-                <Ionicons name="bulb-outline" size={15} color="#9A8478" />
+                <Ionicons name="bulb-outline" size={15} color="#756D84" />
               </View>
               <Text style={styles.cardLabel}>Try saying...</Text>
             </View>
@@ -381,7 +381,7 @@ export default function VoiceLogScreen({ navigation, route }) {
           <Ionicons
             name="checkmark-circle-outline"
             size={18}
-            color={canSave ? "#211613" : "#9A8478"}
+            color={canSave ? "#F5F1FF" : "#756D84"}
             style={styles.iconMR8}
           />
           <Text
@@ -396,7 +396,7 @@ export default function VoiceLogScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#211613" },
+  container: { flex: 1, backgroundColor: "#F5F1FF" },
   scroll: { paddingBottom: 48 },
 
   header: {
@@ -411,23 +411,23 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#F4EAE4" },
-  headerSub: { fontSize: 12, color: "#9A8478", marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: "#242033" },
+  headerSub: { fontSize: 12, color: "#756D84", marginTop: 2 },
 
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 16,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 10,
   },
-  cardLabel: { fontSize: 14, fontWeight: "700", color: "#F4EAE4", flex: 1 },
+  cardLabel: { fontSize: 14, fontWeight: "700", color: "#242033", flex: 1 },
   clearText: { fontSize: 12, color: "#CE6C60", fontWeight: "600" },
 
   mealTypeRow: { flexDirection: "row", gap: 8 },
@@ -451,32 +451,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     borderRadius: 14,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTypeBtnActive: {
-    backgroundColor: "rgba(216,137,57,0.15)",
-    borderColor: "#D88939",
+    backgroundColor: "rgba(128,85,232,0.14)",
+    borderColor: "#8055E8",
   },
-  mealTypeBtnText: { fontSize: 12, color: "#9A8478", fontWeight: "600" },
-  mealTypeBtnTextActive: { color: "#D88939", fontWeight: "700" },
+  mealTypeBtnText: { fontSize: 12, color: "#756D84", fontWeight: "600" },
+  mealTypeBtnTextActive: { color: "#8055E8", fontWeight: "700" },
 
   recordCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 28,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     alignItems: "center",
   },
   recordStateLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#9A8478",
+    color: "#756D84",
     marginBottom: 24,
     letterSpacing: 0.3,
   },
@@ -489,41 +489,41 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     marginBottom: 28,
     letterSpacing: 1,
   },
-  timerTextActive: { color: "#D88939" },
+  timerTextActive: { color: "#8055E8" },
   micBtn: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
-    shadowColor: "#D88939",
-    iconBadgeMuted: { backgroundColor: "rgba(106,129,106,0.15)" },
+    shadowColor: "#8055E8",
+    iconBadgeMuted: { backgroundColor: "rgba(128,85,232,0.12)" },
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
   micBtnActive: { backgroundColor: "#CE6C60" },
-  micHint: { fontSize: 12, color: "#9A8478" },
+  micHint: { fontSize: 12, color: "#756D84" },
 
   transcriptCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(106,129,106,0.25)",
+    borderColor: "rgba(128,85,232,0.22)",
   },
   transcriptText: {
     fontSize: 15,
-    color: "#F4EAE4",
+    color: "#242033",
     lineHeight: 22,
     marginBottom: 14,
   },
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   },
   transcriptHintText: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     flex: 1,
     lineHeight: 17,
   },
@@ -552,14 +552,14 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     marginTop: 7,
     marginRight: 12,
   },
-  promptText: { fontSize: 13, color: "#9A8478", flex: 1, lineHeight: 19 },
+  promptText: { fontSize: 13, color: "#756D84", flex: 1, lineHeight: 19 },
 
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     flexDirection: "row",
@@ -568,9 +568,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginTop: 4,
   },
-  saveBtnDisabled: { backgroundColor: "#3A2A25" },
-  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#211613" },
-  saveBtnTextDisabled: { color: "#9A8478" },
+  saveBtnDisabled: { backgroundColor: "#F0E9FF" },
+  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
+  saveBtnTextDisabled: { color: "#756D84" },
   iconMR7: { marginRight: 7 },
   iconMR8: { marginRight: 8 },
 });

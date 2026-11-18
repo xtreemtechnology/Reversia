@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
   editBtn: {
     paddingHorizontal: 18,
@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: 13,
     fontWeight: "700",
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
   },
 });

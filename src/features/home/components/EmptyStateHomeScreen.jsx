@@ -188,12 +188,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   userName: {
     fontSize: 15,
     fontWeight: "500",
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
   },
   bellBtn: {
     width: 40,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   exploreLabel: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   exploreLinks: {
     flexDirection: "row",
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   exploreChipText: {
     fontSize: 14,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
   },
 });

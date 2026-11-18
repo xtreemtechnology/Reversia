@@ -173,18 +173,18 @@ const styles = StyleSheet.create({
   },
   welcomeLabel: {
     fontSize: 18,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     textAlign: "center",
   },
   userName: {
     fontSize: 40,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     textAlign: "center",
     lineHeight: 24,
   },

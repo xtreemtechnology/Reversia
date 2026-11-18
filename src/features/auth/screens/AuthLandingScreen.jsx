@@ -11,6 +11,7 @@ import Animated, {
 import { useTheme } from "../../../theme/ThemeProvider";
 import ReversiaMark from "../../../components/ReversiaMark";
 import AuthButton from "../components/AuthButton";
+import CompanionBuddy from "../../../components/CompanionBuddy";
 
 export default function AuthLandingScreen({ navigation }) {
   const { colors } = useTheme();
@@ -64,7 +65,7 @@ export default function AuthLandingScreen({ navigation }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View
         style={[
@@ -91,9 +92,12 @@ export default function AuthLandingScreen({ navigation }) {
       <View style={styles.topSection}>
         <Animated.View style={[styles.logoWrap, logoStyle]}>
           <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
-            <ReversiaMark size={64} />
+            <ReversiaMark size={56} />
           </View>
         </Animated.View>
+        <View style={styles.companionWrap}>
+          <CompanionBuddy size={104} />
+        </View>
 
         <Animated.View style={[styles.brandGroup, textStyle]}>
           <Text style={styles.wordmark}>
@@ -169,17 +173,24 @@ const styles = StyleSheet.create({
   },
   topSection: {
     alignItems: "center",
-    gap: 28,
-    paddingTop: 20,
+    gap: 10,
+    paddingTop: 10,
   },
   logoWrap: {},
   logoBox: {
-    width: 76,
-    height: 76,
+    width: 68,
+    height: 68,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+  },
+  companionWrap: {
+    height: 102,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -4,
+    marginBottom: -4,
   },
   brandGroup: {
     alignItems: "center",
@@ -187,12 +198,12 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     fontSize: 36,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     letterSpacing: 0.2,
   },
   card: {
@@ -207,12 +218,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 24,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -0.4,
   },
   cardSubtitle: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 22,
     marginBottom: 8,
   },

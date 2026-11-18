@@ -112,7 +112,7 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <TouchableOpacity
         onPress={() => navigation.goBack()}
@@ -143,7 +143,10 @@ export default function SignUpScreen({ navigation }) {
           <View style={styles.form}>
             <View style={styles.nameRow}>
               <View style={styles.flex1}>
-                label="First name" placeholder="Chioma" value={firstName}
+                <AuthInput
+                  label="First name"
+                  placeholder="Chioma"
+                  value={firstName}
                 onChangeText=
                 {(t) => {
                   setFirstName(t);
@@ -284,7 +287,7 @@ export default function SignUpScreen({ navigation }) {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontFamily: "DMSans_500Medium",
+                    fontFamily: undefined,
                   }}
                 >
                   Sign in
@@ -323,13 +326,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 23,
   },
   form: {
@@ -360,7 +363,7 @@ const styles = StyleSheet.create({
   },
   strengthLabel: {
     fontSize: 12,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
     width: 44,
     textAlign: "right",
@@ -380,7 +383,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: "#E28A82",
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 20,
   },
   ctaGroup: {
@@ -392,6 +395,6 @@ const styles = StyleSheet.create({
   },
   signinLinkText: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
 });

@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 20,
   },
   weekRow: {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: 11,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   progressItems: {
     gap: 14,
@@ -139,12 +139,12 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 14,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
   },
   progressValue: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   progressTrack: {
     height: 8,

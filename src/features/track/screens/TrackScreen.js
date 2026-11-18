@@ -27,8 +27,8 @@ const DEFAULT_FAVORITES = [
     image:
       "https://ggrhecslgdflloszjkwl.supabase.co/storage/v1/object/public/user-assets/pPgHdP4qecK/components/X16anVRGLVq.png",
     icon: "plate-bold-duotone",
-    tint: "rgba(216,137,57,0.14)",
-    accent: "#D88939",
+    tint: "rgba(128,85,232,0.13)",
+    accent: "#8055E8",
   },
   {
     id: "pounded-yam",
@@ -37,8 +37,8 @@ const DEFAULT_FAVORITES = [
     image:
       "https://ggrhecslgdflloszjkwl.supabase.co/storage/v1/object/public/user-assets/pPgHdP4qecK/components/Uuwn4s5TRFb.png",
     icon: "plate-bold-duotone",
-    tint: "rgba(106,129,106,0.14)",
-    accent: "#6A816A",
+    tint: "rgba(128,85,232,0.12)",
+    accent: "#8B75C8",
   },
   {
     id: "akara",
@@ -53,8 +53,8 @@ const DEFAULT_FAVORITES = [
     name: "Moi Moi",
     subtitle: "Steamed beans",
     icon: "book-bookmark-bold-duotone",
-    tint: "rgba(106,129,106,0.16)",
-    accent: "#6A816A",
+    tint: "rgba(128,85,232,0.14)",
+    accent: "#8B75C8",
   },
 ];
 
@@ -73,8 +73,8 @@ function buildFavoriteFromMeal(meal) {
     name: label,
     subtitle: meal?.type || "From your story",
     icon: "history-bold-duotone",
-    tint: "rgba(216,137,57,0.16)",
-    accent: "#D88939",
+    tint: "rgba(128,85,232,0.16)",
+    accent: "#8055E8",
     sourceMealType: meal?.type || "Lunch",
   };
 }
@@ -368,7 +368,7 @@ export default function TrackScreen({ navigation, route }) {
             <View
               style={[
                 styles.actionCircle,
-                { backgroundColor: "rgba(216,137,57,0.12)" },
+                { backgroundColor: "rgba(128,85,232,0.12)" },
               ]}
             >
               <SolarIcon
@@ -390,7 +390,7 @@ export default function TrackScreen({ navigation, route }) {
             <View
               style={[
                 styles.actionCircle,
-                { backgroundColor: "rgba(106,129,106,0.12)" },
+                { backgroundColor: "rgba(128,85,232,0.10)" },
               ]}
             >
               <SolarIcon
@@ -450,7 +450,7 @@ export default function TrackScreen({ navigation, route }) {
               <View
                 style={[
                   styles.suggestionIcon,
-                  { backgroundColor: "rgba(216,137,57,0.14)" },
+                  { backgroundColor: "rgba(128,85,232,0.13)" },
                 ]}
               >
                 <SolarIcon
@@ -582,10 +582,10 @@ const styles = StyleSheet.create({
   },
   voiceCard: {
     flex: 1,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     padding: 16,
     gap: 12,
     alignItems: "center",
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   badge: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -624,10 +624,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   suggestionCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
     padding: 20,
     gap: 16,
   },
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -694,11 +694,11 @@ const styles = StyleSheet.create({
   },
   favoriteCard: {
     width: "48%",
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   favoriteMedia: {
     height: 128,
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   searchButton: {
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 22,
     flexDirection: "row",
     alignItems: "center",

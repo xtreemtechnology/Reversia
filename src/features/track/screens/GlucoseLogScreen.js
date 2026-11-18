@@ -63,7 +63,7 @@ function mmolToMgdl(mmol) {
 /** Returns color and category based on value and context */
 function classifyReading(value, unit, context) {
   const mgdl = unit === "mmol/L" ? mmolToMgdl(parseFloat(value)) : parseFloat(value);
-  if (isNaN(mgdl)) return { color: "#9A8478", label: "" };
+  if (isNaN(mgdl)) return { color: "#756D84", label: "" };
   const isFasting = context === "fasting" || context === "before_meal";
   const isAfterMeal = context === "after_meal_1h" || context === "after_meal_2h";
 
@@ -202,7 +202,7 @@ export default function GlucoseLogScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}

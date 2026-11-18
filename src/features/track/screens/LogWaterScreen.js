@@ -24,26 +24,26 @@ const QUICK_DRINKS = [
   {
     label: "Water",
     icon: "water-outline",
-    color: "#6A816A",
-    bg: "rgba(106,129,106,0.15)",
+    color: "#8B75C8",
+    bg: "rgba(128,85,232,0.12)",
   },
   {
     label: "Tea",
     icon: "cafe-outline",
-    color: "#E3B372",
-    bg: "rgba(227,179,114,0.15)",
+    color: "#A78BFA",
+    bg: "rgba(167,139,250,0.16)",
   },
   {
     label: "Juice",
     icon: "nutrition-outline",
-    color: "#D88939",
-    bg: "rgba(216,137,57,0.15)",
+    color: "#8055E8",
+    bg: "rgba(128,85,232,0.14)",
   },
   {
     label: "Coconut",
     icon: "leaf-outline",
-    color: "#6A816A",
-    bg: "rgba(106,129,106,0.15)",
+    color: "#8B75C8",
+    bg: "rgba(128,85,232,0.12)",
   },
 ];
 
@@ -144,7 +144,7 @@ export default function LogWaterScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -152,7 +152,7 @@ export default function LogWaterScreen({ navigation }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Log Water</Text>
@@ -183,7 +183,7 @@ export default function LogWaterScreen({ navigation }) {
               <Ionicons
                 name="remove"
                 size={22}
-                color={glasses === 0 ? "#402E29" : "#F4EAE4"}
+                color={glasses === 0 ? "#E8E1F5" : "#242033"}
               />
             </TouchableOpacity>
 
@@ -198,7 +198,7 @@ export default function LogWaterScreen({ navigation }) {
               activeOpacity={0.8}
               style={styles.counterBtnPrimary}
             >
-              <Ionicons name="add" size={22} color="#211613" />
+              <Ionicons name="add" size={22} color="#F5F1FF" />
             </TouchableOpacity>
           </View>
 
@@ -215,7 +215,7 @@ export default function LogWaterScreen({ navigation }) {
                   <Ionicons
                     name={filled ? "water" : "water-outline"}
                     size={18}
-                    color={filled ? "#6A816A" : "#402E29"}
+                    color={filled ? "#8B75C8" : "#E8E1F5"}
                   />
                 </TouchableOpacity>
               );
@@ -239,19 +239,19 @@ export default function LogWaterScreen({ navigation }) {
               label: "Daily Goal",
               value: `${GOAL_GLASSES} glasses`,
               icon: "flag-outline",
-              color: "#D88939",
+              color: "#8055E8",
             },
             {
               label: "Progress",
               value: `${Math.round(progressPct)}%`,
               icon: "trending-up-outline",
-              color: "#6A816A",
+              color: "#8B75C8",
             },
             {
               label: "Total ml",
               value: `${totalMl} ml`,
               icon: "beaker-outline",
-              color: "#E3B372",
+              color: "#A78BFA",
             },
           ].map((item) => {
             const infoColorStyle = { color: item.color };
@@ -303,7 +303,7 @@ export default function LogWaterScreen({ navigation }) {
           <Ionicons
             name="notifications-outline"
             size={16}
-            color="#9A8478"
+            color="#756D84"
             style={styles.reminderIcon}
           />
           <Text style={styles.reminderText}>
@@ -330,7 +330,7 @@ export default function LogWaterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#211613",
+    backgroundColor: "#F5F1FF",
   },
   scroll: {
     paddingBottom: 48,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -358,32 +358,32 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   headerSub: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   counterCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 24,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   progressTrack: {
     height: 6,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderRadius: 3,
     marginBottom: 28,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#6A816A",
+    backgroundColor: "#8B75C8",
     borderRadius: 3,
   },
   counterRow: {
@@ -396,11 +396,11 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   counterBtnDisabled: {
     opacity: 0.4,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -419,17 +419,17 @@ const styles = StyleSheet.create({
   counterNum: {
     fontSize: 52,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     lineHeight: 56,
   },
   counterUnit: {
     fontSize: 14,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   counterMl: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 4,
   },
   glassGrid: {
@@ -441,23 +441,23 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   glassDotFilled: {
-    backgroundColor: "rgba(106,129,106,0.15)",
-    borderColor: "#6A816A",
+    backgroundColor: "rgba(128,85,232,0.12)",
+    borderColor: "#8B75C8",
   },
   statusText: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     textAlign: "center",
   },
   statusTextGoal: {
-    color: "#6A816A",
+    color: "#8B75C8",
     fontWeight: "700",
   },
   infoRow: {
@@ -468,12 +468,12 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flex: 1,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 18,
     padding: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   infoIcon: {
     marginBottom: 6,
@@ -481,18 +481,18 @@ const styles = StyleSheet.create({
   infoVal: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   infoLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 3,
     textAlign: "center",
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     paddingHorizontal: 26,
     marginBottom: 14,
   },
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   drinkCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     width: "47%",
     paddingVertical: 18,
     borderRadius: 20,
@@ -523,11 +523,11 @@ const styles = StyleSheet.create({
   drinkLabel: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   drinkAmount: {
     fontSize: 11,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 3,
   },
   reminderBox: {
@@ -535,23 +535,23 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   reminderIcon: {
     marginRight: 10,
   },
   reminderText: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     flex: 1,
     lineHeight: 18,
   },
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -559,11 +559,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
   },
   saveBtnDisabled: {
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
   },
   saveBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#211613",
+    color: "#F5F1FF",
   },
 });

@@ -33,7 +33,7 @@ export default function CheckEmailScreen({ navigation, route }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View style={styles.inner}>
         <View
@@ -56,7 +56,7 @@ export default function CheckEmailScreen({ navigation, route }) {
           <Text style={[styles.body, { color: colors.mutedForeground }]}>
             We sent a password reset link to{"\n"}
             <Text
-              style={{ color: colors.text, fontFamily: "DMSans_500Medium" }}
+              style={{ color: colors.text, fontFamily: undefined }}
             >
               {email}
             </Text>
@@ -122,27 +122,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 42,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
     lineHeight: 50,
     textAlign: "center",
   },
   body: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 24,
     textAlign: "center",
   },
   hint: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 20,
     textAlign: "center",
   },
   errorText: {
     fontSize: 14,
     color: "#E28A82",
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     textAlign: "center",
   },
   resentRow: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   resentText: {
     fontSize: 14,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
   },
   actions: {
     width: "100%",

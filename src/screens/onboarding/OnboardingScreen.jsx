@@ -9,6 +9,7 @@ import {
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,13 +22,13 @@ const SW = Dim.get("window").width;
 
 // Local color tokens (kept inline to stay self-contained)
 const C = {
-  background: "#231F1C",
-  primary: "#E07A5F",
-  secondary: "#798C73",
-  foreground: "#F5F5F4",
-  muted: "#3E3835",
-  mutedFg: "#A8A29E",
-  card: "#2D2825",
+  background: "#8055E8",
+  primary: "#A78BFA",
+  secondary: "#DCD0FF",
+  foreground: "#FFFFFF",
+  muted: "#6B43D7",
+  mutedFg: "#E9E0FF",
+  card: "rgba(255,255,255,0.16)",
 };
 
 const SLIDES = [
@@ -36,7 +37,7 @@ const SLIDES = [
     tag: "01 — UNDERSTAND",
     headline: "Your body\nhas a pattern.",
     body: "Reversia reads the signals your daily habits create — food, sleep, movement — and surfaces what your body is actually telling you.",
-    accentColor: C.primary,
+    accentColor: "#A78BFA",
     iconName: "pulse",
     visual: "waveform",
   },
@@ -45,7 +46,7 @@ const SLIDES = [
     tag: "02 — LOCAL INTELLIGENCE",
     headline: "Built for\nhow you eat.",
     body: "From garri to ogbono, jollof to egusi — Reversia recognises the foods you grew up with and gives you insights grounded in your reality.",
-    accentColor: C.secondary,
+    accentColor: "#DCD0FF",
     iconName: "restaurant",
     visual: "grid",
   },
@@ -54,7 +55,7 @@ const SLIDES = [
     tag: "03 — REVERSE",
     headline: "Small shifts.\nReal change.",
     body: "Prediabetes and Type 2 diabetes can be reversed. Reversia shows you exactly which habits are moving the needle — and which ones aren't.",
-    accentColor: "#F2CC8F",
+    accentColor: "#E9DFFF",
     iconName: "trending-up",
     visual: "bars",
   },
@@ -63,7 +64,7 @@ const SLIDES = [
     tag: "04 — START",
     headline: "Ready when\nyou are.",
     body: "No complicated setup. No jargon. Just log your day, and let Reversia do the rest. Your first insight is waiting.",
-    accentColor: C.primary,
+    accentColor: "#A78BFA",
     iconName: "sparkles",
     visual: "none",
     isFinal: true,
@@ -102,7 +103,7 @@ function SlideVisual({ type, color }) {
       { label: "Garri", color: "#F2CC8F" },
       { label: "Rice", color: C.primary },
       { label: "Ogbono", color: C.secondary },
-      { label: "Amala", color: "#A8A29E" },
+      { label: "Amala", color: "#756D84" },
       { label: "Ewedu", color: "#81B29A" },
       { label: "Beans", color: "#E28A82" },
     ];
@@ -177,7 +178,7 @@ const visualStyles = StyleSheet.create({
   },
   gridTileText: {
     fontSize: 13,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   barsWrap: {
@@ -196,7 +197,7 @@ const visualStyles = StyleSheet.create({
     overflow: "hidden",
   },
   barFill: { width: "100%", borderRadius: 8 },
-  barDay: { fontSize: 11, fontFamily: "DMSans_400Regular" },
+  barDay: { fontSize: 11, fontFamily: undefined },
 });
 
 function Dots({ total, active, activeColor }) {
@@ -280,14 +281,14 @@ const slideStyles = StyleSheet.create({
   },
   tag: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     letterSpacing: 1.5,
     marginBottom: 16,
     fontWeight: "600",
   },
   headline: {
     fontSize: 42,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     color: C.foreground,
     lineHeight: 50,
     letterSpacing: -1,
@@ -296,7 +297,7 @@ const slideStyles = StyleSheet.create({
   visualWrap: { marginBottom: 32, paddingLeft: 2 },
   body: {
     fontSize: 16,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     color: C.mutedFg,
     lineHeight: 26,
     maxWidth: SW - 80,
@@ -331,7 +332,7 @@ export default function OnboardingScreen({ onFinish }) {
   };
 
   return (
-    <View style={obStyles.root}>
+    <LinearGradient colors={["#9B75F5", "#8055E8", "#5426D5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={obStyles.root}>
       <StatusBar barStyle="light-content" />
       <View style={obStyles.progressTrack}>
         <Animated.View
@@ -395,7 +396,7 @@ export default function OnboardingScreen({ onFinish }) {
           { borderColor: slide.accentColor + "20" },
         ]}
       />
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -433,7 +434,7 @@ const obStyles = StyleSheet.create({
   skipText: {
     fontSize: 14,
     color: C.mutedFg,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     fontWeight: "500",
   },
   slideArea: { flex: 1, position: "relative" },
@@ -455,7 +456,7 @@ const obStyles = StyleSheet.create({
   ctaText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   cornerAccent: {

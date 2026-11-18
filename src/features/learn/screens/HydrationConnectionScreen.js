@@ -23,7 +23,7 @@ const sl = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#9A8478",
+    color: "#756D84",
     marginBottom: 10,
   },
 });
@@ -79,7 +79,7 @@ export default function HydrationConnectionScreen({ navigation }) {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -110,18 +110,18 @@ export default function HydrationConnectionScreen({ navigation }) {
           style={[
             styles.heroCard,
             {
-              backgroundColor: "rgba(227,179,114,0.10)",
-              borderColor: "rgba(227,179,114,0.20)",
+              backgroundColor: "rgba(167,139,250,0.12)",
+              borderColor: "rgba(167,139,250,0.20)",
             },
           ]}
         >
           <View
             style={[
               styles.heroIcon,
-              { backgroundColor: "rgba(227,179,114,0.15)" },
+              { backgroundColor: "rgba(167,139,250,0.16)" },
             ]}
           >
-            <Ionicons name="water" size={28} color="#E3B372" />
+            <Ionicons name="water" size={28} color="#A78BFA" />
           </View>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
             The Hydration-Mood Connection
@@ -133,15 +133,15 @@ export default function HydrationConnectionScreen({ navigation }) {
             style={[
               styles.statBox,
               {
-                backgroundColor: "rgba(227,179,114,0.08)",
-                borderColor: "rgba(227,179,114,0.20)",
+                backgroundColor: "rgba(167,139,250,0.08)",
+                borderColor: "rgba(167,139,250,0.20)",
               },
             ]}
           >
             <Ionicons
               name="person-outline"
               size={13}
-              color="#E3B372"
+              color="#A78BFA"
               style={{ marginRight: 7 }}
             />
             <Text style={styles.statText}>{userStat}</Text>
@@ -168,24 +168,24 @@ export default function HydrationConnectionScreen({ navigation }) {
           <View style={styles.pointsCol}>
             <KeyPoint
               icon="flash-outline"
-              iconColor="#D88939"
-              iconBg="rgba(216,137,57,0.15)"
+              iconColor="#8055E8"
+              iconBg="rgba(128,85,232,0.14)"
               title="Energy before noon"
               body="Drinking 1–2 glasses before 10 AM is consistently linked to more stable energy through the morning, especially before meals."
               colors={colors}
             />
             <KeyPoint
               icon="partly-sunny-outline"
-              iconColor="#6A816A"
-              iconBg="rgba(106,129,106,0.15)"
+              iconColor="#8B75C8"
+              iconBg="rgba(128,85,232,0.12)"
               title="Mood and irritability"
               body="Even mild dehydration has been shown to increase feelings of tension, anxiety, and fatigue — independent of sleep quality."
               colors={colors}
             />
             <KeyPoint
               icon="eye-outline"
-              iconColor="#E3B372"
-              iconBg="rgba(227,179,114,0.15)"
+              iconColor="#A78BFA"
+              iconBg="rgba(167,139,250,0.16)"
               title="Focus and clarity"
               body="Hydration affects blood flow to the brain. Two extra glasses across the morning is often enough to notice a difference in concentration by afternoon."
               colors={colors}
@@ -203,7 +203,7 @@ export default function HydrationConnectionScreen({ navigation }) {
           >
             <View style={styles.patternRow}>
               <View
-                style={[styles.patternDot, { backgroundColor: "#E3B372" }]}
+                style={[styles.patternDot, { backgroundColor: "#A78BFA" }]}
               />
               <View style={{ flex: 1 }}>
                 <Text
@@ -211,7 +211,7 @@ export default function HydrationConnectionScreen({ navigation }) {
                 >
                   Water logs this period
                 </Text>
-                <Text style={[styles.patternVal, { color: "#E3B372" }]}>
+                <Text style={[styles.patternVal, { color: "#A78BFA" }]}>
                   {waterCount} entries
                 </Text>
               </View>
@@ -223,7 +223,7 @@ export default function HydrationConnectionScreen({ navigation }) {
               ]}
             >
               <View
-                style={[styles.patternDot, { backgroundColor: "#6A816A" }]}
+                style={[styles.patternDot, { backgroundColor: "#8B75C8" }]}
               />
               <View style={{ flex: 1 }}>
                 <Text
@@ -231,7 +231,7 @@ export default function HydrationConnectionScreen({ navigation }) {
                 >
                   Daily goal
                 </Text>
-                <Text style={[styles.patternVal, { color: "#6A816A" }]}>
+                <Text style={[styles.patternVal, { color: "#8B75C8" }]}>
                   8 glasses
                 </Text>
               </View>
@@ -277,7 +277,7 @@ export default function HydrationConnectionScreen({ navigation }) {
               <View
                 style={[
                   styles.stepNum,
-                  { backgroundColor: "rgba(227,179,114,0.15)" },
+                  { backgroundColor: "rgba(167,139,250,0.16)" },
                 ]}
               >
                 <Text style={styles.stepNumText}>{i + 1}</Text>
@@ -301,14 +301,14 @@ export default function HydrationConnectionScreen({ navigation }) {
             <Ionicons
               name="checkmark-circle"
               size={18}
-              color="#211613"
+              color="#F5F1FF"
               style={{ marginRight: 8 }}
             />
           ) : (
             <Ionicons
               name="water-outline"
               size={18}
-              color="#211613"
+              color="#F5F1FF"
               style={{ marginRight: 8 }}
             />
           )}
@@ -367,10 +367,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 4,
   },
-  statText: { fontSize: 12, color: "#E3B372", fontWeight: "600", flex: 1 },
+  statText: { fontSize: 12, color: "#A78BFA", fontWeight: "600", flex: 1 },
   block: { paddingHorizontal: 24, marginBottom: 22 },
   bodyText: { fontSize: 14, lineHeight: 22, marginBottom: 10 },
-  emphasis: { fontWeight: "700", color: "#E3B372" },
+  emphasis: { fontWeight: "700", color: "#A78BFA" },
   pointsCol: { gap: 12 },
   patternCard: { borderRadius: 20, borderWidth: 1, marginBottom: 10 },
   patternRow: {
@@ -402,10 +402,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepNumText: { fontSize: 13, fontWeight: "700", color: "#E3B372" },
+  stepNumText: { fontSize: 13, fontWeight: "700", color: "#A78BFA" },
   stepText: { fontSize: 14, flex: 1, lineHeight: 20 },
   ctaBtn: {
-    backgroundColor: "#E3B372",
+    backgroundColor: "#A78BFA",
     borderRadius: 20,
     height: 56,
     flexDirection: "row",
@@ -413,6 +413,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: 24,
   },
-  ctaBtnDone: { backgroundColor: "#6A816A" },
-  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#211613" },
+  ctaBtnDone: { backgroundColor: "#8B75C8" },
+  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
 });

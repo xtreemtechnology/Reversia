@@ -15,9 +15,9 @@ import { auth, db } from "../../../config/firebase";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
 const MACRO_COLORS = {
-  Protein: "#6A816A",
-  Carbs: "#D88939",
-  Fat: "#E3B372",
+  Protein: "#8B75C8",
+  Carbs: "#8055E8",
+  Fat: "#A78BFA",
 };
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Dinner", "Snack"];
@@ -91,7 +91,7 @@ export default function RepeatMealScreen({ navigation, route }) {
   if (!mealPreview) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#211613" />
+        <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
         <View style={styles.header}>
           <TouchableOpacity
@@ -99,7 +99,7 @@ export default function RepeatMealScreen({ navigation, route }) {
             style={styles.backBtn}
             activeOpacity={0.8}
           >
-            <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+            <Ionicons name="chevron-back" size={24} color="#242033" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Repeat Meal</Text>
@@ -109,7 +109,7 @@ export default function RepeatMealScreen({ navigation, route }) {
         </View>
 
         <View style={styles.emptyStateWrap}>
-          <Ionicons name="restaurant-outline" size={48} color="#3A2A25" style={styles.emptyIcon} />
+          <Ionicons name="restaurant-outline" size={48} color="#F0E9FF" style={styles.emptyIcon} />
           <Text style={styles.emptyTitle}>No meals logged yet</Text>
           <Text style={styles.emptyBody}>
             No meals logged yet — try logging your first meal
@@ -121,7 +121,7 @@ export default function RepeatMealScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -129,7 +129,7 @@ export default function RepeatMealScreen({ navigation, route }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Repeat Meal</Text>
@@ -145,7 +145,7 @@ export default function RepeatMealScreen({ navigation, route }) {
         <View style={styles.summaryCard}>
           <View style={styles.summaryTop}>
             <View style={styles.mealIconBadge}>
-              <Ionicons name="time" size={22} color="#D88939" />
+              <Ionicons name="time" size={22} color="#8055E8" />
             </View>
             <View style={styles.summaryTextWrap}>
               <Text style={styles.mealName}>{mealPreview.name}</Text>
@@ -238,7 +238,7 @@ export default function RepeatMealScreen({ navigation, route }) {
           <Ionicons
             name="information-circle"
             size={16}
-            color="#9A8478"
+            color="#756D84"
             style={styles.noteIcon}
           />
           <Text style={styles.noteText}>
@@ -253,7 +253,7 @@ export default function RepeatMealScreen({ navigation, route }) {
           onPress={saveRepeatMeal}
         >
           {logged ? (
-            <Ionicons name="checkmark-circle" size={22} color="#211613" />
+            <Ionicons name="checkmark-circle" size={22} color="#F5F1FF" />
           ) : (
             <Text style={styles.saveBtnText}>Log This Meal Again</Text>
           )}
@@ -266,7 +266,7 @@ export default function RepeatMealScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#211613",
+    backgroundColor: "#F5F1FF",
   },
   scroll: {
     paddingBottom: 48,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -294,21 +294,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   headerSub: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   summaryCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   summaryTop: {
     flexDirection: "row",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(216,137,57,0.15)",
+    backgroundColor: "rgba(128,85,232,0.14)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -330,11 +330,11 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   mealTime: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   calBadge: {
@@ -343,11 +343,11 @@ const styles = StyleSheet.create({
   calBadgeNum: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#D88939",
+    color: "#8055E8",
   },
   calBadgeLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
   },
   macroRow: {
     flexDirection: "row",
@@ -367,25 +367,25 @@ const styles = StyleSheet.create({
   },
   macroPillLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     paddingHorizontal: 26,
     marginBottom: 10,
   },
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 8,
     marginHorizontal: 24,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   foodRow: {
     flexDirection: "row",
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     marginRight: 14,
   },
   foodTextWrap: {
@@ -405,16 +405,16 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   foodAmount: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   foodCal: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "600",
   },
   divider: {
@@ -430,22 +430,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTimeBtnActive: {
-    backgroundColor: "rgba(216,137,57,0.15)",
-    borderColor: "#D88939",
+    backgroundColor: "rgba(128,85,232,0.14)",
+    borderColor: "#8055E8",
   },
   mealTimeBtnText: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "600",
   },
   mealTimeBtnTextActive: {
-    color: "#D88939",
+    color: "#8055E8",
     fontWeight: "700",
   },
   noteBox: {
@@ -460,12 +460,12 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     flex: 1,
     lineHeight: 18,
   },
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -473,11 +473,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
   },
   saveBtnLogged: {
-    backgroundColor: "#6A816A",
+    backgroundColor: "#8B75C8",
   },
   saveBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#211613",
+    color: "#F5F1FF",
   },
 });

@@ -5,7 +5,7 @@
  * No network or Firestore calls are made in these tests.
  */
 
-import { deriveRuleBasedInsights } from '../../features/learn/services/insightsService';
+import { deriveRuleBasedInsights } from '../features/learn/services/insightsService';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

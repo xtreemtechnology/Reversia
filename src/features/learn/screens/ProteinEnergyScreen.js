@@ -23,7 +23,7 @@ const sl = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#9A8478",
+    color: "#756D84",
     marginBottom: 10,
   },
 });
@@ -45,37 +45,37 @@ export default function ProteinEnergyScreen({ navigation }) {
       : "No breakfast logs yet — add one today to start the pattern.";
 
   const foods = [
-    { name: "Boiled Eggs", protein: "13g", per: "2 eggs", color: "#D88939" },
-    { name: "Greek Yoghurt", protein: "17g", per: "1 cup", color: "#6A816A" },
+    { name: "Boiled Eggs", protein: "13g", per: "2 eggs", color: "#8055E8" },
+    { name: "Greek Yoghurt", protein: "17g", per: "1 cup", color: "#8B75C8" },
     { name: "Akara", protein: "10g", per: "3 pieces", color: "#CE6C60" },
-    { name: "Moi Moi", protein: "8g", per: "1 wrap", color: "#E3B372" },
-    { name: "Groundnuts", protein: "7g", per: "handful", color: "#D88939" },
-    { name: "Sardines", protein: "20g", per: "1 tin", color: "#6A816A" },
+    { name: "Moi Moi", protein: "8g", per: "1 wrap", color: "#A78BFA" },
+    { name: "Groundnuts", protein: "7g", per: "handful", color: "#8055E8" },
+    { name: "Sardines", protein: "20g", per: "1 tin", color: "#8B75C8" },
   ];
 
   const timeline = [
     {
       time: "7:30 AM",
       label: "Breakfast with protein",
-      color: "#6A816A",
+      color: "#8B75C8",
       desc: "Energy curve starts flat and stable",
     },
     {
       time: "9:30 AM",
       label: "Steady energy window",
-      color: "#D88939",
+      color: "#8055E8",
       desc: "No early cravings, focus is easier",
     },
     {
       time: "12:00 PM",
       label: "Moderate hunger by noon",
-      color: "#E3B372",
+      color: "#A78BFA",
       desc: "Appetite regulated — less likely to overeat",
     },
     {
       time: "3:00 PM",
       label: "Afternoon energy maintained",
-      color: "#6A816A",
+      color: "#8B75C8",
       desc: "No crash compared to carb-only breakfast",
     },
   ];
@@ -84,7 +84,7 @@ export default function ProteinEnergyScreen({ navigation }) {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
@@ -114,18 +114,18 @@ export default function ProteinEnergyScreen({ navigation }) {
           style={[
             styles.heroCard,
             {
-              backgroundColor: "rgba(106,129,106,0.10)",
-              borderColor: "rgba(106,129,106,0.20)",
+              backgroundColor: "rgba(128,85,232,0.10)",
+              borderColor: "rgba(128,85,232,0.18)",
             },
           ]}
         >
           <View
             style={[
               styles.heroIcon,
-              { backgroundColor: "rgba(106,129,106,0.18)" },
+              { backgroundColor: "rgba(128,85,232,0.18)" },
             ]}
           >
-            <Ionicons name="barbell-outline" size={28} color="#6A816A" />
+            <Ionicons name="barbell-outline" size={28} color="#8B75C8" />
           </View>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
             Protein & Sustained Energy
@@ -137,18 +137,18 @@ export default function ProteinEnergyScreen({ navigation }) {
             style={[
               styles.statBox,
               {
-                backgroundColor: "rgba(106,129,106,0.08)",
-                borderColor: "rgba(106,129,106,0.20)",
+                backgroundColor: "rgba(128,85,232,0.08)",
+                borderColor: "rgba(128,85,232,0.18)",
               },
             ]}
           >
             <Ionicons
               name="person-outline"
               size={13}
-              color="#6A816A"
+              color="#8B75C8"
               style={{ marginRight: 7 }}
             />
-            <Text style={[styles.statText, { color: "#6A816A" }]}>
+            <Text style={[styles.statText, { color: "#8B75C8" }]}>
               {bfStat}
             </Text>
           </View>
@@ -159,7 +159,7 @@ export default function ProteinEnergyScreen({ navigation }) {
           <Text style={[styles.bodyText, { color: colors.foreground }]}>
             Protein digests more slowly than carbohydrates. When you include it
             in your first meal, it creates what nutritionists call a{" "}
-            <Text style={{ color: "#6A816A", fontWeight: "700" }}>
+            <Text style={{ color: "#8B75C8", fontWeight: "700" }}>
               "protein anchor"
             </Text>{" "}
             — a stable base that prevents the blood sugar spike-and-crash
@@ -284,7 +284,7 @@ export default function ProteinEnergyScreen({ navigation }) {
           <Ionicons
             name={applied ? "checkmark-circle" : "restaurant-outline"}
             size={18}
-            color="#211613"
+            color="#F5F1FF"
             style={{ marginRight: 8 }}
           />
           <Text style={styles.ctaBtnText}>
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   whyTitle: { fontSize: 13, fontWeight: "600", marginBottom: 5 },
   whyBody: { fontSize: 13, lineHeight: 19 },
   ctaBtn: {
-    backgroundColor: "#6A816A",
+    backgroundColor: "#8B75C8",
     borderRadius: 20,
     height: 56,
     flexDirection: "row",
@@ -390,6 +390,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: 24,
   },
-  ctaBtnDone: { backgroundColor: "#D88939" },
-  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#211613" },
+  ctaBtnDone: { backgroundColor: "#8055E8" },
+  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
 });

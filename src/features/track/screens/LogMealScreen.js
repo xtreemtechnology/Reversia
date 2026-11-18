@@ -317,7 +317,7 @@ export default function LogMealScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -325,7 +325,7 @@ export default function LogMealScreen({ navigation }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Log Meal</Text>
@@ -341,7 +341,7 @@ export default function LogMealScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={styles.iconBadge}>
-              <Ionicons name="restaurant-outline" size={16} color="#9A8478" />
+              <Ionicons name="restaurant-outline" size={16} color="#756D84" />
             </View>
             <Text style={styles.cardLabel}>Meal Type</Text>
           </View>
@@ -383,10 +383,10 @@ export default function LogMealScreen({ navigation }) {
                 {
                   label: "Protein",
                   value: `${totals.protein}g`,
-                  color: "#6A816A",
+                  color: "#8B75C8",
                 },
-                { label: "Carbs", value: `${totals.carbs}g`, color: "#D88939" },
-                { label: "Fat", value: `${totals.fat}g`, color: "#E3B372" },
+                { label: "Carbs", value: `${totals.carbs}g`, color: "#8055E8" },
+                { label: "Fat", value: `${totals.fat}g`, color: "#A78BFA" },
               ].map((macro) => (
                 <View key={macro.label} style={styles.macroPill}>
                   <Text style={[styles.macroPillVal, { color: macro.color }]}>
@@ -403,24 +403,24 @@ export default function LogMealScreen({ navigation }) {
           <Ionicons
             name="search-outline"
             size={18}
-            color="#9A8478"
+            color="#756D84"
             style={styles.searchIcon}
           />
           <TextInput
             style={styles.searchInput}
             placeholder="Search food or drink..."
-            placeholderTextColor="#9A8478"
+            placeholderTextColor="#756D84"
             value={search}
             onChangeText={handleSearch}
           />
           {searching ? (
-            <ActivityIndicator size="small" color="#D88939" />
+            <ActivityIndicator size="small" color="#8055E8" />
           ) : search.length > 0 ? (
             <TouchableOpacity
               onPress={() => handleSearch("")}
               activeOpacity={0.8}
             >
-              <Ionicons name="close-circle" size={18} color="#9A8478" />
+              <Ionicons name="close-circle" size={18} color="#756D84" />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -451,7 +451,7 @@ export default function LogMealScreen({ navigation }) {
                       <Ionicons
                         name={added ? "checkmark" : "add"}
                         size={18}
-                        color={added ? "#211613" : "#D88939"}
+                        color={added ? "#F5F1FF" : "#8055E8"}
                       />
                     </TouchableOpacity>
                   </View>
@@ -467,7 +467,7 @@ export default function LogMealScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.cardLabelRow}>
             <View style={[styles.iconBadge, styles.drinkBadge]}>
-              <Ionicons name="water-outline" size={16} color="#E3B372" />
+              <Ionicons name="water-outline" size={16} color="#A78BFA" />
             </View>
             <Text style={styles.cardLabel}>Add a drink?</Text>
           </View>
@@ -522,7 +522,7 @@ export default function LogMealScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#211613",
+    backgroundColor: "#F5F1FF",
   },
   scroll: {
     paddingBottom: 48,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -550,22 +550,22 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   headerSub: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 8,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -582,12 +582,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   drinkBadge: {
-    backgroundColor: "rgba(227,179,114,0.15)",
+    backgroundColor: "rgba(167,139,250,0.16)",
   },
   cardLabel: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   mealTypeRow: {
     flexDirection: "row",
@@ -598,32 +598,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     borderRadius: 14,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTypeBtnActive: {
-    backgroundColor: "rgba(216,137,57,0.15)",
-    borderColor: "#D88939",
+    backgroundColor: "rgba(128,85,232,0.14)",
+    borderColor: "#8055E8",
   },
   mealTypeBtnText: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "600",
   },
   mealTypeBtnTextActive: {
-    color: "#D88939",
+    color: "#8055E8",
     fontWeight: "700",
   },
   macroCard: {
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 24,
     padding: 18,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
   },
   macroTopRow: {
     flexDirection: "row",
@@ -633,11 +633,11 @@ const styles = StyleSheet.create({
   macroCalText: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#D88939",
+    color: "#8055E8",
   },
   macroCalLabel: {
     fontSize: 14,
-    color: "#9A8478",
+    color: "#756D84",
   },
   macroRow: {
     flexDirection: "row",
@@ -656,20 +656,20 @@ const styles = StyleSheet.create({
   },
   macroPillLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   searchWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     marginHorizontal: 24,
     marginBottom: 16,
     paddingHorizontal: 14,
     height: 48,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   searchIcon: {
     marginRight: 10,
@@ -677,12 +677,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: "#F4EAE4",
+    color: "#242033",
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#9A8478",
+    color: "#756D84",
     paddingHorizontal: 26,
     marginBottom: 10,
     textTransform: "uppercase",
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: "#9A8478",
+    color: "#756D84",
   },
   foodRow: {
     flexDirection: "row",
@@ -707,23 +707,23 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#F4EAE4",
+    color: "#242033",
   },
   foodMeta: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 2,
   },
   addBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(216,137,57,0.15)",
+    backgroundColor: "rgba(128,85,232,0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
   addBtnActive: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
   },
   divider: {
     height: 1,
@@ -739,25 +739,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   drinkChipActive: {
-    backgroundColor: "rgba(227,179,114,0.15)",
-    borderColor: "#E3B372",
+    backgroundColor: "rgba(167,139,250,0.16)",
+    borderColor: "#A78BFA",
   },
   drinkChipText: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "500",
   },
   drinkChipTextActive: {
-    color: "#E3B372",
+    color: "#A78BFA",
     fontWeight: "700",
   },
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -765,11 +765,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
   },
   saveBtnDisabled: {
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
   },
   saveBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#211613",
+    color: "#F5F1FF",
   },
 });

@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   wrapper: { gap: 7 },
   label: {
     fontSize: 12,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.6,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     height: "100%",
   },
   eyeBtn: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     color: ERROR_COLOR,
     flex: 1,
   },

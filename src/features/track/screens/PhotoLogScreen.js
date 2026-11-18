@@ -69,9 +69,9 @@ function StepIndicator({ step }) {
                 style={[si.dot, done && si.dotDone, current && si.dotCurrent]}
               >
                 {done ? (
-                  <Ionicons name="checkmark" size={10} color="#211613" />
+                  <Ionicons name="checkmark" size={10} color="#F5F1FF" />
                 ) : (
-                  <Text style={[si.dotNum, current && { color: "#D88939" }]}>
+                  <Text style={[si.dotNum, current && { color: "#8055E8" }]}>
                     {i + 1}
                   </Text>
                 )}
@@ -100,25 +100,25 @@ const si = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     borderWidth: 1.5,
-    borderColor: "#402E29",
+    borderColor: "#E8E1F5",
     alignItems: "center",
     justifyContent: "center",
   },
-  dotCurrent: { borderColor: "#D88939" },
-  dotDone: { backgroundColor: "#D88939", borderColor: "#D88939" },
-  dotNum: { fontSize: 11, color: "#9A8478", fontWeight: "700" },
-  label: { fontSize: 10, color: "#9A8478", fontWeight: "600" },
-  labelActive: { color: "#D88939" },
+  dotCurrent: { borderColor: "#8055E8" },
+  dotDone: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
+  dotNum: { fontSize: 11, color: "#756D84", fontWeight: "700" },
+  label: { fontSize: 10, color: "#756D84", fontWeight: "600" },
+  labelActive: { color: "#8055E8" },
   line: {
     flex: 1,
     height: 1.5,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     marginHorizontal: 6,
     marginBottom: 14,
   },
-  lineDone: { backgroundColor: "#D88939" },
+  lineDone: { backgroundColor: "#8055E8" },
 });
 
 export default function PhotoLogScreen({ navigation, route }) {
@@ -234,14 +234,14 @@ export default function PhotoLogScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#211613" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
 
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
           style={styles.backBtn}
         >
-          <Ionicons name="chevron-back" size={24} color="#F4EAE4" />
+          <Ionicons name="chevron-back" size={24} color="#242033" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Photo Log</Text>
@@ -266,7 +266,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                   <Ionicons
                     name="restaurant-outline"
                     size={15}
-                    color="#9A8478"
+                    color="#756D84"
                   />
                 </View>
                 <Text style={styles.cardLabel}>Meal Type</Text>
@@ -305,7 +305,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                 style={styles.pickCard}
               >
                 <View style={[styles.pickIconCircle, styles.pickIconPrimary]}>
-                  <Ionicons name="camera" size={32} color="#D88939" />
+                  <Ionicons name="camera" size={32} color="#8055E8" />
                 </View>
                 <Text style={styles.pickLabel}>Take Photo</Text>
                 <Text style={styles.pickSub}>Point at your plate</Text>
@@ -317,7 +317,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                 style={styles.pickCard}
               >
                 <View style={[styles.pickIconCircle, styles.pickIconMuted]}>
-                  <Ionicons name="images" size={32} color="#6A816A" />
+                  <Ionicons name="images" size={32} color="#8B75C8" />
                 </View>
                 <Text style={styles.pickLabel}>Choose Photo</Text>
                 <Text style={styles.pickSub}>From your gallery</Text>
@@ -328,7 +328,7 @@ export default function PhotoLogScreen({ navigation, route }) {
               <Ionicons
                 name="bulb-outline"
                 size={15}
-                color="#9A8478"
+                color="#756D84"
                 style={styles.iconMR9}
               />
               <Text style={styles.tipText}>
@@ -347,7 +347,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                 <Ionicons
                   name="refresh"
                   size={15}
-                  color="#F4EAE4"
+                  color="#242033"
                   style={styles.iconMR6}
                 />
                 <Text style={styles.retakeBtnText}>Retake</Text>
@@ -358,7 +358,7 @@ export default function PhotoLogScreen({ navigation, route }) {
               <View style={styles.analysingCard}>
                 <ActivityIndicator
                   size="large"
-                  color="#D88939"
+                  color="#8055E8"
                   style={styles.activityMB16}
                 />
                 <Text style={styles.analysingTitle}>
@@ -383,7 +383,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                   <Ionicons
                     name="sparkles-outline"
                     size={14}
-                    color="#D88939"
+                    color="#8055E8"
                     style={styles.iconMR7}
                   />
                   <Text style={styles.confidenceText}>
@@ -397,7 +397,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                       <SolarIcon
                         name="plate-bold-duotone"
                         size={15}
-                        color="#D88939"
+                        color="#8055E8"
                       />
                     </View>
                     <Text style={styles.cardLabel}>{analysis.name}</Text>
@@ -413,14 +413,14 @@ export default function PhotoLogScreen({ navigation, route }) {
                       {
                         label: "Protein",
                         val: `${totalProtein}g`,
-                        color: "#6A816A",
+                        color: "#8B75C8",
                       },
                       {
                         label: "Carbs",
                         val: `${totalCarbs}g`,
-                        color: "#D88939",
+                        color: "#8055E8",
                       },
-                      { label: "Fat", val: `${totalFat}g`, color: "#E3B372" },
+                      { label: "Fat", val: `${totalFat}g`, color: "#A78BFA" },
                     ].map((m) => (
                       <View
                         key={m.label}
@@ -471,7 +471,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                           <Ionicons
                             name="pencil-outline"
                             size={13}
-                            color="#9A8478"
+                            color="#756D84"
                           />
                         </TouchableOpacity>
                       </View>
@@ -490,7 +490,7 @@ export default function PhotoLogScreen({ navigation, route }) {
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={18}
-                    color="#211613"
+                    color="#F5F1FF"
                     style={styles.iconMR8}
                   />
                   <Text style={styles.saveBtnText}>
@@ -515,7 +515,7 @@ export default function PhotoLogScreen({ navigation, route }) {
         {step === 2 && (
           <View style={styles.successCard}>
             <View style={styles.successIcon}>
-              <Ionicons name="checkmark-circle" size={52} color="#6A816A" />
+              <Ionicons name="checkmark-circle" size={52} color="#8B75C8" />
             </View>
             <Text style={styles.successTitle}>Meal saved</Text>
             <Text style={styles.successBody}>
@@ -529,7 +529,7 @@ export default function PhotoLogScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#211613" },
+  container: { flex: 1, backgroundColor: "#F5F1FF" },
   scroll: { paddingBottom: 48 },
 
   header: {
@@ -544,24 +544,24 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#F4EAE4" },
-  headerSub: { fontSize: 12, color: "#9A8478", marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: "#242033" },
+  headerSub: { fontSize: 12, color: "#756D84", marginTop: 2 },
   stepWrap: { paddingHorizontal: 40 },
 
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 16,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -577,31 +577,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 10,
   },
-  cardLabel: { fontSize: 14, fontWeight: "700", color: "#F4EAE4", flex: 1 },
+  cardLabel: { fontSize: 14, fontWeight: "700", color: "#242033", flex: 1 },
   calBadge: {
-    backgroundColor: "rgba(216,137,57,0.15)",
+    backgroundColor: "rgba(128,85,232,0.14)",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  calBadgeText: { fontSize: 12, fontWeight: "700", color: "#D88939" },
+  calBadgeText: { fontSize: 12, fontWeight: "700", color: "#8055E8" },
 
   mealTypeRow: { flexDirection: "row", gap: 8 },
   mealTypeBtn: {
     flex: 1,
     paddingVertical: 9,
     borderRadius: 14,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTypeBtnActive: {
-    backgroundColor: "rgba(216,137,57,0.15)",
-    borderColor: "#D88939",
+    backgroundColor: "rgba(128,85,232,0.14)",
+    borderColor: "#8055E8",
   },
-  mealTypeBtnText: { fontSize: 12, color: "#9A8478", fontWeight: "600" },
-  mealTypeBtnTextActive: { color: "#D88939", fontWeight: "700" },
+  mealTypeBtnText: { fontSize: 12, color: "#756D84", fontWeight: "600" },
+  mealTypeBtnTextActive: { color: "#8055E8", fontWeight: "700" },
 
   pickRow: {
     flexDirection: "row",
@@ -611,13 +611,13 @@ const styles = StyleSheet.create({
   },
   pickCard: {
     flex: 1,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
     alignItems: "center",
     gap: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   pickIconCircle: {
     width: 64,
@@ -626,21 +626,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  pickLabel: { fontSize: 15, fontWeight: "700", color: "#F4EAE4" },
-  pickSub: { fontSize: 12, color: "#9A8478", textAlign: "center" },
+  pickLabel: { fontSize: 15, fontWeight: "700", color: "#242033" },
+  pickSub: { fontSize: 12, color: "#756D84", textAlign: "center" },
 
   tipBox: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginHorizontal: 24,
     marginBottom: 14,
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
-  tipText: { fontSize: 13, color: "#9A8478", flex: 1, lineHeight: 18 },
+  tipText: { fontSize: 13, color: "#756D84", flex: 1, lineHeight: 18 },
 
   photoPreviewCard: {
     marginHorizontal: 24,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   photoPreview: { width: "100%", height: 240 },
   retakeBtn: {
@@ -662,27 +662,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
-  retakeBtnText: { fontSize: 12, color: "#F4EAE4", fontWeight: "600" },
+  retakeBtnText: { fontSize: 12, color: "#242033", fontWeight: "600" },
 
   analysingCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 32,
     marginHorizontal: 24,
     marginBottom: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "#E8E1F5",
   },
   analysingTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     marginBottom: 8,
   },
   analysingBody: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     textAlign: "center",
     lineHeight: 19,
   },
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
   },
 
   confidenceBanner: {
@@ -699,14 +699,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 24,
     marginBottom: 12,
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
   },
-  confidenceText: { fontSize: 12, color: "#D88939", fontWeight: "600" },
+  confidenceText: { fontSize: 12, color: "#8055E8", fontWeight: "600" },
 
   macroRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
   macroPill: {
@@ -718,31 +718,31 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.02)",
   },
   macroPillVal: { fontSize: 14, fontWeight: "700" },
-  macroPillLabel: { fontSize: 10, color: "#9A8478", marginTop: 2 },
+  macroPillLabel: { fontSize: 10, color: "#756D84", marginTop: 2 },
 
   foodRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12 },
   foodDot: {
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     marginRight: 12,
   },
   foodGrow: { flex: 1 },
-  foodName: { fontSize: 14, fontWeight: "600", color: "#F4EAE4" },
-  foodMeta: { fontSize: 12, color: "#9A8478", marginTop: 2 },
+  foodName: { fontSize: 14, fontWeight: "600", color: "#242033" },
+  foodMeta: { fontSize: 12, color: "#756D84", marginTop: 2 },
   editItemBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#3A2A25",
+    backgroundColor: "#F0E9FF",
     alignItems: "center",
     justifyContent: "center",
   },
   divider: { height: 1, backgroundColor: "rgba(255,255,255,0.04)" },
 
   saveBtn: {
-    backgroundColor: "#D88939",
+    backgroundColor: "#8055E8",
     borderRadius: 20,
     height: 56,
     flexDirection: "row",
@@ -751,35 +751,35 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginBottom: 12,
   },
-  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#211613" },
+  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
 
   retakeTextBtn: { alignItems: "center", paddingVertical: 10 },
-  retakeTextBtnText: { fontSize: 13, color: "#9A8478" },
+  retakeTextBtnText: { fontSize: 13, color: "#756D84" },
 
   successCard: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 40,
     marginHorizontal: 24,
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: "rgba(106,129,106,0.20)",
+    borderColor: "rgba(128,85,232,0.18)",
   },
   successIcon: { marginBottom: 8 },
-  successTitle: { fontSize: 22, fontWeight: "700", color: "#F4EAE4" },
+  successTitle: { fontSize: 22, fontWeight: "700", color: "#242033" },
   successBody: {
     fontSize: 14,
-    color: "#9A8478",
+    color: "#756D84",
     textAlign: "center",
     lineHeight: 20,
   },
-  pickIconPrimary: { backgroundColor: "rgba(216,137,57,0.12)" },
-  pickIconMuted: { backgroundColor: "rgba(106,129,106,0.12)" },
+  pickIconPrimary: { backgroundColor: "rgba(128,85,232,0.12)" },
+  pickIconMuted: { backgroundColor: "rgba(128,85,232,0.10)" },
   iconMR9: { marginRight: 9 },
   iconMR6: { marginRight: 6 },
   activityMB16: { marginBottom: 16 },
   iconMR7: { marginRight: 7 },
   iconMR8: { marginRight: 8 },
-  iconBadgePrimary: { backgroundColor: "rgba(216,137,57,0.15)" },
+  iconBadgePrimary: { backgroundColor: "rgba(128,85,232,0.14)" },
 });

@@ -31,8 +31,8 @@ const Y_MIN = 60;
 const Y_MAX = 300;
 
 const REF_LINES = [
-  { value: 100, color: "#6A816A", label: "Normal" },
-  { value: 126, color: "#D88939", label: "Pre-diabetic" },
+  { value: 100, color: "#8B75C8", label: "Normal" },
+  { value: 126, color: "#8055E8", label: "Pre-diabetic" },
   { value: 180, color: "#CE6C60", label: "High" },
 ];
 
@@ -57,10 +57,10 @@ function getDayKey(date) {
 }
 
 function getPointColor(mgdl) {
-  if (mgdl === null) return "#9A8478";
-  if (mgdl < 100) return "#6A816A"; // green — normal
-  if (mgdl < 126) return "#D88939"; // amber — pre-diabetic range
-  if (mgdl < 180) return "#D88939"; // amber — still manageable
+  if (mgdl === null) return "#756D84";
+  if (mgdl < 100) return "#8B75C8"; // green — normal
+  if (mgdl < 126) return "#8055E8"; // amber — pre-diabetic range
+  if (mgdl < 180) return "#8055E8"; // amber — still manageable
   return "#CE6C60"; // red — high
 }
 
@@ -204,7 +204,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
             key={si}
             points={pointsStr}
             fill="none"
-            stroke="#D88939"
+            stroke="#8055E8"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -268,17 +268,17 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
     latestToday !== null ? `${Math.round(latestToday)} mg/dL` : "No reading yet";
 
   const latestColor =
-    latestToday !== null ? getPointColor(latestToday) : (colors?.textMuted || "#9A8478");
+    latestToday !== null ? getPointColor(latestToday) : (colors?.textMuted || "#756D84");
 
   // ── Legend items ──
   const legend = [
-    { color: "#6A816A", label: "Normal" },
-    { color: "#D88939", label: "Pre-diabetic" },
+    { color: "#8B75C8", label: "Normal" },
+    { color: "#8055E8", label: "Pre-diabetic" },
     { color: "#CE6C60", label: "High" },
   ];
 
   return (
-    <View style={[gc.card, { borderColor: colors?.border || "rgba(255,255,255,0.05)" }]}>
+    <View style={[gc.card, { borderColor: colors?.border || "#E8E1F5" }]}>
       {/* Header */}
       <View style={gc.headerRow}>
         <View style={gc.headerTextCol}>
@@ -302,7 +302,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           style={gc.addBtn}
           onPress={onPress}
         >
-          <Ionicons name="add" size={18} color="#D88939" />
+          <Ionicons name="add" size={18} color="#8055E8" />
         </TouchableOpacity>
       </View>
 
@@ -335,7 +335,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           onPress={onPress}
         >
           <View style={gc.emptyIconBadge}>
-            <Ionicons name="pulse-outline" size={24} color="#D88939" />
+            <Ionicons name="pulse-outline" size={24} color="#8055E8" />
           </View>
           <Text style={gc.emptyTitle}>Log your first glucose reading</Text>
           <Text style={gc.emptyBody}>
@@ -344,7 +344,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           </Text>
           <View style={gc.emptyArrow}>
             <Text style={gc.emptyArrowText}>Log reading</Text>
-            <Ionicons name="arrow-forward" size={13} color="#D88939" style={gc.emptyArrowIcon} />
+            <Ionicons name="arrow-forward" size={13} color="#8055E8" style={gc.emptyArrowIcon} />
           </View>
         </TouchableOpacity>
       )}
@@ -357,7 +357,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
 // ─────────────────────────────────────────────
 const gc = StyleSheet.create({
   card: {
-    backgroundColor: "#2D201C",
+    backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
@@ -375,7 +375,7 @@ const gc = StyleSheet.create({
   overline: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#9A8478",
+    color: "#756D84",
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -389,7 +389,7 @@ const gc = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     lineHeight: 22,
   },
   todayBadge: {
@@ -405,16 +405,16 @@ const gc = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    color: "#9A8478",
+    color: "#756D84",
     marginTop: 3,
   },
   addBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(216,137,57,0.12)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.25)",
+    borderColor: "rgba(128,85,232,0.25)",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 10,
@@ -446,7 +446,7 @@ const gc = StyleSheet.create({
   },
   legendLabel: {
     fontSize: 10,
-    color: "#9A8478",
+    color: "#756D84",
     fontWeight: "500",
   },
 
@@ -459,9 +459,9 @@ const gc = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "rgba(216,137,57,0.12)",
+    backgroundColor: "rgba(128,85,232,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
@@ -469,13 +469,13 @@ const gc = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#F4EAE4",
+    color: "#242033",
     marginBottom: 6,
     textAlign: "center",
   },
   emptyBody: {
     fontSize: 13,
-    color: "#9A8478",
+    color: "#756D84",
     lineHeight: 19,
     textAlign: "center",
     paddingHorizontal: 8,
@@ -484,17 +484,17 @@ const gc = StyleSheet.create({
   emptyArrow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(216,137,57,0.10)",
+    backgroundColor: "rgba(128,85,232,0.10)",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "rgba(216,137,57,0.20)",
+    borderColor: "rgba(128,85,232,0.20)",
   },
   emptyArrowText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#D88939",
+    color: "#8055E8",
   },
   emptyArrowIcon: { marginLeft: 5 },
 });

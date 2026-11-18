@@ -55,7 +55,7 @@ const QUALITY_OPTIONS = [
     id: "good",
     label: "Good",
     icon: "moon-outline",
-    color: "#798C73", // secondary sage
+    color: "#A78BFA", // secondary sage
   },
   {
     id: "excellent",
@@ -117,7 +117,7 @@ function SectionLabel({ children, colors }) {
 const slSt = StyleSheet.create({
   label: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -213,13 +213,13 @@ const ddSt = StyleSheet.create({
   },
   bigNumber: {
     fontSize: 52,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -2,
     lineHeight: 60,
   },
   bigUnit: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     letterSpacing: 0.2,
   },
 });
@@ -302,7 +302,7 @@ const hpSt = StyleSheet.create({
   },
   chipText: {
     fontSize: 13,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
   },
 });
@@ -391,7 +391,7 @@ const qSt = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
     textTransform: "capitalize",
   },
@@ -427,7 +427,7 @@ const ebSt = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     color: "#E28A82",
     lineHeight: 19,
   },
@@ -828,13 +828,13 @@ const styles = StyleSheet.create({
   },
   preTitle: {
     fontSize: 13,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
     letterSpacing: 0.3,
   },
   title: {
     fontSize: 36,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
     lineHeight: 44,
   },
@@ -860,12 +860,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 17,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   optionalTag: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     fontWeight: "400",
   },
 
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
   },
   manualLabel: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   manualInputWrap: {
     flexDirection: "row",
@@ -890,14 +890,14 @@ const styles = StyleSheet.create({
   },
   manualInput: {
     fontSize: 16,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
     width: 48,
     textAlign: "center",
   },
   manualUnit: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
 
   // Divider
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 23,
     minHeight: 86,
   },
@@ -933,12 +933,12 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   summaryText: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     textAlign: "center",
     marginTop: 10,
   },

@@ -168,13 +168,13 @@ const cpSt = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -0.5,
     textAlign: "center",
   },
   body: {
     fontSize: 15,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     lineHeight: 23,
     textAlign: "center",
   },
@@ -192,7 +192,7 @@ const cpSt = StyleSheet.create({
   grantBtnText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   skipBtn: {
@@ -200,7 +200,7 @@ const cpSt = StyleSheet.create({
   },
   skipText: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
 });
 
@@ -358,7 +358,7 @@ const camSt = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   aiBadge: {
     position: "absolute",
@@ -374,7 +374,7 @@ const camSt = StyleSheet.create({
   },
   aiBadgeText: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   capturedBadge: {
@@ -390,7 +390,7 @@ const camSt = StyleSheet.create({
   },
   capturedText: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     color: "#FFFFFF",
   },
   actionBtn: {
@@ -404,7 +404,7 @@ const camSt = StyleSheet.create({
   actionBtnText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
 });
@@ -469,7 +469,7 @@ const mtSt = StyleSheet.create({
   },
   pillText: {
     fontSize: 14,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
   },
 });
@@ -487,7 +487,7 @@ function SectionLabel({ children, colors }) {
 const slSt = StyleSheet.create({
   label: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -524,7 +524,7 @@ const ebSt = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     color: "#E28A82",
     lineHeight: 19,
   },
@@ -1034,13 +1034,13 @@ const styles = StyleSheet.create({
   },
   preTitle: {
     fontSize: 13,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "500",
     letterSpacing: 0.3,
   },
   title: {
     fontSize: 36,
-    fontFamily: "PlusJakartaSans_700Bold",
+    fontFamily: undefined,
     letterSpacing: -1,
     lineHeight: 44,
   },
@@ -1065,12 +1065,12 @@ const styles = StyleSheet.create({
   },
   snapTitle: {
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   snapSub: {
     fontSize: 13,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
   },
   snapBadge: {
     flexDirection: "row",
@@ -1083,7 +1083,7 @@ const styles = StyleSheet.create({
   },
   snapBadgeText: {
     fontSize: 11,
-    fontFamily: "DMSans_500Medium",
+    fontFamily: undefined,
     fontWeight: "600",
   },
 
@@ -1126,13 +1126,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     height: 50,
   },
   textArea: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     minHeight: 96,
     lineHeight: 24,
   },
@@ -1150,12 +1150,12 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "PlusJakartaSans_600SemiBold",
+    fontFamily: undefined,
     fontWeight: "600",
   },
   hint: {
     fontSize: 12,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: undefined,
     textAlign: "center",
     marginTop: -8,
   },
