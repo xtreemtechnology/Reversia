@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import { validateEmail, firebaseErrorMessage } from "../authHelpers";
@@ -128,12 +129,12 @@ export default function SignInScreen({ navigation }) {
               style={[
                 styles.errorBanner,
                 {
-                  backgroundColor: "rgba(226,138,130,0.18)",
-                  borderColor: "rgba(226,138,130,0.4)",
+                  backgroundColor: "rgba(217,108,131,0.18)",
+                  borderColor: "rgba(217,108,131,0.4)",
                 },
               ]}
             >
-              <Ionicons name="warning-outline" size={16} color="#E28A82" />
+              <Ionicons name="warning-outline" size={16} color={T.DANGER} />
               <Text style={styles.errorBannerText}>{error}</Text>
             </View>
           ) : null}
@@ -198,13 +199,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 23,
   },
   form: {
@@ -216,13 +217,13 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   errorBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -230,8 +231,8 @@ const styles = StyleSheet.create({
   errorBannerText: {
     flex: 1,
     fontSize: 14,
-    color: "#E28A82",
-    fontFamily: undefined,
+    color: T.DANGER,
+    fontFamily: FONTS.body,
     lineHeight: 20,
   },
   ctaGroup: {
@@ -248,6 +249,6 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 });

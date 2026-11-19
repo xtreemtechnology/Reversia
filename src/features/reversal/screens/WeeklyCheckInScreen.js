@@ -21,6 +21,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import {
   getReversalPlan,
   listWeeklyCheckIns,
@@ -218,149 +221,173 @@ export default function WeeklyCheckInScreen({ navigation }) {
             <Text style={styles.backText}>Back to your plan</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>Week {week} check-in</Text>
-          <Text style={styles.subtitle}>
-            A quick look at how this week went. Small steps count.
-          </Text>
+          <FadeIn delay={0}>
+            <Text style={styles.title}>Week {week} check-in</Text>
+            <Text style={styles.subtitle}>
+              A quick look at how this week went. Small steps count.
+            </Text>
+          </FadeIn>
 
           {previousFasting !== null ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Last check-in</Text>
-              <Text style={styles.body}>
-                Fasting sugar was {previousFasting} mg/dL
-                {previousCheckIn?.week
-                  ? ` in week ${previousCheckIn.week}`
-                  : ""}
-                .
-              </Text>
-              {fastingChange !== null ? (
-                <Text style={styles.body}>
-                  {fastingChange < 0
-                    ? `Down ${Math.abs(
-                        fastingChange
-                      )} mg/dL since then — nice progress.`
-                    : fastingChange > 0
-                    ? `Up ${fastingChange} mg/dL since then — one week does not define your journey.`
-                    : "Same as last time — steady is good."}
+            <FadeIn delay={60}>
+              <View style={styles.heroCard}>
+                <Text style={styles.heroOverline}>Last check-in</Text>
+                <Text style={styles.heroBig}>
+                  {previousFasting}
+                  <Text style={styles.heroBigUnit}> mg/dL</Text>
                 </Text>
-              ) : null}
-            </View>
+                <Text style={styles.heroSub}>
+                  Fasting sugar
+                  {previousCheckIn?.week
+                    ? ` in week ${previousCheckIn.week}`
+                    : ""}
+                  .
+                </Text>
+                {fastingChange !== null ? (
+                  <Text style={styles.heroChange}>
+                    {fastingChange < 0
+                      ? `Down ${Math.abs(
+                          fastingChange
+                        )} mg/dL since then — nice progress.`
+                      : fastingChange > 0
+                      ? `Up ${fastingChange} mg/dL since then — one week does not define your journey.`
+                      : "Same as last time — steady is good."}
+                  </Text>
+                ) : null}
+              </View>
+            </FadeIn>
           ) : null}
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Fasting sugar (mg/dL)</Text>
-            <TextInput
-              style={styles.input}
-              value={fastingSugar}
-              onChangeText={setFastingSugar}
-              placeholder="For example 110"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="numeric"
-            />
-            <Text style={styles.muted}>
-              Normal fasting is below 100, pre-diabetes 100–125, diabetes 126
-              and above.
-            </Text>
-          </View>
+          <FadeIn delay={120}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Fasting sugar (mg/dL)</Text>
+              <TextInput
+                style={styles.input}
+                value={fastingSugar}
+                onChangeText={setFastingSugar}
+                placeholder="For example 110"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="numeric"
+              />
+              <Text style={styles.muted}>
+                Normal fasting is below 100, pre-diabetes 100–125, diabetes 126
+                and above.
+              </Text>
+            </View>
+          </FadeIn>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>HbA1c % (optional)</Text>
-            <TextInput
-              style={styles.input}
-              value={hba1c}
-              onChangeText={setHba1c}
-              placeholder="For example 6.8"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="decimal-pad"
-            />
-            <Text style={styles.muted}>
-              Only add this when you have a new lab result — no need to test
-              every week.
-            </Text>
-          </View>
+          <FadeIn delay={180}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>HbA1c % (optional)</Text>
+              <TextInput
+                style={styles.input}
+                value={hba1c}
+                onChangeText={setHba1c}
+                placeholder="For example 6.8"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="decimal-pad"
+              />
+              <Text style={styles.muted}>
+                Only add this when you have a new lab result — no need to test
+                every week.
+              </Text>
+            </View>
+          </FadeIn>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Natural meals this week (0–21)</Text>
-            <TextInput
-              style={styles.input}
-              value={naturalMeals}
-              onChangeText={setNaturalMeals}
-              placeholder="For example 12"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="numeric"
-            />
-            <Text style={styles.muted}>
-              Count meals built on whole, natural foods — beans, vegetables,
-              fish, eggs, oats, ofada rice.
-            </Text>
-          </View>
+          <FadeIn delay={240}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Natural meals this week (0–21)
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={naturalMeals}
+                onChangeText={setNaturalMeals}
+                placeholder="For example 12"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="numeric"
+              />
+              <Text style={styles.muted}>
+                Count meals built on whole, natural foods — beans, vegetables,
+                fish, eggs, oats, ofada rice.
+              </Text>
+            </View>
+          </FadeIn>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Walks after meals (0–21)</Text>
-            <TextInput
-              style={styles.input}
-              value={walksAfterMeals}
-              onChangeText={setWalksAfterMeals}
-              placeholder="For example 9"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="numeric"
-            />
-            <Text style={styles.muted}>
-              A 10-minute walk after a meal helps keep sugar steadier.
-            </Text>
-          </View>
+          <FadeIn delay={300}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Walks after meals (0–21)</Text>
+              <TextInput
+                style={styles.input}
+                value={walksAfterMeals}
+                onChangeText={setWalksAfterMeals}
+                placeholder="For example 9"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="numeric"
+              />
+              <Text style={styles.muted}>
+                A 10-minute walk after a meal helps keep sugar steadier.
+              </Text>
+            </View>
+          </FadeIn>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>How is your energy?</Text>
-            {ENERGY_OPTIONS.map((option) => {
-              const active = energy === option.value;
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[styles.option, active && styles.optionActive]}
-                  onPress={() => setEnergy(option.value)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={active ? "radio-button-on" : "radio-button-off"}
-                    size={20}
-                    color={active ? colors.primary : colors.mutedForeground}
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      active && styles.optionTextActive,
-                    ]}
+          <FadeIn delay={360}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>How is your energy?</Text>
+              {ENERGY_OPTIONS.map((option) => {
+                const active = energy === option.value;
+                return (
+                  <PressScale
+                    key={option.value}
+                    style={[styles.option, active && styles.optionActive]}
+                    onPress={() => setEnergy(option.value)}
+                    accessibilityLabel={option.label}
                   >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                    <Ionicons
+                      name={active ? "radio-button-on" : "radio-button-off"}
+                      size={20}
+                      color={active ? colors.primary : colors.mutedForeground}
+                    />
+                    <Text
+                      style={[
+                        styles.optionText,
+                        active && styles.optionTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </PressScale>
+                );
+              })}
+            </View>
+          </FadeIn>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Notes (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.notesInput]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="What worked this week? What was hard?"
-              placeholderTextColor={colors.mutedForeground}
-              multiline
-            />
-          </View>
+          <FadeIn delay={420}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Notes (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="What worked this week? What was hard?"
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+              />
+            </View>
+          </FadeIn>
 
-          <TouchableOpacity
-            style={[styles.primaryButton, saving && styles.buttonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.primaryButtonText}>
-              {saving ? "Saving…" : "Save check-in"}
-            </Text>
-          </TouchableOpacity>
+          <FadeIn delay={480}>
+            <TouchableOpacity
+              style={[styles.primaryButton, saving && styles.buttonDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.primaryButtonText}>
+                {saving ? "Saving…" : "Save check-in"}
+              </Text>
+            </TouchableOpacity>
+          </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -399,55 +426,109 @@ function makeStyles(colors) {
       gap: 2,
     },
     backText: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       fontWeight: "600",
       color: colors.primary,
     },
     title: {
-      fontSize: 26,
-      fontWeight: "700",
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
       color: colors.text,
+      letterSpacing: -0.5,
     },
     subtitle: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.mutedForeground,
       lineHeight: 21,
+      marginTop: 4,
     },
     card: {
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 24,
+      padding: 20,
       gap: 10,
     },
     cardTitle: {
+      fontFamily: FONTS.display,
       fontSize: 17,
       fontWeight: "700",
       color: colors.text,
     },
     body: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
       lineHeight: 21,
     },
     muted: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.mutedForeground,
       lineHeight: 20,
     },
+    heroCard: {
+      backgroundColor: colors.muted,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 28,
+      padding: 22,
+      gap: 4,
+    },
+    heroOverline: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "800",
+      color: colors.primary,
+      letterSpacing: 1.1,
+      textTransform: "uppercase",
+    },
+    heroBig: {
+      fontFamily: FONTS.display,
+      fontSize: 44,
+      fontWeight: "800",
+      color: colors.text,
+      letterSpacing: -1,
+      lineHeight: 48,
+    },
+    heroBigUnit: {
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    heroSub: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.mutedForeground,
+      lineHeight: 20,
+    },
+    heroChange: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+      lineHeight: 20,
+      marginTop: 4,
+    },
     input: {
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
+      borderRadius: 999,
+      height: 52,
+      paddingHorizontal: 18,
+      fontFamily: FONTS.body,
       fontSize: 16,
       color: colors.text,
       backgroundColor: colors.background,
     },
     notesInput: {
-      minHeight: 80,
+      height: "auto",
+      minHeight: 96,
+      borderRadius: 20,
+      paddingVertical: 14,
       textAlignVertical: "top",
     },
     option: {
@@ -456,9 +537,9 @@ function makeStyles(colors) {
       gap: 10,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
+      borderRadius: 20,
+      paddingVertical: 13,
+      paddingHorizontal: 14,
     },
     optionActive: {
       borderColor: colors.primary,
@@ -466,6 +547,7 @@ function makeStyles(colors) {
     },
     optionText: {
       flex: 1,
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
       lineHeight: 21,
@@ -476,8 +558,8 @@ function makeStyles(colors) {
     },
     primaryButton: {
       backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 14,
+      borderRadius: 999,
+      paddingVertical: 15,
       paddingHorizontal: 16,
       alignItems: "center",
     },
@@ -485,6 +567,7 @@ function makeStyles(colors) {
       opacity: 0.6,
     },
     primaryButtonText: {
+      fontFamily: FONTS.display,
       color: colors.primaryForeground,
       fontSize: 16,
       fontWeight: "700",

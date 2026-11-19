@@ -7,7 +7,7 @@
 // — Visual duration stepper + quality selector with icons
 // — Consistent inputs, error banner, save button
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -24,10 +24,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   withSpring,
   withSequence,
-  Easing,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -35,6 +33,8 @@ import { auth, db } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
 import secureStorage from "../../../utils/secureStorage";
 import { trackEvent } from "../../../utils/analytics";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 // ── Quality options ────────────────────────────────────────────────────────────
 
@@ -43,25 +43,25 @@ const QUALITY_OPTIONS = [
     id: "poor",
     label: "Poor",
     icon: "sad-outline",
-    color: "#E28A82", // destructive
+    color: T.DANGER, // destructive
   },
   {
     id: "fair",
     label: "Fair",
     icon: "partly-sunny-outline",
-    color: "#F2CC8F", // chart-4 amber
+    color: T.AMBER, // chart-4 amber
   },
   {
     id: "good",
     label: "Good",
     icon: "moon-outline",
-    color: "#A78BFA", // secondary sage
+    color: T.SECONDARY, // secondary sage
   },
   {
     id: "excellent",
     label: "Excellent",
     icon: "star-outline",
-    color: "#81B29A", // chart-5 teal
+    color: T.PRIMARY, // chart-5 teal
   },
 ];
 
@@ -80,31 +80,6 @@ const formatHoursLabel = (raw) => {
   return `${h}h ${m}m`;
 };
 
-// ── FadeSlide wrapper ─────────────────────────────────────────────────────────
-
-function FadeSlide({ delay = 0, children }) {
-  const opacity = useSharedValue(0);
-  const y = useSharedValue(16);
-
-  useEffect(() => {
-    opacity.value = withDelay(
-      delay,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-    y.value = withDelay(
-      delay,
-      withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-  }, [delay, opacity, y]);
-
-  const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: y.value }],
-  }));
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
-
 // ── Section label ─────────────────────────────────────────────────────────────
 
 function SectionLabel({ children, colors }) {
@@ -117,7 +92,7 @@ function SectionLabel({ children, colors }) {
 const slSt = StyleSheet.create({
   label: {
     fontSize: 11,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -213,13 +188,13 @@ const ddSt = StyleSheet.create({
   },
   bigNumber: {
     fontSize: 52,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -2,
     lineHeight: 60,
   },
   bigUnit: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     letterSpacing: 0.2,
   },
 });
@@ -302,7 +277,7 @@ const hpSt = StyleSheet.create({
   },
   chipText: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
   },
 });
@@ -391,7 +366,7 @@ const qSt = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
     textTransform: "capitalize",
   },
@@ -405,10 +380,10 @@ function ErrorBanner({ message }) {
     <View
       style={[
         ebSt.banner,
-        { backgroundColor: "#E28A82" + "18", borderColor: "#E28A82" + "40" },
+        { backgroundColor: T.DANGER + "18", borderColor: T.DANGER + "40" },
       ]}
     >
-      <Ionicons name="warning-outline" size={16} color="#E28A82" />
+      <Ionicons name="warning-outline" size={16} color={T.DANGER} />
       <Text style={ebSt.text}>{message}</Text>
     </View>
   );
@@ -427,8 +402,8 @@ const ebSt = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: undefined,
-    color: "#E28A82",
+    fontFamily: FONTS.body,
+    color: T.DANGER,
     lineHeight: 19,
   },
 });
@@ -534,7 +509,7 @@ export default function SleepEntryScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Header ── */}
-          <FadeSlide delay={0}>
+          <FadeIn delay={0}>
             <View style={styles.header}>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -556,10 +531,10 @@ export default function SleepEntryScreen({ navigation }) {
                 </Text>
               </View>
             </View>
-          </FadeSlide>
+          </FadeIn>
 
           {/* ── Duration card ── */}
-          <FadeSlide delay={80}>
+          <FadeIn delay={80}>
             <View
               style={[
                 styles.card,
@@ -655,10 +630,10 @@ export default function SleepEntryScreen({ navigation }) {
                 />
               </View>
             </View>
-          </FadeSlide>
+          </FadeIn>
 
           {/* ── Quality card ── */}
-          <FadeSlide delay={160}>
+          <FadeIn delay={160}>
             <View
               style={[
                 styles.card,
@@ -672,11 +647,11 @@ export default function SleepEntryScreen({ navigation }) {
                 <View
                   style={[
                     styles.cardIconWrap,
-                    { backgroundColor: "#F2CC8F" + "22" },
+                    { backgroundColor: T.AMBER + "22" },
                   ]}
                 >
                   {/* solar:star-bold → star */}
-                  <Ionicons name="star" size={20} color="#F2CC8F" />
+                  <Ionicons name="star" size={20} color={T.AMBER} />
                 </View>
                 <Text style={[styles.cardTitle, { color: colors.foreground }]}>
                   Sleep quality
@@ -689,10 +664,10 @@ export default function SleepEntryScreen({ navigation }) {
                 colors={colors}
               />
             </View>
-          </FadeSlide>
+          </FadeIn>
 
           {/* ── Notes card ── */}
-          <FadeSlide delay={240}>
+          <FadeIn delay={240}>
             <View
               style={[
                 styles.card,
@@ -750,17 +725,17 @@ export default function SleepEntryScreen({ navigation }) {
                 />
               </View>
             </View>
-          </FadeSlide>
+          </FadeIn>
 
           {/* ── Error ── */}
           {error ? (
-            <FadeSlide delay={0}>
+            <FadeIn delay={0}>
               <ErrorBanner message={error} />
-            </FadeSlide>
+            </FadeIn>
           ) : null}
 
           {/* ── Save button ── */}
-          <FadeSlide delay={300}>
+          <FadeIn delay={300}>
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.85}
@@ -774,10 +749,10 @@ export default function SleepEntryScreen({ navigation }) {
               ]}
             >
               {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={T.WHITE} />
               ) : (
                 <>
-                  <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+                  <Ionicons name="checkmark-circle" size={18} color={T.WHITE} />
                   <Text style={styles.saveBtnText}>Save sleep</Text>
                 </>
               )}
@@ -791,7 +766,7 @@ export default function SleepEntryScreen({ navigation }) {
                 Saving {formatHoursLabel(hours)} of {quality} sleep
               </Text>
             )}
-          </FadeSlide>
+          </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -828,13 +803,13 @@ const styles = StyleSheet.create({
   },
   preTitle: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
     letterSpacing: 0.3,
   },
   title: {
     fontSize: 36,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
     lineHeight: 44,
   },
@@ -860,12 +835,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 17,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   optionalTag: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "400",
   },
 
@@ -877,7 +852,7 @@ const styles = StyleSheet.create({
   },
   manualLabel: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   manualInputWrap: {
     flexDirection: "row",
@@ -890,14 +865,14 @@ const styles = StyleSheet.create({
   },
   manualInput: {
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
     width: 48,
     textAlign: "center",
   },
   manualUnit: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 
   // Divider
@@ -916,7 +891,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 23,
     minHeight: 86,
   },
@@ -931,14 +906,14 @@ const styles = StyleSheet.create({
     height: 56,
   },
   saveBtnText: {
-    color: "#FFFFFF",
+    color: T.WHITE,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   summaryText: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     textAlign: "center",
     marginTop: 10,
   },

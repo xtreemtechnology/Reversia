@@ -12,6 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../../home/components/FadeIn";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
 function SectionLabel({ text }) {
@@ -20,10 +22,11 @@ function SectionLabel({ text }) {
 
 const sl = StyleSheet.create({
   text: {
+    fontFamily: FONTS.body,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#756D84",
+    color: T.MUTED,
     marginBottom: 10,
   },
 });
@@ -106,216 +109,226 @@ export default function HydrationConnectionScreen({ navigation }) {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        <View
-          style={[
-            styles.heroCard,
-            {
-              backgroundColor: "rgba(167,139,250,0.12)",
-              borderColor: "rgba(167,139,250,0.20)",
-            },
-          ]}
-        >
+        <FadeIn delay={0}>
           <View
             style={[
-              styles.heroIcon,
-              { backgroundColor: "rgba(167,139,250,0.16)" },
-            ]}
-          >
-            <Ionicons name="water" size={28} color="#A78BFA" />
-          </View>
-          <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            The Hydration-Mood Connection
-          </Text>
-          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
-            How 2 extra glasses can improve your focus and energy.
-          </Text>
-          <View
-            style={[
-              styles.statBox,
+              styles.heroCard,
               {
-                backgroundColor: "rgba(167,139,250,0.08)",
-                borderColor: "rgba(167,139,250,0.20)",
+                backgroundColor: "rgba(139,195,74,0.12)",
+                borderColor: "rgba(139,195,74,0.20)",
               },
             ]}
           >
-            <Ionicons
-              name="person-outline"
-              size={13}
-              color="#A78BFA"
-              style={{ marginRight: 7 }}
-            />
-            <Text style={styles.statText}>{userStat}</Text>
-          </View>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="The Connection" />
-          <Text style={[styles.bodyText, { color: colors.foreground }]}>
-            Your brain is roughly{" "}
-            <Text style={styles.emphasis}>75% water.</Text> When you're even
-            mildly dehydrated — as little as 1–2% below optimal — it starts to
-            affect your ability to concentrate, regulate mood, and maintain
-            energy.
-          </Text>
-          <Text style={[styles.bodyText, { color: colors.mutedForeground }]}>
-            Most people don't feel thirsty until they're already at that
-            threshold. By then, the dip in focus and mood has already begun.
-          </Text>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="What Changes With Better Hydration" />
-          <View style={styles.pointsCol}>
-            <KeyPoint
-              icon="flash-outline"
-              iconColor="#8055E8"
-              iconBg="rgba(128,85,232,0.14)"
-              title="Energy before noon"
-              body="Drinking 1–2 glasses before 10 AM is consistently linked to more stable energy through the morning, especially before meals."
-              colors={colors}
-            />
-            <KeyPoint
-              icon="partly-sunny-outline"
-              iconColor="#8B75C8"
-              iconBg="rgba(128,85,232,0.12)"
-              title="Mood and irritability"
-              body="Even mild dehydration has been shown to increase feelings of tension, anxiety, and fatigue — independent of sleep quality."
-              colors={colors}
-            />
-            <KeyPoint
-              icon="eye-outline"
-              iconColor="#A78BFA"
-              iconBg="rgba(167,139,250,0.16)"
-              title="Focus and clarity"
-              body="Hydration affects blood flow to the brain. Two extra glasses across the morning is often enough to notice a difference in concentration by afternoon."
-              colors={colors}
-            />
-          </View>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="Your Pattern" />
-          <View
-            style={[
-              styles.patternCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <View style={styles.patternRow}>
-              <View
-                style={[styles.patternDot, { backgroundColor: "#A78BFA" }]}
-              />
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[styles.patternLabel, { color: colors.foreground }]}
-                >
-                  Water logs this period
-                </Text>
-                <Text style={[styles.patternVal, { color: "#A78BFA" }]}>
-                  {waterCount} entries
-                </Text>
-              </View>
-            </View>
             <View
               style={[
-                styles.patternRow,
-                { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.04)" },
+                styles.heroIcon,
+                { backgroundColor: "rgba(139,195,74,0.16)" },
               ]}
             >
-              <View
-                style={[styles.patternDot, { backgroundColor: "#8B75C8" }]}
+              <Ionicons name="water" size={28} color={T.PRIMARY} />
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.foreground }]}>
+              The Hydration-Mood Connection
+            </Text>
+            <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
+              How 2 extra glasses can improve your focus and energy.
+            </Text>
+            <View
+              style={[
+                styles.statBox,
+                {
+                  backgroundColor: "rgba(139,195,74,0.08)",
+                  borderColor: "rgba(139,195,74,0.20)",
+                },
+              ]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={13}
+                color={T.PRIMARY}
+                style={{ marginRight: 7 }}
               />
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[styles.patternLabel, { color: colors.foreground }]}
-                >
-                  Daily goal
-                </Text>
-                <Text style={[styles.patternVal, { color: "#8B75C8" }]}>
-                  8 glasses
-                </Text>
-              </View>
+              <Text style={styles.statText}>{userStat}</Text>
             </View>
           </View>
-          <View
-            style={[styles.whyBox, { backgroundColor: "rgba(33,22,19,0.42)" }]}
-          >
-            <Ionicons
-              name="information-circle"
-              size={15}
-              color={colors.primary}
-              style={{ marginRight: 8, marginTop: 1 }}
-            />
-            <Text
-              style={[
-                styles.whyText,
-                { color: colors.mutedForeground, flex: 1 },
-              ]}
-            >
-              Reversia will start connecting your water logs to your body
-              check-in moods once you have at least 5 water entries.
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.block}>
+            <SectionLabel text="The Connection" />
+            <Text style={[styles.bodyText, { color: colors.foreground }]}>
+              Your brain is roughly{" "}
+              <Text style={styles.emphasis}>75% water.</Text> When you're even
+              mildly dehydrated — as little as 1–2% below optimal — it starts to
+              affect your ability to concentrate, regulate mood, and maintain
+              energy.
+            </Text>
+            <Text style={[styles.bodyText, { color: colors.mutedForeground }]}>
+              Most people don't feel thirsty until they're already at that
+              threshold. By then, the dip in focus and mood has already begun.
             </Text>
           </View>
-        </View>
+        </FadeIn>
 
-        <View style={styles.block}>
-          <SectionLabel text="Try This" />
-          {[
-            "Drink one glass before your first meal each day.",
-            "Log it in Reversia — even a single glass counts.",
-            "Check your body check-in mood at 11 AM.",
-            "Do this for 5 days and compare the pattern.",
-          ].map((step, i) => (
+        <FadeIn delay={120}>
+          <View style={styles.block}>
+            <SectionLabel text="What Changes With Better Hydration" />
+            <View style={styles.pointsCol}>
+              <KeyPoint
+                icon="flash-outline"
+                iconColor={T.PRIMARY}
+                iconBg="rgba(139,195,74,0.14)"
+                title="Energy before noon"
+                body="Drinking 1–2 glasses before 10 AM is consistently linked to more stable energy through the morning, especially before meals."
+                colors={colors}
+              />
+              <KeyPoint
+                icon="partly-sunny-outline"
+                iconColor={T.SECONDARY}
+                iconBg="rgba(139,195,74,0.12)"
+                title="Mood and irritability"
+                body="Even mild dehydration has been shown to increase feelings of tension, anxiety, and fatigue — independent of sleep quality."
+                colors={colors}
+              />
+              <KeyPoint
+                icon="eye-outline"
+                iconColor={T.PRIMARY}
+                iconBg="rgba(139,195,74,0.16)"
+                title="Focus and clarity"
+                body="Hydration affects blood flow to the brain. Two extra glasses across the morning is often enough to notice a difference in concentration by afternoon."
+                colors={colors}
+              />
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <View style={styles.block}>
+            <SectionLabel text="Your Pattern" />
             <View
-              key={i}
               style={[
-                styles.stepRow,
-                { borderBottomColor: "rgba(255,255,255,0.04)" },
-                i < 3 && { borderBottomWidth: 1 },
+                styles.patternCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
               ]}
             >
+              <View style={styles.patternRow}>
+                <View
+                  style={[styles.patternDot, { backgroundColor: T.PRIMARY }]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.patternLabel, { color: colors.foreground }]}
+                  >
+                    Water logs this period
+                  </Text>
+                  <Text style={[styles.patternVal, { color: T.PRIMARY }]}>
+                    {waterCount} entries
+                  </Text>
+                </View>
+              </View>
               <View
                 style={[
-                  styles.stepNum,
-                  { backgroundColor: "rgba(167,139,250,0.16)" },
+                  styles.patternRow,
+                  { borderTopWidth: 1, borderTopColor: T.BORDER },
                 ]}
               >
-                <Text style={styles.stepNumText}>{i + 1}</Text>
+                <View
+                  style={[styles.patternDot, { backgroundColor: T.SECONDARY }]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.patternLabel, { color: colors.foreground }]}
+                  >
+                    Daily goal
+                  </Text>
+                  <Text style={[styles.patternVal, { color: T.SECONDARY }]}>
+                    8 glasses
+                  </Text>
+                </View>
               </View>
-              <Text style={[styles.stepText, { color: colors.foreground }]}>
-                {step}
+            </View>
+            <View style={[styles.whyBox, { backgroundColor: T.PRIMARY_LIGHT }]}>
+              <Ionicons
+                name="information-circle"
+                size={15}
+                color={colors.primary}
+                style={{ marginRight: 8, marginTop: 1 }}
+              />
+              <Text
+                style={[
+                  styles.whyText,
+                  { color: colors.mutedForeground, flex: 1 },
+                ]}
+              >
+                Reversia will start connecting your water logs to your body
+                check-in moods once you have at least 5 water entries.
               </Text>
             </View>
-          ))}
-        </View>
+          </View>
+        </FadeIn>
 
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => {
-            setApplied(true);
-            navigation?.navigate("LogWater");
-          }}
-          style={[styles.ctaBtn, applied && styles.ctaBtnDone]}
-        >
-          {applied ? (
-            <Ionicons
-              name="checkmark-circle"
-              size={18}
-              color="#F5F1FF"
-              style={{ marginRight: 8 }}
-            />
-          ) : (
-            <Ionicons
-              name="water-outline"
-              size={18}
-              color="#F5F1FF"
-              style={{ marginRight: 8 }}
-            />
-          )}
-          <Text style={styles.ctaBtnText}>
-            {applied ? "Water logged!" : "Log a glass now"}
-          </Text>
-        </TouchableOpacity>
+        <FadeIn delay={240}>
+          <View style={styles.block}>
+            <SectionLabel text="Try This" />
+            {[
+              "Drink one glass before your first meal each day.",
+              "Log it in Reversia — even a single glass counts.",
+              "Check your body check-in mood at 11 AM.",
+              "Do this for 5 days and compare the pattern.",
+            ].map((step, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.stepRow,
+                  { borderBottomColor: T.BORDER },
+                  i < 3 && { borderBottomWidth: 1 },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.stepNum,
+                    { backgroundColor: "rgba(139,195,74,0.16)" },
+                  ]}
+                >
+                  <Text style={styles.stepNumText}>{i + 1}</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.foreground }]}>
+                  {step}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={300}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => {
+              setApplied(true);
+              navigation?.navigate("LogWater");
+            }}
+            style={[styles.ctaBtn, applied && styles.ctaBtnDone]}
+          >
+            {applied ? (
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color={T.WHITE}
+                style={{ marginRight: 8 }}
+              />
+            ) : (
+              <Ionicons
+                name="water-outline"
+                size={18}
+                color={T.WHITE}
+                style={{ marginRight: 8 }}
+              />
+            )}
+            <Text style={styles.ctaBtnText}>
+              {applied ? "Water logged!" : "Log a glass now"}
+            </Text>
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -338,9 +351,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
+  headerTitle: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   headerSub: { fontSize: 12, marginTop: 2 },
   heroCard: {
     borderRadius: 24,
@@ -357,7 +372,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heroTitle: { fontSize: 22, fontWeight: "700", lineHeight: 28 },
+  heroTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 22,
+    fontWeight: "700",
+    lineHeight: 28,
+  },
   heroSub: { fontSize: 14, lineHeight: 20 },
   statBox: {
     flexDirection: "row",
@@ -367,10 +387,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 4,
   },
-  statText: { fontSize: 12, color: "#A78BFA", fontWeight: "600", flex: 1 },
+  statText: { fontSize: 12, color: T.PRIMARY, fontWeight: "600", flex: 1 },
   block: { paddingHorizontal: 24, marginBottom: 22 },
-  bodyText: { fontSize: 14, lineHeight: 22, marginBottom: 10 },
-  emphasis: { fontWeight: "700", color: "#A78BFA" },
+  bodyText: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  emphasis: { fontWeight: "700", color: T.PRIMARY },
   pointsCol: { gap: 12 },
   patternCard: { borderRadius: 20, borderWidth: 1, marginBottom: 10 },
   patternRow: {
@@ -381,7 +406,7 @@ const styles = StyleSheet.create({
   },
   patternDot: { width: 8, height: 8, borderRadius: 4 },
   patternLabel: { fontSize: 13, fontWeight: "600", marginBottom: 2 },
-  patternVal: { fontSize: 18, fontWeight: "700" },
+  patternVal: { fontFamily: FONTS.display, fontSize: 18, fontWeight: "700" },
   whyBox: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -402,17 +427,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepNumText: { fontSize: 13, fontWeight: "700", color: "#A78BFA" },
+  stepNumText: { fontSize: 13, fontWeight: "700", color: T.PRIMARY },
   stepText: { fontSize: 14, flex: 1, lineHeight: 20 },
   ctaBtn: {
-    backgroundColor: "#A78BFA",
-    borderRadius: 20,
+    backgroundColor: T.PRIMARY,
+    borderRadius: 999,
     height: 56,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 24,
   },
-  ctaBtnDone: { backgroundColor: "#8B75C8" },
-  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
+  ctaBtnDone: { backgroundColor: T.SECONDARY },
+  ctaBtnText: { fontSize: 16, fontWeight: "700", color: T.WHITE },
 });

@@ -14,7 +14,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
-import { T } from "../../../theme/tokens";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import {
   MIN_READINGS_FOR_VERDICT,
@@ -106,170 +108,251 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
           <Text style={styles.backText}>Food &amp; Sugar</Text>
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        </View>
+        <FadeIn delay={0}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+          </View>
+        </FadeIn>
 
         {!entry ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Nothing to show yet</Text>
-            <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-              No paired readings for this yet. Log the meal, then log a glucose
-              reading within 2 hours after it.
-            </Text>
-          </View>
-        ) : (
-          <>
-            {food ? (
-              <View style={styles.card}>
-                <View style={styles.rowTop}>
-                  <Text style={styles.cardTitle}>Food Guide</Text>
-                  <View
-                    style={[
-                      styles.ratingPill,
-                      {
-                        backgroundColor: `${
-                          RATING_COLORS[food.rating] || T.MUTED
-                        }20`,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.ratingText,
-                        { color: RATING_COLORS[food.rating] || T.MUTED },
-                      ]}
-                    >
-                      {food.rating}
-                    </Text>
-                  </View>
-                </View>
-                {food.tip ? (
-                  <Text
-                    style={[styles.cardBody, { color: colors.mutedForeground }]}
-                  >
-                    {food.tip}
-                  </Text>
-                ) : null}
-                {swap ? (
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={styles.swapRow}
-                    onPress={() =>
-                      navigation?.navigate("Foods", {
-                        screen: "FoodDetail",
-                        params: { foodId: swap.id },
-                      })
-                    }
-                  >
-                    <Ionicons
-                      name="swap-horizontal-outline"
-                      size={18}
-                      color={colors.primary}
-                    />
-                    <Text style={[styles.swapText, { color: colors.primary }]}>
-                      Swap to try: {swap.name}
-                    </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            ) : null}
-
+          <FadeIn delay={60}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Pattern so far</Text>
+              <Text style={styles.cardTitle}>Nothing to show yet</Text>
               <Text
                 style={[styles.cardBody, { color: colors.mutedForeground }]}
               >
-                {entry.counts.steady} steady · {entry.counts.moderate} moderate
-                · {entry.counts.sharp} sharp
-                {entry.counts.noBaseline > 0
-                  ? ` · ${entry.counts.noBaseline} without an earlier reading`
-                  : ""}
-              </Text>
-              <Text style={[styles.verdictText, { color: colors.foreground }]}>
-                {entry.verdict
-                  ? VERDICT_LABELS[entry.verdict]
-                  : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
+                No paired readings for this yet. Log the meal, then log a
+                glucose reading within 2 hours after it.
               </Text>
             </View>
-
-            <Text style={styles.sectionTitle}>Paired readings</Text>
-            {pairs.map((pair) => (
-              <View key={pair.id} style={styles.card}>
-                <View style={styles.rowTop}>
-                  <Text style={styles.rowTitle}>
-                    {formatWhen(pair.readingTime)} ·{" "}
-                    {formatTime(pair.readingTime)}
-                  </Text>
-                  <View
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: `${
-                          RISE_COLORS[pair.riseClass] || T.MUTED
-                        }20`,
-                      },
-                    ]}
-                  >
+          </FadeIn>
+        ) : (
+          <>
+            {food ? (
+              <FadeIn delay={60}>
+                <View style={styles.card}>
+                  <View style={styles.rowTop}>
+                    <Text style={styles.cardTitle}>Food Guide</Text>
                     <View
                       style={[
-                        styles.chipDot,
+                        styles.ratingPill,
                         {
-                          backgroundColor:
-                            RISE_COLORS[pair.riseClass] || T.MUTED,
+                          backgroundColor: `${
+                            RATING_COLORS[food.rating] || T.MUTED
+                          }20`,
                         },
                       ]}
-                    />
+                    >
+                      <Text
+                        style={[
+                          styles.ratingText,
+                          { color: RATING_COLORS[food.rating] || T.MUTED },
+                        ]}
+                      >
+                        {food.rating}
+                      </Text>
+                    </View>
+                  </View>
+                  {food.tip ? (
                     <Text
                       style={[
-                        styles.chipText,
-                        { color: RISE_COLORS[pair.riseClass] || T.MUTED },
+                        styles.cardBody,
+                        { color: colors.mutedForeground },
                       ]}
                     >
-                      {RISE_LABELS[pair.riseClass]}
+                      {food.tip}
+                    </Text>
+                  ) : null}
+                  {swap ? (
+                    <PressScale
+                      style={styles.swapRow}
+                      onPress={() =>
+                        navigation?.navigate("Foods", {
+                          screen: "FoodDetail",
+                          params: { foodId: swap.id },
+                        })
+                      }
+                      accessibilityLabel={`See ${swap.name} in the Food Guide`}
+                    >
+                      <Ionicons
+                        name="swap-horizontal-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                      <Text
+                        style={[styles.swapText, { color: colors.primary }]}
+                      >
+                        Swap to try: {swap.name}
+                      </Text>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={colors.primary}
+                      />
+                    </PressScale>
+                  ) : null}
+                </View>
+              </FadeIn>
+            ) : null}
+
+            <FadeIn delay={120}>
+              <View style={[styles.card, styles.heroCard]}>
+                <Text style={styles.cardTitle}>Pattern so far</Text>
+                <View style={styles.countRow}>
+                  <View style={styles.countCell}>
+                    <Text style={[styles.countValue, { color: T.SUCCESS }]}>
+                      {entry.counts.steady}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      steady
+                    </Text>
+                  </View>
+                  <View style={styles.countCell}>
+                    <Text style={[styles.countValue, { color: T.WARNING }]}>
+                      {entry.counts.moderate}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      moderate
+                    </Text>
+                  </View>
+                  <View style={styles.countCell}>
+                    <Text style={[styles.countValue, { color: T.DANGER }]}>
+                      {entry.counts.sharp}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      sharp
                     </Text>
                   </View>
                 </View>
-                {kind === "food" ? (
+                {entry.counts.noBaseline > 0 ? (
                   <Text
-                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                    style={[styles.cardBody, { color: colors.mutedForeground }]}
                   >
-                    {pair.mealName}
-                    {pair.mealType ? ` · ${pair.mealType}` : ""}
+                    Plus {entry.counts.noBaseline} without an earlier reading to
+                    compare.
                   </Text>
                 ) : null}
                 <Text
-                  style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                  style={[styles.verdictText, { color: colors.foreground }]}
                 >
-                  {pair.baselineMgdl === null
-                    ? `After-meal reading ${pair.afterMgdl} mg/dL — no earlier reading to compare.`
-                    : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL` +
-                      (pair.riseMgdl !== null
-                        ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${
-                            pair.riseMgdl
-                          } mg/dL)`
-                        : "") +
-                      (pair.baselineSource === "fasting"
-                        ? " · compared with your fasting readings"
-                        : "")}
+                  {entry.verdict
+                    ? VERDICT_LABELS[entry.verdict]
+                    : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
                 </Text>
               </View>
-            ))}
+            </FadeIn>
+
+            <FadeIn delay={180}>
+              <Text style={styles.sectionTitle}>Paired readings</Text>
+            </FadeIn>
+            {pairs.map((pair, index) => {
+              const bigValue =
+                pair.baselineMgdl === null
+                  ? `After-meal ${pair.afterMgdl} mg/dL`
+                  : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL`;
+              const riseNote =
+                pair.baselineMgdl === null
+                  ? "No earlier reading to compare."
+                  : (pair.riseMgdl !== null
+                      ? `(${pair.riseMgdl >= 0 ? "+" : ""}${
+                          pair.riseMgdl
+                        } mg/dL)`
+                      : "") +
+                    (pair.baselineSource === "fasting"
+                      ? " · compared with your fasting readings"
+                      : "");
+              return (
+                <FadeIn key={pair.id} delay={Math.min(240 + index * 40, 480)}>
+                  <View style={styles.card}>
+                    <View style={styles.rowTop}>
+                      <Text style={styles.rowTitle}>
+                        {formatWhen(pair.readingTime)} ·{" "}
+                        {formatTime(pair.readingTime)}
+                      </Text>
+                      <View
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor: `${
+                              RISE_COLORS[pair.riseClass] || T.MUTED
+                            }20`,
+                          },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.chipDot,
+                            {
+                              backgroundColor:
+                                RISE_COLORS[pair.riseClass] || T.MUTED,
+                            },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.chipText,
+                            {
+                              color: RISE_COLORS[pair.riseClass] || T.MUTED,
+                            },
+                          ]}
+                        >
+                          {RISE_LABELS[pair.riseClass]}
+                        </Text>
+                      </View>
+                    </View>
+                    {kind === "food" ? (
+                      <Text
+                        style={[
+                          styles.rowMeta,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        {pair.mealName}
+                        {pair.mealType ? ` · ${pair.mealType}` : ""}
+                      </Text>
+                    ) : null}
+                    <Text style={styles.bigValue}>{bigValue}</Text>
+                    {riseNote ? (
+                      <Text
+                        style={[
+                          styles.rowMeta,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        {riseNote}
+                      </Text>
+                    ) : null}
+                  </View>
+                </FadeIn>
+              );
+            })}
           </>
         )}
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Read this first</Text>
-          <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-            {FOOD_SUGAR_DISCLAIMER}
-          </Text>
-        </View>
+        <FadeIn delay={300}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Read this first</Text>
+            <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+              {FOOD_SUGAR_DISCLAIMER}
+            </Text>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -284,31 +367,71 @@ function makeStyles(colors) {
       alignItems: "center",
       paddingTop: 8,
     },
-    backText: { fontSize: 15, fontWeight: "600", color: colors.primary },
+    backText: {
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.primary,
+    },
     header: { marginBottom: 4 },
-    title: { fontSize: 24, fontWeight: "800", color: colors.foreground },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
+      color: colors.foreground,
+      letterSpacing: -0.5,
+    },
     subtitle: {
-      fontSize: 14,
+      fontFamily: FONTS.body,
+      fontSize: 15,
       color: colors.mutedForeground,
       marginTop: 6,
-      lineHeight: 20,
+      lineHeight: 21,
     },
     card: {
       backgroundColor: colors.card,
-      borderRadius: 22,
-      padding: 18,
+      borderRadius: 24,
+      padding: 20,
       borderWidth: 1,
       borderColor: colors.border,
     },
-    cardTitle: { fontSize: 16, fontWeight: "700", color: colors.foreground },
-    cardBody: { fontSize: 13, lineHeight: 19, marginTop: 8 },
-    sectionTitle: {
+    heroCard: {
+      backgroundColor: colors.muted,
+    },
+    cardTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 17,
+      fontWeight: "700",
+      color: colors.foreground,
+    },
+    cardBody: {
+      fontFamily: FONTS.body,
       fontSize: 14,
+      lineHeight: 20,
+      marginTop: 8,
+    },
+    sectionTitle: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
       fontWeight: "700",
       color: colors.mutedForeground,
       textTransform: "uppercase",
       letterSpacing: 0.8,
       marginTop: 8,
+    },
+    countRow: { flexDirection: "row", marginTop: 16, gap: 8 },
+    countCell: { flex: 1, alignItems: "center" },
+    countValue: {
+      fontFamily: FONTS.display,
+      fontSize: 32,
+      fontWeight: "800",
+      letterSpacing: -0.8,
+    },
+    countLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      marginTop: 2,
+      textAlign: "center",
     },
     rowTop: {
       flexDirection: "row",
@@ -317,19 +440,39 @@ function makeStyles(colors) {
       gap: 10,
     },
     rowTitle: {
+      fontFamily: FONTS.display,
       fontSize: 14,
       fontWeight: "700",
       color: colors.foreground,
       flex: 1,
     },
-    rowMeta: { fontSize: 12, marginTop: 6, lineHeight: 17 },
-    verdictText: { fontSize: 13, fontWeight: "600", marginTop: 8 },
+    rowMeta: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      marginTop: 6,
+      lineHeight: 17,
+    },
+    bigValue: {
+      fontFamily: FONTS.display,
+      fontSize: 22,
+      fontWeight: "800",
+      color: colors.foreground,
+      letterSpacing: -0.4,
+      marginTop: 10,
+    },
+    verdictText: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "600",
+      marginTop: 8,
+    },
     ratingPill: {
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 999,
     },
     ratingText: {
+      fontFamily: FONTS.body,
       fontSize: 11,
       fontWeight: "700",
       textTransform: "capitalize",
@@ -343,13 +486,22 @@ function makeStyles(colors) {
       borderRadius: 999,
     },
     chipDot: { width: 7, height: 7, borderRadius: 4 },
-    chipText: { fontSize: 11, fontWeight: "700" },
+    chipText: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+    },
     swapRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
       marginTop: 12,
     },
-    swapText: { fontSize: 13, fontWeight: "700", flex: 1 },
+    swapText: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "700",
+      flex: 1,
+    },
   });
 }

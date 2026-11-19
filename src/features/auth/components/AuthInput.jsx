@@ -8,8 +8,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
-const ERROR_COLOR = "#E28A82";
+const ERROR_COLOR = "#D96C83";
 
 export default function AuthInput({
   label,
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   wrapper: { gap: 7 },
   label: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.6,
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1.5,
-    borderRadius: 16,
+    borderRadius: 24,
     paddingHorizontal: 16,
     height: 54,
   },
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     height: "100%",
   },
   eyeBtn: {
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     color: ERROR_COLOR,
     flex: 1,
   },

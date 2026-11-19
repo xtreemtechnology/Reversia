@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { subscribeConfirm } from "../../utils/confirmService";
 import { useTheme } from "../../theme/ThemeProvider";
+import { FONTS } from "../../theme/tokens";
 
 export default function ConfirmHost() {
   const [req, setReq] = useState(null);
@@ -55,7 +56,9 @@ export default function ConfirmHost() {
                 resolve(true);
               }}
             >
-              <Text style={{ color: colors.background, fontWeight: "700" }}>
+              <Text
+                style={{ color: colors.primaryForeground, fontWeight: "700" }}
+              >
                 {confirmText}
               </Text>
             </TouchableOpacity>
@@ -76,12 +79,17 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    borderRadius: 12,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
     borderWidth: 1,
   },
-  title: { fontSize: 17, fontWeight: "800" },
-  message: { marginTop: 8, fontSize: 14 },
+  title: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "800" },
+  message: {
+    fontFamily: FONTS.body,
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   actions: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -89,10 +97,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   btn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 999,
     borderWidth: 1,
   },
-  btnPrimary: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
+  btnPrimary: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
 });

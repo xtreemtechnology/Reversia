@@ -19,7 +19,6 @@ import Svg, {
   Defs,
   LinearGradient,
   Stop,
-  Rect,
 } from "react-native-svg";
 
 // ─────────────────────────────────────────────
@@ -31,9 +30,9 @@ const Y_MIN = 60;
 const Y_MAX = 300;
 
 const REF_LINES = [
-  { value: 100, color: "#8B75C8", label: "Normal" },
-  { value: 126, color: "#8055E8", label: "Pre-diabetic" },
-  { value: 180, color: "#CE6C60", label: "High" },
+  { value: 100, color: "#689F38", label: "Normal" },
+  { value: 126, color: "#E8A33D", label: "Pre-diabetic" },
+  { value: 180, color: "#E86A6A", label: "High" },
 ];
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -53,15 +52,18 @@ function toMgDl(value, unit) {
 
 function getDayKey(date) {
   // Returns "YYYY-MM-DD" for grouping
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function getPointColor(mgdl) {
-  if (mgdl === null) return "#756D84";
-  if (mgdl < 100) return "#8B75C8"; // green — normal
-  if (mgdl < 126) return "#8055E8"; // amber — pre-diabetic range
-  if (mgdl < 180) return "#8055E8"; // amber — still manageable
-  return "#CE6C60"; // red — high
+  if (mgdl === null) return "#7A8A72";
+  if (mgdl < 100) return "#689F38"; // lime — normal
+  if (mgdl < 126) return "#E8A33D"; // amber — pre-diabetic range
+  if (mgdl < 180) return "#E8A33D"; // amber — still manageable
+  return "#E86A6A"; // red — high
 }
 
 // ─────────────────────────────────────────────
@@ -131,9 +133,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
   function yPos(value) {
     // map value from [Y_MIN, Y_MAX] → [drawHeight, 0]
     const clamped = Math.min(Y_MAX, Math.max(Y_MIN, value));
-    return (
-      PADDING_TOP + ((Y_MAX - clamped) / (Y_MAX - Y_MIN)) * drawHeight
-    );
+    return PADDING_TOP + ((Y_MAX - clamped) / (Y_MAX - Y_MIN)) * drawHeight;
   }
 
   function xPos(index) {
@@ -204,7 +204,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
             key={si}
             points={pointsStr}
             fill="none"
-            stroke="#8055E8"
+            stroke="#689F38"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -222,13 +222,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
         return (
           <React.Fragment key={i}>
             <Circle cx={cx} cy={cy} r={5} fill={fill} opacity={0.9} />
-            <Circle
-              cx={cx}
-              cy={cy}
-              r={8}
-              fill={fill}
-              opacity={0.15}
-            />
+            <Circle cx={cx} cy={cy} r={8} fill={fill} opacity={0.15} />
           </React.Fragment>
         );
       })}
@@ -240,7 +234,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
           x={xPos(i)}
           y={chartHeight - 6}
           fontSize={9}
-          fill={p.value !== null ? colors.textMuted : "rgba(154,132,120,0.4)"}
+          fill={p.value !== null ? colors.textMuted : "rgba(122,138,114,0.4)"}
           textAnchor="middle"
           fontWeight={p.value !== null ? "600" : "400"}
         >
@@ -265,20 +259,32 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
   const chartHeight = 120;
 
   const latestLabel =
-    latestToday !== null ? `${Math.round(latestToday)} mg/dL` : "No reading yet";
+    latestToday !== null
+      ? `${Math.round(latestToday)} mg/dL`
+      : "No reading yet";
 
   const latestColor =
-    latestToday !== null ? getPointColor(latestToday) : (colors?.textMuted || "#756D84");
+    latestToday !== null
+      ? getPointColor(latestToday)
+      : colors?.textMuted || "#7A8A72";
 
   // ── Legend items ──
   const legend = [
-    { color: "#8B75C8", label: "Normal" },
-    { color: "#8055E8", label: "Pre-diabetic" },
-    { color: "#CE6C60", label: "High" },
+    { color: "#689F38", label: "Normal" },
+    { color: "#E8A33D", label: "Pre-diabetic" },
+    { color: "#E86A6A", label: "High" },
   ];
 
   return (
-    <View style={[gc.card, { borderColor: colors?.border || "#E8E1F5" }]}>
+    <View
+      style={[
+        gc.card,
+        {
+          borderColor: colors?.border || "#DDE7D2",
+          backgroundColor: colors?.card || "#FFFFFF",
+        },
+      ]}
+    >
       {/* Header */}
       <View style={gc.headerRow}>
         <View style={gc.headerTextCol}>
@@ -302,7 +308,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           style={gc.addBtn}
           onPress={onPress}
         >
-          <Ionicons name="add" size={18} color="#8055E8" />
+          <Ionicons name="add" size={18} color="#689F38" />
         </TouchableOpacity>
       </View>
 
@@ -335,7 +341,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           onPress={onPress}
         >
           <View style={gc.emptyIconBadge}>
-            <Ionicons name="pulse-outline" size={24} color="#8055E8" />
+            <Ionicons name="pulse-outline" size={24} color="#689F38" />
           </View>
           <Text style={gc.emptyTitle}>Log your first glucose reading</Text>
           <Text style={gc.emptyBody}>
@@ -344,7 +350,12 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           </Text>
           <View style={gc.emptyArrow}>
             <Text style={gc.emptyArrowText}>Log reading</Text>
-            <Ionicons name="arrow-forward" size={13} color="#8055E8" style={gc.emptyArrowIcon} />
+            <Ionicons
+              name="arrow-forward"
+              size={13}
+              color="#689F38"
+              style={gc.emptyArrowIcon}
+            />
           </View>
         </TouchableOpacity>
       )}
@@ -360,7 +371,7 @@ const gc = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
     padding: 22,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
   },
@@ -374,8 +385,8 @@ const gc = StyleSheet.create({
   headerTextCol: { flex: 1 },
   overline: {
     fontSize: 10,
-    fontWeight: "700",
-    color: "#756D84",
+    fontWeight: "800",
+    color: "#7A8A72",
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 4,
@@ -387,9 +398,10 @@ const gc = StyleSheet.create({
     flexWrap: "wrap",
   },
   title: {
-    fontSize: 17,
+    fontFamily: "PlusJakartaSans-Regular",
+    fontSize: 18,
     fontWeight: "700",
-    color: "#242033",
+    color: "#F3EFE3",
     lineHeight: 22,
   },
   todayBadge: {
@@ -397,7 +409,7 @@ const gc = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: "rgba(163,230,53,0.12)",
   },
   todayValue: {
     fontSize: 12,
@@ -405,16 +417,16 @@ const gc = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    color: "#756D84",
+    color: "#7A8A72",
     marginTop: 3,
   },
   addBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(128,85,232,0.12)",
+    backgroundColor: "rgba(163,230,53,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.25)",
+    borderColor: "rgba(163,230,53,0.25)",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 10,
@@ -446,7 +458,7 @@ const gc = StyleSheet.create({
   },
   legendLabel: {
     fontSize: 10,
-    color: "#756D84",
+    color: "#7A8A72",
     fontWeight: "500",
   },
 
@@ -459,9 +471,9 @@ const gc = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "rgba(128,85,232,0.12)",
+    backgroundColor: "rgba(163,230,53,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.20)",
+    borderColor: "rgba(163,230,53,0.20)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
@@ -469,13 +481,13 @@ const gc = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#242033",
+    color: "#F3EFE3",
     marginBottom: 6,
     textAlign: "center",
   },
   emptyBody: {
     fontSize: 13,
-    color: "#756D84",
+    color: "#7A8A72",
     lineHeight: 19,
     textAlign: "center",
     paddingHorizontal: 8,
@@ -484,17 +496,17 @@ const gc = StyleSheet.create({
   emptyArrow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(128,85,232,0.10)",
+    backgroundColor: "rgba(163,230,53,0.10)",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.20)",
+    borderColor: "rgba(163,230,53,0.20)",
   },
   emptyArrowText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#8055E8",
+    color: "#689F38",
   },
   emptyArrowIcon: { marginLeft: 5 },
 });

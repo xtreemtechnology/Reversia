@@ -12,16 +12,17 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import ReversiaMark from "../../components/ReversiaMark";
+import { FONTS } from "../../theme/tokens";
 
 const { width: W, height: H } = Dimensions.get("window");
 
 const C = {
-  background: "#F5F1FF",
-  primary: "#8055E8",
-  secondary: "#A78BFA",
-  foreground: "#242033",
-  muted: "#E8E1F5",
-  mutedFg: "#756D84",
+  background: "#E9F1E2",
+  primary: "#8BC34A",
+  secondary: "#689F38",
+  foreground: "#1E2B1A",
+  muted: "#DDE7D2",
+  mutedFg: "#7A8A72",
   card: "#FFFFFF",
 };
 
@@ -169,7 +170,7 @@ export default function SplashScreen({ onFinish }) {
 
       <Animated.View style={[splashStyles.logoWrap, logoStyle]}>
         <LinearGradient
-          colors={[C.primary, "#A78BFA"]}
+          colors={[C.primary, "#689F38"]}
           style={splashStyles.logoGradient}
           start={{ x: 0.1, y: 0.1 }}
           end={{ x: 0.9, y: 0.9 }}
@@ -257,13 +258,13 @@ const splashStyles = StyleSheet.create({
   textGroup: { alignItems: "center" },
   wordmark: {
     fontSize: 36,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: 14,
     color: C.mutedFg,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     letterSpacing: 0.3,
     marginTop: 10,
   },

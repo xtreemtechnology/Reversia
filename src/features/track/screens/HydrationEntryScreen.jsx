@@ -16,6 +16,8 @@ import { auth, db } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
 import secureStorage from "../../../utils/secureStorage";
 import { trackEvent } from "../../../utils/analytics";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 export default function HydrationEntryScreen({ navigation }) {
   const { colors } = useTheme();
@@ -81,90 +83,98 @@ export default function HydrationEntryScreen({ navigation }) {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
+        <FadeIn delay={0}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[
+                styles.backBtn,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={22}
+                color={colors.foreground}
+              />
+            </TouchableOpacity>
+            <View style={styles.headerTextWrap}>
+              <Text style={[styles.preTitle, { color: colors.primary }]}>
+                Log hydration
+              </Text>
+              <Text style={[styles.title, { color: colors.foreground }]}>
+                How much water did you drink?
+              </Text>
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={80}>
+          <View
             style={[
-              styles.backBtn,
+              styles.card,
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.foreground} />
-          </TouchableOpacity>
-          <View style={styles.headerTextWrap}>
-            <Text style={[styles.preTitle, { color: colors.primary }]}>
-              Log hydration
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>
+              Liters
             </Text>
-            <Text style={[styles.title, { color: colors.foreground }]}>
-              How much water did you drink?
+            <TextInput
+              value={liters}
+              onChangeText={setLiters}
+              keyboardType="decimal-pad"
+              placeholder="0.5"
+              placeholderTextColor={colors.mutedForeground}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  color: colors.foreground,
+                },
+              ]}
+            />
+
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>
+              Notes
             </Text>
+            <TextInput
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Optional notes"
+              placeholderTextColor={colors.mutedForeground}
+              style={[
+                styles.input,
+                styles.notesInput,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  color: colors.foreground,
+                },
+              ]}
+              multiline
+            />
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              activeOpacity={0.85}
+              style={[
+                styles.saveBtn,
+                { backgroundColor: colors.primary },
+                saving && styles.saveBtnSaving,
+              ]}
+            >
+              {saving ? (
+                <ActivityIndicator color={T.WHITE} />
+              ) : (
+                <Text style={styles.saveBtnText}>Save hydration</Text>
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
-
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.label, { color: colors.mutedForeground }]}>
-            Liters
-          </Text>
-          <TextInput
-            value={liters}
-            onChangeText={setLiters}
-            keyboardType="decimal-pad"
-            placeholder="0.5"
-            placeholderTextColor={colors.mutedForeground}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                color: colors.foreground,
-              },
-            ]}
-          />
-
-          <Text style={[styles.label, { color: colors.mutedForeground }]}>
-            Notes
-          </Text>
-          <TextInput
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Optional notes"
-            placeholderTextColor={colors.mutedForeground}
-            style={[
-              styles.input,
-              styles.notesInput,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                color: colors.foreground,
-              },
-            ]}
-            multiline
-          />
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={saving}
-            activeOpacity={0.85}
-            style={[
-              styles.saveBtn,
-              { backgroundColor: colors.primary },
-              saving && styles.saveBtnSaving,
-            ]}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveBtnText}>Save hydration</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,7 +199,12 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
-  title: { fontSize: 24, fontWeight: "700", marginTop: 4 },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 24,
+    fontWeight: "700",
+    marginTop: 4,
+  },
   card: { borderRadius: 24, borderWidth: 1, padding: 18, gap: 14 },
   label: {
     fontSize: 12,
@@ -205,8 +220,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   notesInput: { minHeight: 90, textAlignVertical: "top" },
-  errorText: { color: "#C0392B", fontSize: 13 },
+  errorText: { color: T.DANGER, fontSize: 13 },
   saveBtn: { borderRadius: 999, paddingVertical: 14, alignItems: "center" },
   saveBtnSaving: { opacity: 0.8 },
-  saveBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  saveBtnText: { color: T.WHITE, fontSize: 15, fontWeight: "700" },
 });

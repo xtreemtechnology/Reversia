@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 function buildPatternSummary(logs = []) {
   const counts = logs.reduce((acc, log) => {
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     fontWeight: "600",
   },
   card: {
@@ -102,12 +103,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     fontWeight: "600",
   },
   emptyBody: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 22,
   },
 });

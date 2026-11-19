@@ -15,6 +15,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 export default function AuthButton({
   label,
@@ -48,8 +49,8 @@ export default function AuthButton({
     ? "transparent"
     : "transparent";
   const buttonBorderColor = isOutline ? colors.border : "transparent";
-  const buttonTextColor = isPrimary ? "#FFFFFF" : colors.text;
-  const iconColor = isPrimary ? "#FFFFFF" : colors.primary;
+  const buttonTextColor = isPrimary ? colors.primaryForeground : colors.text;
+  const iconColor = isPrimary ? colors.primaryForeground : colors.primary;
 
   return (
     <Animated.View style={animStyle}>
@@ -70,7 +71,7 @@ export default function AuthButton({
         {loading ? (
           <ActivityIndicator
             size="small"
-            color={isPrimary ? "#FFFFFF" : colors.primary}
+            color={isPrimary ? colors.primaryForeground : colors.primary}
           />
         ) : (
           <View style={styles.inner}>
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   disabled: {

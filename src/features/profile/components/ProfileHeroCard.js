@@ -4,12 +4,14 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 export default function ProfileHeroCard({
   initials,
   fullName,
   email,
   diabetesStatus,
+  planLine,
   photoURL,
   onEditAvatar,
   onEditProfile,
@@ -74,6 +76,12 @@ export default function ProfileHeroCard({
         {email}
       </Text>
 
+      {planLine ? (
+        <Text style={[styles.planLine, { color: colors.primary }]}>
+          {planLine}
+        </Text>
+      ) : null}
+
       {/* Status badge */}
       <View
         style={[
@@ -109,13 +117,13 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(224,122,95,0.12)",
+    backgroundColor: "rgba(139,195,74,0.16)",
   },
   avatarRing: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "rgba(224,122,95,0.14)",
+    backgroundColor: "rgba(139,195,74,0.16)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -143,7 +151,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 26,
     fontWeight: "800",
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   avatarAction: {
     flexDirection: "row",
@@ -157,7 +165,7 @@ const styles = StyleSheet.create({
   avatarActionText: {
     fontSize: 13,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   editBadge: {
     position: "absolute",
@@ -174,11 +182,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 22,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
   },
   email: {
     fontSize: 13,
     marginTop: 4,
+  },
+  planLine: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 8,
   },
   badge: {
     flexDirection: "row",

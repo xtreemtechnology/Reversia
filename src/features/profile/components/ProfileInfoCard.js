@@ -5,6 +5,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 // ── InfoRow ──────────────────────────────────────────────────────────────────
 export function InfoRow({
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     marginBottom: 12,
   },
   row: {

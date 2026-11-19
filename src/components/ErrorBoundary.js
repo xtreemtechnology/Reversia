@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { T, FONTS } from "../theme/tokens";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,14 +38,26 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F5F1FF",
+    backgroundColor: T.BG,
   },
   title: {
+    fontFamily: FONTS.display,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
-    color: "#FCA5A5",
+    color: T.DANGER,
   },
-  message: { fontSize: 14, marginBottom: 8, marginTop: 10, color: "#E7E5E4" },
-  stack: { fontSize: 12, marginTop: 10, color: "#756D84" },
+  message: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    marginBottom: 8,
+    marginTop: 10,
+    color: T.TEXT,
+  },
+  stack: {
+    fontFamily: FONTS.body,
+    fontSize: 12,
+    marginTop: 10,
+    color: T.MUTED,
+  },
 });

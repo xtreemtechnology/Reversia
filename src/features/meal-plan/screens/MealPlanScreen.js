@@ -16,6 +16,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import {
   MEAL_PLAN,
   MEAL_PLAN_DISCLAIMER,
@@ -30,6 +33,17 @@ function carbLabel(carbNote) {
 export default function MealPlanScreen({ navigation }) {
   const { colors } = useTheme();
   const shoppingList = useMemo(() => getWeekShoppingList(), []);
+  const weekTotals = useMemo(() => {
+    let meals = 0;
+    let snacks = 0;
+    MEAL_PLAN.forEach((dayPlan) => {
+      dayPlan.meals.forEach((meal) => {
+        if (meal.slot === "snack") snacks += 1;
+        else meals += 1;
+      });
+    });
+    return { days: MEAL_PLAN.length, meals, snacks };
+  }, []);
 
   const styles = makeStyles(colors);
 
@@ -48,67 +62,91 @@ export default function MealPlanScreen({ navigation }) {
           <Text style={styles.backText}>Plan</Text>
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>7-Day Meal Plan</Text>
-          <Text style={styles.subtitle}>
-            A week of natural-food meals from the Food Guide — breakfast, lunch
-            and dinner, with a snack on some days.
-          </Text>
-        </View>
-
-        {MEAL_PLAN.map((dayPlan) => (
-          <View key={dayPlan.day} style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Day {dayPlan.day} — {dayPlan.title}
+        <FadeIn delay={0}>
+          <View style={styles.header}>
+            <Text style={styles.title}>7-Day Meal Plan</Text>
+            <Text style={styles.subtitle}>
+              A week of natural-food meals from the Food Guide — breakfast,
+              lunch and dinner, with a snack on some days.
             </Text>
-            {dayPlan.meals.map((meal, index) => (
-              <View key={meal.id}>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation?.navigate("MealDetail", { mealId: meal.id })
-                  }
-                  activeOpacity={0.8}
-                  style={styles.mealRow}
-                >
-                  <View style={styles.mealTextWrap}>
-                    <Text style={styles.slotLabel}>
-                      {SLOT_LABELS[meal.slot]}
-                    </Text>
-                    <Text style={styles.mealName}>{meal.title}</Text>
-                    <Text style={styles.mealMeta}>
-                      {meal.prepTime} min · {carbLabel(meal.carbNote)}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={colors.mutedForeground}
-                  />
-                </TouchableOpacity>
-                {index < dayPlan.meals.length - 1 ? (
-                  <View style={styles.divider} />
-                ) : null}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.heroCard}>
+            <Text style={styles.heroOverline}>Your week at a glance</Text>
+            <Text style={styles.heroBig}>
+              {weekTotals.days} days · {weekTotals.meals} meals
+            </Text>
+            <Text style={styles.heroSub}>
+              {weekTotals.snacks > 0
+                ? `Plus ${weekTotals.snacks} snacks — every meal from the Food Guide.`
+                : "Every meal from the Food Guide."}
+            </Text>
+          </View>
+        </FadeIn>
+
+        {MEAL_PLAN.map((dayPlan, dayIndex) => (
+          <FadeIn key={dayPlan.day} delay={Math.min(120 + dayIndex * 60, 420)}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Day {dayPlan.day} — {dayPlan.title}
+              </Text>
+              {dayPlan.meals.map((meal, index) => (
+                <View key={meal.id}>
+                  <PressScale
+                    onPress={() =>
+                      navigation?.navigate("MealDetail", { mealId: meal.id })
+                    }
+                    style={styles.mealRow}
+                    accessibilityLabel={`${SLOT_LABELS[meal.slot]}: ${
+                      meal.title
+                    }`}
+                  >
+                    <View style={styles.mealTextWrap}>
+                      <Text style={styles.slotLabel}>
+                        {SLOT_LABELS[meal.slot]}
+                      </Text>
+                      <Text style={styles.mealName}>{meal.title}</Text>
+                      <Text style={styles.mealMeta}>
+                        {meal.prepTime} min · {carbLabel(meal.carbNote)}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={colors.mutedForeground}
+                    />
+                  </PressScale>
+                  {index < dayPlan.meals.length - 1 ? (
+                    <View style={styles.divider} />
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          </FadeIn>
+        ))}
+
+        <FadeIn delay={180}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Shopping list for the week</Text>
+            <Text style={styles.muted}>
+              Grouped by how many meals use each item.
+            </Text>
+            {shoppingList.map((item) => (
+              <View key={item.ingredient} style={styles.shopRow}>
+                <Text style={styles.shopIngredient}>{item.ingredient}</Text>
+                <Text style={styles.shopCount}>× {item.count}</Text>
               </View>
             ))}
           </View>
-        ))}
+        </FadeIn>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Shopping list for the week</Text>
-          <Text style={styles.muted}>
-            Grouped by how many meals use each item.
-          </Text>
-          {shoppingList.map((item) => (
-            <View key={item.ingredient} style={styles.shopRow}>
-              <Text style={styles.shopIngredient}>{item.ingredient}</Text>
-              <Text style={styles.shopCount}>× {item.count}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={[styles.card, styles.disclaimerCard]}>
-          <Text style={styles.muted}>{MEAL_PLAN_DISCLAIMER}</Text>
-        </View>
+        <FadeIn delay={240}>
+          <View style={[styles.card, styles.disclaimerCard]}>
+            <Text style={styles.muted}>{MEAL_PLAN_DISCLAIMER}</Text>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,7 +159,7 @@ function makeStyles(colors) {
       backgroundColor: colors.background,
     },
     scroll: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 20,
       paddingTop: 16,
       paddingBottom: 120,
       gap: 16,
@@ -133,6 +171,7 @@ function makeStyles(colors) {
       alignSelf: "flex-start",
     },
     backText: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       fontWeight: "600",
       color: colors.primary,
@@ -141,20 +180,53 @@ function makeStyles(colors) {
       gap: 4,
     },
     title: {
-      fontSize: 26,
-      fontWeight: "700",
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
       color: colors.text,
+      letterSpacing: -0.5,
     },
     subtitle: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.mutedForeground,
       lineHeight: 21,
+    },
+    heroCard: {
+      backgroundColor: colors.muted,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 28,
+      padding: 22,
+      gap: 4,
+    },
+    heroOverline: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "800",
+      color: colors.primary,
+      letterSpacing: 1.1,
+      textTransform: "uppercase",
+    },
+    heroBig: {
+      fontFamily: FONTS.display,
+      fontSize: 26,
+      fontWeight: "800",
+      color: colors.text,
+      letterSpacing: -0.5,
+      lineHeight: 32,
+    },
+    heroSub: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.mutedForeground,
+      lineHeight: 20,
     },
     card: {
       backgroundColor: colors.card,
       borderRadius: 24,
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 18,
       borderWidth: 1,
       borderColor: colors.border,
       gap: 4,
@@ -163,6 +235,7 @@ function makeStyles(colors) {
       backgroundColor: colors.muted,
     },
     cardTitle: {
+      fontFamily: FONTS.display,
       fontSize: 17,
       fontWeight: "700",
       color: colors.text,
@@ -179,17 +252,20 @@ function makeStyles(colors) {
       gap: 2,
     },
     slotLabel: {
+      fontFamily: FONTS.body,
       fontSize: 12,
       fontWeight: "700",
       color: colors.primary,
       textTransform: "uppercase",
     },
     mealName: {
+      fontFamily: FONTS.display,
       fontSize: 15,
       fontWeight: "700",
       color: colors.text,
     },
     mealMeta: {
+      fontFamily: FONTS.body,
       fontSize: 13,
       color: colors.mutedForeground,
       lineHeight: 18,
@@ -206,16 +282,19 @@ function makeStyles(colors) {
     },
     shopIngredient: {
       flex: 1,
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.text,
       lineHeight: 20,
     },
     shopCount: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       fontWeight: "700",
       color: colors.mutedForeground,
     },
     muted: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.mutedForeground,
       lineHeight: 20,

@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 import AuthButton from "../components/AuthButton";
 
 export default function EmailVerificationScreen({
@@ -96,9 +97,7 @@ export default function EmailVerificationScreen({
           </Text>
           <Text style={[styles.body, { color: colors.mutedForeground }]}>
             We sent a verification link to{"\n"}
-            <Text
-              style={{ color: colors.text, fontFamily: undefined }}
-            >
+            <Text style={{ color: colors.text, fontFamily: FONTS.body }}>
               {email}
             </Text>
           </Text>
@@ -177,27 +176,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 40,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
     lineHeight: 48,
     textAlign: "center",
   },
   body: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 24,
     textAlign: "center",
   },
   hint: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 20,
     textAlign: "center",
   },
   notice: {
     fontSize: 14,
-    color: "#E28A82",
-    fontFamily: undefined,
+    color: T.DANGER,
+    fontFamily: FONTS.body,
     textAlign: "center",
     lineHeight: 20,
   },
@@ -210,7 +209,7 @@ const styles = StyleSheet.create({
   },
   resentText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   actions: {
     width: "100%",
@@ -222,6 +221,6 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 });

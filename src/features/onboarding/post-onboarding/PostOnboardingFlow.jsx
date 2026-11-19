@@ -11,6 +11,7 @@ import { auth } from "../../../config/firebase";
 import { updateUserProfile } from "../../profile/services/profileService";
 import { trackEvent } from "../../../utils/analytics";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 
 const SCREENS = ["hba1c", "fasting", "food", "fears", "goals"];
 
@@ -67,11 +68,11 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   const theme = useTheme();
   const colors = useMemo(
     () => ({
-      background: "#F5F1FF",
-      foreground: "#242033",
-      muted: "#756D84",
+      background: "#E9F1E2",
+      foreground: "#1E2B1A",
+      muted: "#7A8A72",
       card: "#FFFFFF",
-      primary: "#8055E8",
+      primary: "#8BC34A",
       ...theme.colors,
     }),
     [theme]
@@ -465,27 +466,39 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   inner: { padding: 20, gap: 18 },
   educationCard: {
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: T.PRIMARY_LIGHT,
     padding: 18,
-    borderRadius: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
-  educationTitle: { fontSize: 18, fontWeight: "800", marginBottom: 8 },
-  educationBody: { fontSize: 15, lineHeight: 20 },
+  educationTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  educationBody: { fontFamily: FONTS.body, fontSize: 15, lineHeight: 20 },
   questionBlock: { marginTop: 14, gap: 12 },
-  questionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 8 },
+  questionTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
   optionRow: {
     paddingVertical: 12,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    borderColor: T.BORDER,
     marginBottom: 8,
   },
   optionActive: {
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.03)",
+    borderColor: T.PRIMARY,
+    backgroundColor: T.PRIMARY_LIGHT,
   },
-  optionText: { fontSize: 15 },
+  optionText: { fontFamily: FONTS.body, fontSize: 15 },
   actions: {
     marginTop: 18,
     flexDirection: "row",
@@ -495,14 +508,14 @@ const styles = StyleSheet.create({
   secondaryActions: { flexDirection: "row", alignItems: "center", gap: 14 },
   backBtn: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 999 },
   backBtnDisabled: { opacity: 0.35 },
-  backText: { fontSize: 15, fontWeight: "600" },
+  backText: { fontFamily: FONTS.body, fontSize: 15, fontWeight: "600" },
   backTextDisabled: { opacity: 0.7 },
   skipBtn: { paddingVertical: 12 },
-  skipText: { fontSize: 15 },
+  skipText: { fontFamily: FONTS.body, fontSize: 15 },
   continueBtn: {
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 999,
   },
-  continueText: { color: "#fff", fontWeight: "700" },
+  continueText: { fontFamily: FONTS.body, color: "#fff", fontWeight: "700" },
 });

@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 function Field({
   label,
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     marginBottom: 4,
   },
   fieldGroup: {
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: "600",
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   actions: {
     flexDirection: "row",

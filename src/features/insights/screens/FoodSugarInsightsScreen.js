@@ -16,7 +16,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
-import { T } from "../../../theme/tokens";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import {
   MIN_READINGS_FOR_VERDICT,
@@ -117,13 +119,15 @@ export default function FoodSugarInsightsScreen({ navigation }) {
           <Text style={styles.backText}>Learn</Text>
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>Food &amp; Sugar</Text>
-          <Text style={styles.subtitle}>
-            How your meals lined up with your glucose readings — from your own
-            logs, nothing guessed.
-          </Text>
-        </View>
+        <FadeIn delay={0}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Food &amp; Sugar</Text>
+            <Text style={styles.subtitle}>
+              How your meals lined up with your glucose readings — from your own
+              logs, nothing guessed.
+            </Text>
+          </View>
+        </FadeIn>
 
         {loading && !hasAnyLogs ? (
           <View style={styles.loadingWrap}>
@@ -135,125 +139,206 @@ export default function FoodSugarInsightsScreen({ navigation }) {
             </Text>
           </View>
         ) : !hasPairs ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Not enough to show yet</Text>
-            <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-              Log a meal, then log a glucose reading within 2 hours after it.
-              Once you have a few of those pairs, this screen will show which
-              foods and meals were followed by steady readings and which came
-              with a sharper rise.
-            </Text>
-            <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-              {summary.totals.unpairedReadings > 0
-                ? `You have ${summary.totals.unpairedReadings} glucose reading${
-                    summary.totals.unpairedReadings !== 1 ? "s" : ""
-                  } with no meal logged in the 2 hours before — those stay unpaired.`
-                : "No paired readings yet."}
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* Summary counts */}
+          <FadeIn delay={60}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Your pairs so far</Text>
-              <View style={styles.countRow}>
-                <View style={styles.countCell}>
-                  <Text style={styles.countValue}>
-                    {summary.totals.pairedReadings}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.countLabel,
-                      { color: colors.mutedForeground },
-                    ]}
-                  >
-                    paired readings
-                  </Text>
-                </View>
-                <View style={styles.countCell}>
-                  <Text style={styles.countValue}>
-                    {summary.totals.foodsObserved}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.countLabel,
-                      { color: colors.mutedForeground },
-                    ]}
-                  >
-                    foods observed
-                  </Text>
-                </View>
-                <View style={styles.countCell}>
-                  <Text style={styles.countValue}>
-                    {summary.totals.unpairedReadings}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.countLabel,
-                      { color: colors.mutedForeground },
-                    ]}
-                  >
-                    unpaired readings
-                  </Text>
-                </View>
-              </View>
+              <Text style={styles.cardTitle}>Not enough to show yet</Text>
               <Text
                 style={[styles.cardBody, { color: colors.mutedForeground }]}
               >
-                A reading pairs with a meal only when it was logged within 2
-                hours after that meal. Readings outside that window are shown
-                unpaired, never force-matched.
+                Log a meal, then log a glucose reading within 2 hours after it.
+                Once you have a few of those pairs, this screen will show which
+                foods and meals were followed by steady readings and which came
+                with a sharper rise.
+              </Text>
+              <Text
+                style={[styles.cardBody, { color: colors.mutedForeground }]}
+              >
+                {summary.totals.unpairedReadings > 0
+                  ? `You have ${
+                      summary.totals.unpairedReadings
+                    } glucose reading${
+                      summary.totals.unpairedReadings !== 1 ? "s" : ""
+                    } with no meal logged in the 2 hours before — those stay unpaired.`
+                  : "No paired readings yet."}
               </Text>
             </View>
-
-            {/* Per-food patterns */}
-            <Text style={styles.sectionTitle}>How foods lined up</Text>
-            {summary.byFood.length === 0 ? (
-              <View style={styles.card}>
+          </FadeIn>
+        ) : (
+          <>
+            {/* Summary counts — the hero: three big numbers */}
+            <FadeIn delay={60}>
+              <View style={[styles.card, styles.heroCard]}>
+                <Text style={styles.cardTitle}>Your pairs so far</Text>
+                <View style={styles.countRow}>
+                  <View style={styles.countCell}>
+                    <Text style={styles.countValue}>
+                      {summary.totals.pairedReadings}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      paired readings
+                    </Text>
+                  </View>
+                  <View style={styles.countCell}>
+                    <Text style={styles.countValue}>
+                      {summary.totals.foodsObserved}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      foods observed
+                    </Text>
+                  </View>
+                  <View style={styles.countCell}>
+                    <Text style={styles.countValue}>
+                      {summary.totals.unpairedReadings}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.countLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      unpaired readings
+                    </Text>
+                  </View>
+                </View>
                 <Text
                   style={[styles.cardBody, { color: colors.mutedForeground }]}
                 >
-                  No logged meal matched a food in the Food Guide yet.
+                  A reading pairs with a meal only when it was logged within 2
+                  hours after that meal. Readings outside that window are shown
+                  unpaired, never force-matched.
                 </Text>
               </View>
+            </FadeIn>
+
+            {/* Per-food patterns */}
+            <FadeIn delay={120}>
+              <Text style={styles.sectionTitle}>How foods lined up</Text>
+            </FadeIn>
+            {summary.byFood.length === 0 ? (
+              <FadeIn delay={180}>
+                <View style={styles.card}>
+                  <Text
+                    style={[styles.cardBody, { color: colors.mutedForeground }]}
+                  >
+                    No logged meal matched a food in the Food Guide yet.
+                  </Text>
+                </View>
+              </FadeIn>
             ) : (
-              summary.byFood.map((entry) => {
+              summary.byFood.map((entry, index) => {
                 const food = entry.food || getFoodById(entry.id);
                 if (!food) return null;
                 return (
-                  <TouchableOpacity
+                  <FadeIn
                     key={entry.id}
-                    activeOpacity={0.8}
+                    delay={Math.min(180 + index * 40, 420)}
+                  >
+                    <PressScale
+                      style={styles.card}
+                      onPress={() =>
+                        navigation?.navigate("FoodSugarDetail", {
+                          kind: "food",
+                          foodId: food.id,
+                        })
+                      }
+                      accessibilityLabel={`${food.name} pattern`}
+                    >
+                      <View style={styles.rowTop}>
+                        <Text style={styles.rowTitle}>{food.name}</Text>
+                        <View
+                          style={[
+                            styles.ratingPill,
+                            {
+                              backgroundColor: `${
+                                RATING_COLORS[food.rating] || T.MUTED
+                              }20`,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.ratingText,
+                              {
+                                color: RATING_COLORS[food.rating] || T.MUTED,
+                              },
+                            ]}
+                          >
+                            {food.rating}
+                          </Text>
+                        </View>
+                      </View>
+                      <CountsLine
+                        counts={entry.counts}
+                        colors={colors}
+                        styles={styles}
+                      />
+                      <Text
+                        style={[
+                          styles.verdictText,
+                          { color: colors.foreground },
+                        ]}
+                      >
+                        {entry.verdict
+                          ? VERDICT_LABELS[entry.verdict]
+                          : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
+                      </Text>
+                    </PressScale>
+                  </FadeIn>
+                );
+              })
+            )}
+
+            {/* Per-meal patterns */}
+            <FadeIn delay={180}>
+              <Text style={styles.sectionTitle}>Meals with a pattern</Text>
+            </FadeIn>
+            {summary.byMeal.length === 0 ? (
+              <FadeIn delay={240}>
+                <View style={styles.card}>
+                  <Text
+                    style={[styles.cardBody, { color: colors.mutedForeground }]}
+                  >
+                    No meal has a paired reading yet.
+                  </Text>
+                </View>
+              </FadeIn>
+            ) : (
+              summary.byMeal.map((entry, index) => (
+                <FadeIn key={entry.id} delay={Math.min(240 + index * 40, 480)}>
+                  <PressScale
                     style={styles.card}
                     onPress={() =>
                       navigation?.navigate("FoodSugarDetail", {
-                        kind: "food",
-                        foodId: food.id,
+                        kind: "meal",
+                        mealName: entry.mealName,
                       })
                     }
+                    accessibilityLabel={`${entry.mealName} pattern`}
                   >
-                    <View style={styles.rowTop}>
-                      <Text style={styles.rowTitle}>{food.name}</Text>
-                      <View
-                        style={[
-                          styles.ratingPill,
-                          {
-                            backgroundColor: `${
-                              RATING_COLORS[food.rating] || T.MUTED
-                            }20`,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.ratingText,
-                            { color: RATING_COLORS[food.rating] || T.MUTED },
-                          ]}
-                        >
-                          {food.rating}
-                        </Text>
-                      </View>
-                    </View>
+                    <Text style={styles.rowTitle}>{entry.mealName}</Text>
+                    <Text
+                      style={[
+                        styles.rowMeta,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      {formatWhen(
+                        entry.pairs.length > 0
+                          ? entry.pairs[entry.pairs.length - 1].mealTime
+                          : null
+                      )}
+                      {entry.mealType ? ` · ${entry.mealType}` : ""}
+                    </Text>
                     <CountsLine
                       counts={entry.counts}
                       colors={colors}
@@ -266,99 +351,58 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                         ? VERDICT_LABELS[entry.verdict]
                         : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
                     </Text>
-                  </TouchableOpacity>
-                );
-              })
-            )}
-
-            {/* Per-meal patterns */}
-            <Text style={styles.sectionTitle}>Meals with a pattern</Text>
-            {summary.byMeal.length === 0 ? (
-              <View style={styles.card}>
-                <Text
-                  style={[styles.cardBody, { color: colors.mutedForeground }]}
-                >
-                  No meal has a paired reading yet.
-                </Text>
-              </View>
-            ) : (
-              summary.byMeal.map((entry) => (
-                <TouchableOpacity
-                  key={entry.id}
-                  activeOpacity={0.8}
-                  style={styles.card}
-                  onPress={() =>
-                    navigation?.navigate("FoodSugarDetail", {
-                      kind: "meal",
-                      mealName: entry.mealName,
-                    })
-                  }
-                >
-                  <Text style={styles.rowTitle}>{entry.mealName}</Text>
-                  <Text
-                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
-                  >
-                    {formatWhen(
-                      entry.pairs.length > 0
-                        ? entry.pairs[entry.pairs.length - 1].mealTime
-                        : null
-                    )}
-                    {entry.mealType ? ` · ${entry.mealType}` : ""}
-                  </Text>
-                  <CountsLine
-                    counts={entry.counts}
-                    colors={colors}
-                    styles={styles}
-                  />
-                  <Text
-                    style={[styles.verdictText, { color: colors.foreground }]}
-                  >
-                    {entry.verdict
-                      ? VERDICT_LABELS[entry.verdict]
-                      : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
-                  </Text>
-                </TouchableOpacity>
+                  </PressScale>
+                </FadeIn>
               ))
             )}
 
             {/* Recent pairs */}
-            <Text style={styles.sectionTitle}>Recent pairs</Text>
+            <FadeIn delay={240}>
+              <Text style={styles.sectionTitle}>Recent pairs</Text>
+            </FadeIn>
             {summary.pairs
               .slice()
               .sort((a, b) => b.readingTime.getTime() - a.readingTime.getTime())
               .slice(0, 5)
-              .map((pair) => (
-                <View key={pair.id} style={styles.card}>
-                  <View style={styles.rowTop}>
-                    <Text style={styles.rowTitle}>{pair.mealName}</Text>
-                    <ClassChip riseClass={pair.riseClass} styles={styles} />
+              .map((pair, index) => (
+                <FadeIn key={pair.id} delay={Math.min(300 + index * 40, 540)}>
+                  <View style={styles.card}>
+                    <View style={styles.rowTop}>
+                      <Text style={styles.rowTitle}>{pair.mealName}</Text>
+                      <ClassChip riseClass={pair.riseClass} styles={styles} />
+                    </View>
+                    <Text
+                      style={[
+                        styles.rowMeta,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      {formatWhen(pair.readingTime)}
+                      {pair.mealType ? ` · ${pair.mealType}` : ""} ·{" "}
+                      {pair.baselineMgdl === null
+                        ? "no earlier reading to compare"
+                        : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL` +
+                          (pair.riseMgdl !== null
+                            ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${
+                                pair.riseMgdl
+                              })`
+                            : "")}
+                    </Text>
                   </View>
-                  <Text
-                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
-                  >
-                    {formatWhen(pair.readingTime)}
-                    {pair.mealType ? ` · ${pair.mealType}` : ""} ·{" "}
-                    {pair.baselineMgdl === null
-                      ? "no earlier reading to compare"
-                      : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL` +
-                        (pair.riseMgdl !== null
-                          ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${
-                              pair.riseMgdl
-                            })`
-                          : "")}
-                  </Text>
-                </View>
+                </FadeIn>
               ))}
           </>
         )}
 
         {/* Disclaimer */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Read this first</Text>
-          <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-            {FOOD_SUGAR_DISCLAIMER}
-          </Text>
-        </View>
+        <FadeIn delay={300}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Read this first</Text>
+            <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+              {FOOD_SUGAR_DISCLAIMER}
+            </Text>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -373,38 +417,75 @@ function makeStyles(colors) {
       alignItems: "center",
       paddingTop: 8,
     },
-    backText: { fontSize: 15, fontWeight: "600", color: colors.primary },
+    backText: {
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.primary,
+    },
     header: { marginBottom: 4 },
-    title: { fontSize: 24, fontWeight: "800", color: colors.foreground },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
+      color: colors.foreground,
+      letterSpacing: -0.5,
+    },
     subtitle: {
-      fontSize: 14,
+      fontFamily: FONTS.body,
+      fontSize: 15,
       color: colors.mutedForeground,
       marginTop: 6,
-      lineHeight: 20,
+      lineHeight: 21,
     },
     loadingWrap: { alignItems: "center", paddingVertical: 40, gap: 12 },
-    loadingText: { fontSize: 14 },
+    loadingText: { fontFamily: FONTS.body, fontSize: 14 },
     card: {
       backgroundColor: colors.card,
-      borderRadius: 22,
-      padding: 18,
+      borderRadius: 24,
+      padding: 20,
       borderWidth: 1,
       borderColor: colors.border,
     },
-    cardTitle: { fontSize: 16, fontWeight: "700", color: colors.foreground },
-    cardBody: { fontSize: 13, lineHeight: 19, marginTop: 8 },
-    sectionTitle: {
+    heroCard: {
+      backgroundColor: colors.muted,
+    },
+    cardTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 17,
+      fontWeight: "700",
+      color: colors.foreground,
+    },
+    cardBody: {
+      fontFamily: FONTS.body,
       fontSize: 14,
+      lineHeight: 20,
+      marginTop: 8,
+    },
+    sectionTitle: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
       fontWeight: "700",
       color: colors.mutedForeground,
       textTransform: "uppercase",
       letterSpacing: 0.8,
       marginTop: 8,
     },
-    countRow: { flexDirection: "row", marginTop: 14, gap: 8 },
+    countRow: { flexDirection: "row", marginTop: 16, gap: 8 },
     countCell: { flex: 1, alignItems: "center" },
-    countValue: { fontSize: 24, fontWeight: "800", color: colors.primary },
-    countLabel: { fontSize: 11, marginTop: 2, textAlign: "center" },
+    countValue: {
+      fontFamily: FONTS.display,
+      fontSize: 32,
+      fontWeight: "800",
+      color: colors.primary,
+      letterSpacing: -0.8,
+    },
+    countLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      marginTop: 2,
+      textAlign: "center",
+    },
     rowTop: {
       flexDirection: "row",
       alignItems: "center",
@@ -412,19 +493,31 @@ function makeStyles(colors) {
       gap: 10,
     },
     rowTitle: {
+      fontFamily: FONTS.display,
       fontSize: 15,
       fontWeight: "700",
       color: colors.foreground,
       flex: 1,
     },
-    rowMeta: { fontSize: 12, marginTop: 6, lineHeight: 17 },
-    verdictText: { fontSize: 13, fontWeight: "600", marginTop: 8 },
+    rowMeta: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      marginTop: 6,
+      lineHeight: 17,
+    },
+    verdictText: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "600",
+      marginTop: 8,
+    },
     ratingPill: {
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 999,
     },
     ratingText: {
+      fontFamily: FONTS.body,
       fontSize: 11,
       fontWeight: "700",
       textTransform: "capitalize",
@@ -438,6 +531,6 @@ function makeStyles(colors) {
       borderRadius: 999,
     },
     chipDot: { width: 7, height: 7, borderRadius: 4 },
-    chipText: { fontSize: 11, fontWeight: "700" },
+    chipText: { fontFamily: FONTS.body, fontSize: 11, fontWeight: "700" },
   });
 }

@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T } from "../../../theme/tokens";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import secureStorage from "../../../utils/secureStorage";
 import SolarIcon from "../../../components/SolarIcon";
@@ -46,7 +47,9 @@ function countMealName(logs, name) {
 function deriveFindings(logs) {
   const findings = [];
   const meals = (logs || []).filter((l) => l?.category === "meal");
-  const water = (logs || []).filter((l) => l?.category === "water" || l?.category === "hydration");
+  const water = (logs || []).filter(
+    (l) => l?.category === "water" || l?.category === "hydration"
+  );
   const checks = (logs || []).filter((l) => l?.category === "body_check");
   const breakfast = meals.filter((l) => l?.type?.toLowerCase() === "breakfast");
 
@@ -54,28 +57,28 @@ function deriveFindings(logs) {
     findings.push({
       text: `You've logged breakfast ${breakfast.length} times — days with breakfast show more complete stories.`,
       icon: "restaurant-outline",
-      color: "#8055E8",
+      color: T.PRIMARY,
     });
 
   if (water.length >= 2)
     findings.push({
       text: `${water.length} water logs recorded. Hydration consistency is building.`,
       icon: "water-outline",
-      color: "#A78BFA",
+      color: T.PRIMARY,
     });
 
   if (checks.length >= 3)
     findings.push({
       text: `${checks.length} body check-ins completed. That's enough to start seeing mood patterns.`,
       icon: "happy-outline",
-      color: "#8B75C8",
+      color: T.SECONDARY,
     });
 
   if (meals.length >= 5)
     findings.push({
       text: `${meals.length} meals logged. Reversia can begin connecting meals to how you felt after.`,
       icon: "leaf-outline",
-      color: "#8B75C8",
+      color: T.SECONDARY,
     });
 
   // Fallback when user has no data yet
@@ -84,12 +87,12 @@ function deriveFindings(logs) {
       {
         text: "Log your first meals and body check-ins to unlock real findings.",
         icon: "ellipse-outline",
-        color: "#756D84",
+        color: T.MUTED,
       },
       {
         text: "Reversia learns from your patterns — the more you log, the sharper the picture.",
         icon: "ellipse-outline",
-        color: "#756D84",
+        color: T.MUTED,
       }
     );
   }
@@ -169,7 +172,11 @@ function PersonalInsightCard({ insight, onReadMore, colors, isAI = false }) {
                 insight.ready ? pi.badgeTextReady : pi.badgeTextPending,
               ]}
             >
-              {insight.ready ? (isAI ? "✦ AI Health Pattern" : "Personal Insight") : "Still Learning"}
+              {insight.ready
+                ? isAI
+                  ? "✦ AI Health Pattern"
+                  : "Personal Insight"
+                : "Still Learning"}
             </Text>
           </View>
         </View>
@@ -236,7 +243,7 @@ const pi = StyleSheet.create({
   imageOverlay: {
     position: "absolute",
     inset: 0,
-    backgroundColor: "rgba(33,22,19,0.22)",
+    backgroundColor: "rgba(30,43,26,0.22)",
   },
   body: { padding: 22, marginTop: -12 },
   badgeRow: { marginBottom: 12 },
@@ -249,26 +256,26 @@ const pi = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  badgeReady: { backgroundColor: "rgba(128,85,232,0.18)" },
+  badgeReady: { backgroundColor: "rgba(139,195,74,0.18)" },
   badgePending: { backgroundColor: "rgba(154,132,120,0.15)" },
   badgeDot: { width: 6, height: 6, borderRadius: 3 },
-  badgeDotReady: { backgroundColor: "#8B75C8" },
-  badgeDotPending: { backgroundColor: "#756D84" },
+  badgeDotReady: { backgroundColor: T.SECONDARY },
+  badgeDotPending: { backgroundColor: T.MUTED },
   badgeText: {
     fontSize: 10,
     letterSpacing: 1,
     textTransform: "uppercase",
     fontWeight: "700",
   },
-  badgeTextReady: { color: "#8B75C8" },
-  badgeTextPending: { color: "#756D84" },
+  badgeTextReady: { color: T.SECONDARY },
+  badgeTextPending: { color: T.MUTED },
   title: { fontSize: 24, lineHeight: 30, fontWeight: "700", marginBottom: 10 },
   bodyText: { fontSize: 14, lineHeight: 21, marginBottom: 16 },
   whyBox: {
     borderRadius: 20,
     padding: 14,
     marginBottom: 16,
-    backgroundColor: "rgba(33,22,19,0.42)",
+    backgroundColor: T.PRIMARY_LIGHT,
   },
   whyRow: { flexDirection: "row", gap: 10 },
   whyTitle: { fontSize: 13, fontWeight: "600", marginBottom: 5 },
@@ -276,13 +283,13 @@ const pi = StyleSheet.create({
   flex1: { flex: 1 },
   lockIcon: { marginRight: 7 },
   cta: {
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 15,
   },
-  ctaText: { color: "#F5F1FF", fontSize: 14, fontWeight: "800" },
+  ctaText: { color: T.WHITE, fontSize: 14, fontWeight: "800" },
   ctaDisabled: {
     borderRadius: 18,
     paddingVertical: 14,
@@ -304,7 +311,11 @@ function WhatWeveLearned({ findings, colors, isAI = false }) {
     >
       <View style={wl.headerRow}>
         <View style={wl.iconBadge}>
-          <Ionicons name={isAI ? "sparkles-outline" : "bulb-outline"} size={17} color="#8055E8" />
+          <Ionicons
+            name={isAI ? "sparkles-outline" : "bulb-outline"}
+            size={17}
+            color={T.PRIMARY}
+          />
         </View>
         <View>
           <Text style={[wl.title, { color: colors.foreground }]}>
@@ -375,10 +386,17 @@ const wl = StyleSheet.create({
 function RecommendedReads({ navigation, colors }) {
   const reads = [
     {
+      title: "Reversia Guide",
+      body: "Ask about foods, meals and your sugar.",
+      icon: "star-fall-bold-duotone",
+      tint: { bg: "rgba(139,195,74,0.14)", fg: "#689F38" },
+      route: "Guide",
+    },
+    {
       title: "The Hydration-Mood Connection",
       body: "How 2 extra glasses can improve your focus.",
       icon: "water-sun-bold-duotone",
-      tint: { bg: "rgba(167,139,250,0.12)", fg: "#A78BFA" },
+      tint: { bg: "rgba(139,195,74,0.12)", fg: T.PRIMARY },
       route: "HydrationConnection",
     },
     {
@@ -392,7 +410,7 @@ function RecommendedReads({ navigation, colors }) {
       title: "Protein & Sustained Energy",
       body: "Why a protein anchor changes your afternoon.",
       icon: "dumbbell-bold-duotone",
-      tint: { bg: "rgba(128,85,232,0.10)", fg: "#8B75C8" },
+      tint: { bg: "rgba(139,195,74,0.10)", fg: T.SECONDARY },
       route: "ProteinEnergy",
     },
     {
@@ -499,7 +517,7 @@ function ActiveExperiment({ experimentStep, onAdvance, onOpenDetail, colors }) {
             <View key={i} style={ex.dayCol}>
               <View style={[ex.dot, done && ex.dotDone, curr && ex.dotCurrent]}>
                 {done ? (
-                  <Ionicons name="checkmark" size={10} color="#F5F1FF" />
+                  <Ionicons name="checkmark" size={10} color={T.WHITE} />
                 ) : (
                   <Text style={[ex.dotNum, curr && ex.dotNumCurrent]}>
                     {i + 1}
@@ -593,7 +611,7 @@ const ex = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(128,85,232,0.10)",
+    backgroundColor: "rgba(139,195,74,0.10)",
   },
   title: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
   body: { fontSize: 14, lineHeight: 20, marginBottom: 20 },
@@ -608,28 +626,28 @@ const ex = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderWidth: 1.5,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     alignItems: "center",
     justifyContent: "center",
   },
-  dotDone: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
-  dotCurrent: { borderColor: "#8055E8" },
-  dotNum: { fontSize: 11, color: "#756D84", fontWeight: "700" },
-  dotNumCurrent: { color: "#8055E8" },
-  dayLabel: { fontSize: 9, color: "#756D84", fontWeight: "600" },
-  dayLabelDone: { color: "#8B75C8" },
-  dayLabelCurrent: { color: "#8055E8" },
+  dotDone: { backgroundColor: T.PRIMARY, borderColor: T.PRIMARY },
+  dotCurrent: { borderColor: T.PRIMARY },
+  dotNum: { fontSize: 11, color: T.MUTED, fontWeight: "700" },
+  dotNumCurrent: { color: T.PRIMARY },
+  dayLabel: { fontSize: 9, color: T.MUTED, fontWeight: "600" },
+  dayLabelDone: { color: T.SECONDARY },
+  dayLabelCurrent: { color: T.PRIMARY },
 
   track: {
     height: 4,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderRadius: 2,
     marginBottom: 8,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
+  fill: { height: "100%", backgroundColor: T.SECONDARY, borderRadius: 2 },
   progressLabelRow: { marginBottom: 18 },
   progressLabel: { fontSize: 12 },
 
@@ -645,7 +663,7 @@ const ex = StyleSheet.create({
     borderRadius: 20,
     padding: 14,
     marginTop: 16,
-    backgroundColor: "rgba(33,22,19,0.42)",
+    backgroundColor: T.PRIMARY_LIGHT,
   },
   whyRow: { flexDirection: "row", gap: 10 },
   whyTitle: { fontSize: 13, fontWeight: "600", marginBottom: 5 },
@@ -668,7 +686,7 @@ function PastDiscoveries({ discoveries, colors }) {
     >
       <View style={pd.headerRow}>
         <View style={pd.iconBadge}>
-          <Ionicons name="ribbon-outline" size={16} color="#8B75C8" />
+          <Ionicons name="ribbon-outline" size={16} color={T.SECONDARY} />
         </View>
         <View>
           <Text style={[pd.title, { color: colors.foreground }]}>
@@ -730,13 +748,13 @@ const pd = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#8B75C8",
+    backgroundColor: T.SECONDARY,
     marginTop: 5,
   },
   line: {
     width: 1.5,
     flex: 1,
-    backgroundColor: "rgba(128,85,232,0.18)",
+    backgroundColor: "rgba(139,195,74,0.18)",
     marginTop: 4,
     minHeight: 20,
   },
@@ -817,7 +835,11 @@ export default function LearnScreen({ navigation }) {
     navigation?.navigate("ExperimentDetail");
   };
 
-  const [aiInsights, setAiInsights] = useState({ ready: false, insights: [], source: "empty" });
+  const [aiInsights, setAiInsights] = useState({
+    ready: false,
+    insights: [],
+    source: "empty",
+  });
 
   useEffect(() => {
     if (!logs || logs.length === 0) return;
@@ -858,7 +880,7 @@ export default function LearnScreen({ navigation }) {
       const aiItems = aiInsights.insights.slice(1).map((text) => ({
         text,
         icon: "sparkles-outline",
-        color: "#8055E8",
+        color: T.PRIMARY,
       }));
       return [...aiItems, ...rawFindings].slice(0, 4);
     }

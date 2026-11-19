@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { subscribeNotifications } from "../../utils/notificationService";
 import { useTheme } from "../../theme/ThemeProvider";
+import { T, FONTS } from "../../theme/tokens";
 
 const HEIGHT = 80;
 
@@ -126,11 +127,11 @@ function capitalize(s) {
 function getBackgroundColorForType(type, colors) {
   switch (type) {
     case "success":
-      return "#10B981"; // green
+      return T.SUCCESS; // leaf green
     case "error":
-      return "#EF4444"; // red
+      return T.DANGER; // soft red
     case "warning":
-      return "#F59E0B"; // amber
+      return T.WARNING; // amber
     default:
       return colors.card || "#111827"; // default
   }
@@ -145,15 +146,20 @@ const styles = StyleSheet.create({
   },
   container: {
     marginHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: "hidden",
   },
   content: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 14,
   },
-  title: { fontSize: 15, fontWeight: "700" },
-  message: { fontSize: 13, marginTop: 4, opacity: 0.95 },
+  title: { fontFamily: FONTS.display, fontSize: 15, fontWeight: "700" },
+  message: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    marginTop: 4,
+    opacity: 0.95,
+  },
 });

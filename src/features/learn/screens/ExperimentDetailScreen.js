@@ -12,6 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../../home/components/FadeIn";
 import secureStorage from "../../../utils/secureStorage";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
@@ -25,10 +27,11 @@ function SectionLabel({ text }) {
 
 const sl = StyleSheet.create({
   t: {
+    fontFamily: FONTS.body,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#756D84",
+    color: T.MUTED,
     marginBottom: 10,
   },
 });
@@ -104,7 +107,9 @@ export default function ExperimentDetailScreen({ navigation }) {
 
     const beforeChecks = logs.filter((l) => {
       const t = toTs(l);
-      return l.category === "body_check" && t >= sevenDaysBeforeMs && t < startMs;
+      return (
+        l.category === "body_check" && t >= sevenDaysBeforeMs && t < startMs
+      );
     });
     const duringChecks = logs.filter((l) => {
       const t = toTs(l);
@@ -112,7 +117,9 @@ export default function ExperimentDetailScreen({ navigation }) {
     });
 
     const avgEnergy = (arr) => {
-      const valid = arr.map((l) => Number(l.energyLevel || l.energy)).filter((n) => Number.isFinite(n) && n > 0);
+      const valid = arr
+        .map((l) => Number(l.energyLevel || l.energy))
+        .filter((n) => Number.isFinite(n) && n > 0);
       if (valid.length === 0) return null;
       return (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(1);
     };
@@ -123,7 +130,10 @@ export default function ExperimentDetailScreen({ navigation }) {
     return {
       beforeEnergy: beforeEnergy || "—",
       duringEnergy: duringEnergy || "—",
-      energyImproved: beforeEnergy && duringEnergy ? Number(duringEnergy) > Number(beforeEnergy) : null,
+      energyImproved:
+        beforeEnergy && duringEnergy
+          ? Number(duringEnergy) > Number(beforeEnergy)
+          : null,
     };
   }, [startDate, step, logs]);
 
@@ -165,333 +175,404 @@ export default function ExperimentDetailScreen({ navigation }) {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        <View
-          style={[
-            styles.progressCard,
-            {
-              backgroundColor: "rgba(128,85,232,0.08)",
-              borderColor: "rgba(128,85,232,0.18)",
-            },
-          ]}
-        >
-          <View style={styles.progressTop}>
-            <View
-              style={[
-                styles.progressIcon,
-                { backgroundColor: "rgba(128,85,232,0.12)" },
-              ]}
-            >
-              <Ionicons name="walk-outline" size={26} color="#8B75C8" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={[styles.progressTitle, { color: colors.foreground }]}
-              >
-                10-Minute Walk After Dinner
-              </Text>
-              <Text
-                style={[styles.progressSub, { color: colors.mutedForeground }]}
-              >
-                {isDone
-                  ? "Experiment complete"
-                  : `Day ${step + 1} of ${EXPERIMENT_STEPS}`}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.pctBadge,
-                {
-                  backgroundColor: isDone
-                    ? "rgba(128,85,232,0.18)"
-                    : "rgba(128,85,232,0.14)",
-                },
-              ]}
-            >
-              <Text
+        <FadeIn delay={0}>
+          <View
+            style={[
+              styles.progressCard,
+              {
+                backgroundColor: "rgba(139,195,74,0.08)",
+                borderColor: "rgba(139,195,74,0.18)",
+              },
+            ]}
+          >
+            <View style={styles.progressTop}>
+              <View
                 style={[
-                  styles.pctNum,
-                  { color: isDone ? "#8B75C8" : "#8055E8" },
+                  styles.progressIcon,
+                  { backgroundColor: "rgba(139,195,74,0.12)" },
                 ]}
               >
-                {pct}%
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.dotsRow}>
-            {Array.from({ length: EXPERIMENT_STEPS }).map((_, i) => {
-              const done = i < step;
-              const curr = i === step;
-              return (
-                <View key={i} style={styles.dayCol}>
-                  <View
-                    style={[
-                      styles.dot,
-                      done && styles.dotDone,
-                      curr && styles.dotCurrent,
-                    ]}
-                  >
-                    {done ? (
-                      <Ionicons name="checkmark" size={11} color="#F5F1FF" />
-                    ) : (
-                      <Text
-                        style={[styles.dotNum, curr && { color: "#8055E8" }]}
-                      >
-                        {i + 1}
-                      </Text>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.dayLabel,
-                      done && { color: "#8B75C8" },
-                      curr && { color: "#8055E8" },
-                    ]}
-                  >
-                    {done ? "✓" : `D${i + 1}`}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${pct}%` }]} />
-          </View>
-          <View style={styles.progressLabelRow}>
-            <Text
-              style={[styles.progressLabel, { color: colors.mutedForeground }]}
-            >
-              {isDone
-                ? "All 5 days complete"
-                : `${step} of ${EXPERIMENT_STEPS} days · ${pct}% done`}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.92}
-            onPress={advance}
-            style={[
-              styles.btn,
-              { backgroundColor: isDone ? colors.muted : colors.foreground },
-            ]}
-            disabled={isDone}
-          >
-            <Text
-              style={[
-                styles.btnText,
-                { color: isDone ? colors.mutedForeground : colors.background },
-              ]}
-            >
-              {isDone
-                ? "Restart Experiment"
-                : step === 0
-                ? "Start Experiment"
-                : "Mark Today Complete"}
-            </Text>
-          </TouchableOpacity>
-
-          <View
-            style={[styles.whyBox, { backgroundColor: "rgba(33,22,19,0.42)" }]}
-          >
-            <View style={styles.whyRow}>
-              <Ionicons
-                name="information-circle"
-                size={17}
-                color={colors.mutedForeground}
-              />
+                <Ionicons name="walk-outline" size={26} color={T.SECONDARY} />
+              </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.whyTitle, { color: colors.foreground }]}>
-                  Why this matters
+                <Text
+                  style={[styles.progressTitle, { color: colors.foreground }]}
+                >
+                  10-Minute Walk After Dinner
                 </Text>
                 <Text
-                  style={[styles.whyBody, { color: colors.mutedForeground }]}
+                  style={[
+                    styles.progressSub,
+                    { color: colors.mutedForeground },
+                  ]}
                 >
-                  Small repeatable changes are easier to trust when the app
-                  tracks your check-ins in one place.
+                  {isDone
+                    ? "Experiment complete"
+                    : `Day ${step + 1} of ${EXPERIMENT_STEPS}`}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.pctBadge,
+                  {
+                    backgroundColor: isDone
+                      ? "rgba(139,195,74,0.18)"
+                      : "rgba(139,195,74,0.14)",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.pctNum,
+                    { color: isDone ? T.SECONDARY : T.PRIMARY },
+                  ]}
+                >
+                  {pct}%
                 </Text>
               </View>
             </View>
+
+            <View style={styles.dotsRow}>
+              {Array.from({ length: EXPERIMENT_STEPS }).map((_, i) => {
+                const done = i < step;
+                const curr = i === step;
+                return (
+                  <View key={i} style={styles.dayCol}>
+                    <View
+                      style={[
+                        styles.dot,
+                        done && styles.dotDone,
+                        curr && styles.dotCurrent,
+                      ]}
+                    >
+                      {done ? (
+                        <Ionicons name="checkmark" size={11} color={T.WHITE} />
+                      ) : (
+                        <Text
+                          style={[styles.dotNum, curr && { color: T.PRIMARY }]}
+                        >
+                          {i + 1}
+                        </Text>
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.dayLabel,
+                        done && { color: T.SECONDARY },
+                        curr && { color: T.PRIMARY },
+                      ]}
+                    >
+                      {done ? "✓" : `D${i + 1}`}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <View style={styles.track}>
+              <View style={[styles.fill, { width: `${pct}%` }]} />
+            </View>
+            <View style={styles.progressLabelRow}>
+              <Text
+                style={[
+                  styles.progressLabel,
+                  { color: colors.mutedForeground },
+                ]}
+              >
+                {isDone
+                  ? "All 5 days complete"
+                  : `${step} of ${EXPERIMENT_STEPS} days · ${pct}% done`}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={advance}
+              style={[
+                styles.btn,
+                { backgroundColor: isDone ? colors.muted : colors.primary },
+              ]}
+              disabled={isDone}
+            >
+              <Text
+                style={[
+                  styles.btnText,
+                  { color: isDone ? colors.mutedForeground : "#FFFFFF" },
+                ]}
+              >
+                {isDone
+                  ? "Restart Experiment"
+                  : step === 0
+                  ? "Start Experiment"
+                  : "Mark Today Complete"}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={[styles.whyBox, { backgroundColor: T.PRIMARY_LIGHT }]}>
+              <View style={styles.whyRow}>
+                <Ionicons
+                  name="information-circle"
+                  size={17}
+                  color={colors.mutedForeground}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.whyTitle, { color: colors.foreground }]}>
+                    Why this matters
+                  </Text>
+                  <Text
+                    style={[styles.whyBody, { color: colors.mutedForeground }]}
+                  >
+                    Small repeatable changes are easier to trust when the app
+                    tracks your check-ins in one place.
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
-        </View>
+        </FadeIn>
 
         {!isDone && step < EXPERIMENT_STEPS && (
+          <FadeIn delay={60}>
+            <View style={styles.block}>
+              <SectionLabel text={`Day ${step + 1} Guidance`} />
+              <View
+                style={[
+                  styles.noteCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: "rgba(139,195,74,0.25)",
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="arrow-forward-circle"
+                  size={16}
+                  color={T.PRIMARY}
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={[styles.noteText, { color: colors.foreground }]}>
+                  {dayNotes[step]}
+                </Text>
+              </View>
+            </View>
+          </FadeIn>
+        )}
+
+        <FadeIn delay={120}>
           <View style={styles.block}>
-            <SectionLabel text={`Day ${step + 1} Guidance`} />
-            <View
-              style={[
-                styles.noteCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: "rgba(128,85,232,0.25)",
-                },
-              ]}
-            >
+            <SectionLabel text="What To Notice" />
+            {[
+              {
+                icon: "moon-outline",
+                color: "#CE6C60",
+                label: "Sleep quality",
+                desc: "Does falling asleep feel easier?",
+              },
+              {
+                icon: "flash-outline",
+                color: T.PRIMARY,
+                label: "Morning energy",
+                desc: "Log your body check-in when you wake up.",
+              },
+              {
+                icon: "restaurant-outline",
+                color: T.SECONDARY,
+                label: "Evening cravings",
+                desc: "Do you feel less hungry before bed?",
+              },
+            ].map((item, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.noticeRow,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.noticeIcon,
+                    { backgroundColor: `${item.color}18` },
+                  ]}
+                >
+                  <Ionicons name={item.icon} size={18} color={item.color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.noticeLabel, { color: colors.foreground }]}
+                  >
+                    {item.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.noticeDesc,
+                      { color: colors.mutedForeground },
+                    ]}
+                  >
+                    {item.desc}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <View style={styles.block}>
+            <SectionLabel text="Why This Experiment" />
+            <Text style={[styles.bodyText, { color: colors.foreground }]}>
+              Post-meal walks — even short ones — have been shown to blunt the
+              blood sugar rise that follows dinner. Over 5 days, the pattern
+              should become visible in your morning body check-ins.
+            </Text>
+            <View style={[styles.whyBox, { backgroundColor: T.PRIMARY_LIGHT }]}>
               <Ionicons
-                name="arrow-forward-circle"
-                size={16}
-                color="#8055E8"
-                style={{ marginRight: 10 }}
+                name="information-circle"
+                size={15}
+                color={colors.primary}
+                style={{ marginRight: 8, marginTop: 1 }}
               />
-              <Text style={[styles.noteText, { color: colors.foreground }]}>
-                {dayNotes[step]}
+              <Text
+                style={[
+                  styles.whyText,
+                  { color: colors.mutedForeground, flex: 1 },
+                ]}
+              >
+                Reversia will compare your body check-in results before and
+                after the experiment to show you whether it made a difference.
               </Text>
             </View>
           </View>
-        )}
+        </FadeIn>
 
-        <View style={styles.block}>
-          <SectionLabel text="What To Notice" />
-          {[
-            {
-              icon: "moon-outline",
-              color: "#CE6C60",
-              label: "Sleep quality",
-              desc: "Does falling asleep feel easier?",
-            },
-            {
-              icon: "flash-outline",
-              color: "#8055E8",
-              label: "Morning energy",
-              desc: "Log your body check-in when you wake up.",
-            },
-            {
-              icon: "restaurant-outline",
-              color: "#8B75C8",
-              label: "Evening cravings",
-              desc: "Do you feel less hungry before bed?",
-            },
-          ].map((item, i) => (
-            <View
-              key={i}
+        <FadeIn delay={240}>
+          <View style={styles.block}>
+            <SectionLabel text="Pattern Comparison (Before vs During)" />
+            {comparison ? (
+              <View
+                style={[
+                  styles.compareCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <View style={styles.compareRow}>
+                  <View style={styles.compareCol}>
+                    <Text
+                      style={[
+                        styles.compareLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      7 Days Before
+                    </Text>
+                    <Text
+                      style={[styles.compareVal, { color: colors.foreground }]}
+                    >
+                      {comparison.beforeEnergy} / 10
+                    </Text>
+                    <Text
+                      style={[
+                        styles.compareSub,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Avg Energy
+                    </Text>
+                  </View>
+                  <View style={styles.compareDivider} />
+                  <View style={styles.compareCol}>
+                    <Text style={[styles.compareLabel, { color: T.PRIMARY }]}>
+                      During Walk Test
+                    </Text>
+                    <Text
+                      style={[
+                        styles.compareVal,
+                        {
+                          color: comparison.energyImproved
+                            ? "#10B981"
+                            : colors.foreground,
+                        },
+                      ]}
+                    >
+                      {comparison.duringEnergy} / 10{" "}
+                      {comparison.energyImproved ? "↑" : ""}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.compareSub,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Avg Energy
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.noteCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <Ionicons
+                  name="analytics-outline"
+                  size={16}
+                  color={colors.primary}
+                  style={{ marginRight: 10 }}
+                />
+                <Text
+                  style={[styles.noteText, { color: colors.mutedForeground }]}
+                >
+                  {step === 0
+                    ? "Start the experiment to unlock before vs. during comparison data."
+                    : "Keep logging body check-ins during the 5 days to populate your comparison stats."}
+                </Text>
+              </View>
+            )}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={300}>
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => navigation?.navigate("BodyCheck")}
               style={[
-                styles.noticeRow,
+                styles.secBtn,
                 { backgroundColor: colors.card, borderColor: colors.border },
               ]}
             >
-              <View
+              <Ionicons
+                name="happy-outline"
+                size={16}
+                color={colors.foreground}
+                style={{ marginRight: 7 }}
+              />
+              <Text style={[styles.secBtnText, { color: colors.foreground }]}>
+                Body Check
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={advance}
+              style={[
+                styles.primaryBtn,
+                isDone && { backgroundColor: colors.muted },
+              ]}
+              disabled={isDone}
+            >
+              <Text
                 style={[
-                  styles.noticeIcon,
-                  { backgroundColor: `${item.color}18` },
+                  styles.primaryBtnText,
+                  isDone && { color: colors.mutedForeground },
                 ]}
               >
-                <Ionicons name={item.icon} size={18} color={item.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[styles.noticeLabel, { color: colors.foreground }]}
-                >
-                  {item.label}
-                </Text>
-                <Text
-                  style={[styles.noticeDesc, { color: colors.mutedForeground }]}
-                >
-                  {item.desc}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="Why This Experiment" />
-          <Text style={[styles.bodyText, { color: colors.foreground }]}>
-            Post-meal walks — even short ones — have been shown to blunt the
-            blood sugar rise that follows dinner. Over 5 days, the pattern
-            should become visible in your morning body check-ins.
-          </Text>
-          <View
-            style={[styles.whyBox, { backgroundColor: "rgba(33,22,19,0.42)" }]}
-          >
-            <Ionicons
-              name="information-circle"
-              size={15}
-              color={colors.primary}
-              style={{ marginRight: 8, marginTop: 1 }}
-            />
-            <Text
-              style={[
-                styles.whyText,
-                { color: colors.mutedForeground, flex: 1 },
-              ]}
-            >
-              Reversia will compare your body check-in results before and after
-              the experiment to show you whether it made a difference.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="Pattern Comparison (Before vs During)" />
-          {comparison ? (
-            <View style={[styles.compareCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.compareRow}>
-                <View style={styles.compareCol}>
-                  <Text style={[styles.compareLabel, { color: colors.mutedForeground }]}>7 Days Before</Text>
-                  <Text style={[styles.compareVal, { color: colors.foreground }]}>{comparison.beforeEnergy} / 10</Text>
-                  <Text style={[styles.compareSub, { color: colors.mutedForeground }]}>Avg Energy</Text>
-                </View>
-                <View style={styles.compareDivider} />
-                <View style={styles.compareCol}>
-                  <Text style={[styles.compareLabel, { color: "#8055E8" }]}>During Walk Test</Text>
-                  <Text style={[styles.compareVal, { color: comparison.energyImproved ? "#10B981" : colors.foreground }]}>
-                    {comparison.duringEnergy} / 10 {comparison.energyImproved ? "↑" : ""}
-                  </Text>
-                  <Text style={[styles.compareSub, { color: colors.mutedForeground }]}>Avg Energy</Text>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={[styles.noteCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="analytics-outline" size={16} color={colors.primary} style={{ marginRight: 10 }} />
-              <Text style={[styles.noteText, { color: colors.mutedForeground }]}>
-                {step === 0
-                  ? "Start the experiment to unlock before vs. during comparison data."
-                  : "Keep logging body check-ins during the 5 days to populate your comparison stats."}
+                {isDone ? "Completed" : `Mark Day ${step + 1} Done`}
               </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.btnRow}>
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={() => navigation?.navigate("BodyCheck")}
-            style={[
-              styles.secBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <Ionicons
-              name="happy-outline"
-              size={16}
-              color={colors.foreground}
-              style={{ marginRight: 7 }}
-            />
-            <Text style={[styles.secBtnText, { color: colors.foreground }]}>
-              Body Check
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={advance}
-            style={[
-              styles.primaryBtn,
-              isDone && { backgroundColor: colors.muted },
-            ]}
-            disabled={isDone}
-          >
-            <Text
-              style={[
-                styles.primaryBtnText,
-                isDone && { color: colors.mutedForeground },
-              ]}
-            >
-              {isDone ? "Completed" : `Mark Day ${step + 1} Done`}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
+        </FadeIn>
 
         {isDone && (
           <TouchableOpacity
@@ -502,7 +583,7 @@ export default function ExperimentDetailScreen({ navigation }) {
             <Ionicons
               name="refresh"
               size={14}
-              color="#756D84"
+              color={T.MUTED}
               style={{ marginRight: 7 }}
             />
             <Text style={styles.restartText}>Restart experiment</Text>
@@ -530,12 +611,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
+  headerTitle: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   headerSub: { fontSize: 12, marginTop: 2 },
   progressCard: {
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 22,
     marginHorizontal: 24,
     marginBottom: 8,
@@ -554,7 +637,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  progressTitle: { fontSize: 16, fontWeight: "700", flex: 1 },
+  progressTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    flex: 1,
+  },
   progressSub: { fontSize: 12, marginTop: 2 },
   pctBadge: {
     borderRadius: 14,
@@ -562,7 +650,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: "center",
   },
-  pctNum: { fontSize: 17, fontWeight: "700" },
+  pctNum: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   dotsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -573,27 +661,27 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderWidth: 1.5,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     alignItems: "center",
     justifyContent: "center",
   },
-  dotDone: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
-  dotCurrent: { borderColor: "#8055E8" },
-  dotNum: { fontSize: 11, color: "#756D84", fontWeight: "700" },
-  dayLabel: { fontSize: 9, color: "#756D84", fontWeight: "600" },
+  dotDone: { backgroundColor: T.PRIMARY, borderColor: T.PRIMARY },
+  dotCurrent: { borderColor: T.PRIMARY },
+  dotNum: { fontSize: 11, color: T.MUTED, fontWeight: "700" },
+  dayLabel: { fontSize: 9, color: T.MUTED, fontWeight: "600" },
   track: {
     height: 4,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderRadius: 2,
     overflow: "hidden",
   },
-  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
+  fill: { height: "100%", backgroundColor: T.SECONDARY, borderRadius: 2 },
   progressLabelRow: { marginBottom: 18 },
   progressLabel: { fontSize: 12 },
   btn: {
-    borderRadius: 18,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
@@ -608,9 +696,9 @@ const styles = StyleSheet.create({
   noteCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   noteText: { fontSize: 14, lineHeight: 20, flex: 1 },
   noticeRow: {
@@ -651,6 +739,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   compareVal: {
+    fontFamily: FONTS.display,
     fontSize: 20,
     fontWeight: "800",
     marginBottom: 2,
@@ -661,7 +750,7 @@ const styles = StyleSheet.create({
   compareDivider: {
     width: 1,
     height: 40,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: T.BORDER,
   },
   btnRow: {
     flexDirection: "row",
@@ -674,25 +763,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
+    borderRadius: 999,
     paddingVertical: 14,
     borderWidth: 1,
   },
   secBtnText: { fontSize: 14, fontWeight: "700" },
   primaryBtn: {
     flex: 2,
-    backgroundColor: "#8055E8",
-    borderRadius: 18,
+    backgroundColor: T.PRIMARY,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryBtnText: { fontSize: 14, fontWeight: "800", color: "#F5F1FF" },
+  primaryBtnText: { fontSize: 14, fontWeight: "800", color: T.WHITE },
   restartBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
   },
-  restartText: { fontSize: 13, color: "#756D84" },
+  restartText: { fontSize: 13, color: T.MUTED },
 });

@@ -6,6 +6,7 @@
 
 import React from "react";
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -15,8 +16,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import { FOOD_GUIDE_DISCLAIMER } from "../data/foodGuideData";
 import { getFoodById, getSwapFor } from "../services/foodGuideService";
+import { getFoodPhoto } from "../foodPhotos";
 import { RATING_MEANINGS, ratingColor } from "./FoodGuideScreen";
 
 function ratingLabel(rating) {
@@ -57,6 +62,7 @@ export default function FoodDetailScreen({ navigation, route }) {
     );
   }
 
+  const photo = getFoodPhoto(food.id);
   const badgeColor = ratingColor(food.rating);
   const macros = [
     { label: "Calories", value: `${food.cal} kcal` },
@@ -80,80 +86,105 @@ export default function FoodDetailScreen({ navigation, route }) {
           <Text style={styles.backText}>Food Guide</Text>
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>{food.name}</Text>
-          <Text style={styles.subtitle}>
-            {food.category} · {food.amount}
-          </Text>
-        </View>
+        {photo ? (
+          <FadeIn delay={0}>
+            <Image
+              source={photo}
+              style={styles.heroPhoto}
+              resizeMode="cover"
+              accessibilityLabel={`Photo of ${food.name}`}
+            />
+          </FadeIn>
+        ) : null}
 
-        <View style={styles.card}>
-          <View style={[styles.badge, { backgroundColor: `${badgeColor}1F` }]}>
-            <Text style={[styles.badgeText, { color: badgeColor }]}>
-              {ratingLabel(food.rating)}
+        <FadeIn delay={60}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{food.name}</Text>
+            <Text style={styles.subtitle}>
+              {food.category} · {food.amount}
             </Text>
           </View>
-          <Text style={styles.body}>{RATING_MEANINGS[food.rating]}</Text>
-          <Text style={styles.muted}>
-            {loadLabel(food.load)} for this serving · {food.carbs} carbs,{" "}
-            {food.protein} protein.
-          </Text>
-        </View>
+        </FadeIn>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Nutrition per serving</Text>
-          <Text style={styles.muted}>
-            Copied from the app&apos;s own food list — {food.amount}.
-          </Text>
-          <View style={styles.macroRow}>
-            {macros.map((macro) => (
-              <View key={macro.label} style={styles.macroPill}>
-                <Text style={styles.macroPillVal}>{macro.value}</Text>
-                <Text style={styles.macroPillLabel}>{macro.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Tip</Text>
-          <Text style={styles.body}>{food.tip}</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Swap</Text>
-          {swap ? (
-            <TouchableOpacity
-              onPress={() =>
-                navigation?.push("FoodDetail", { foodId: swap.id })
-              }
-              activeOpacity={0.8}
-              style={styles.swapRow}
+        <FadeIn delay={120}>
+          <View style={styles.card}>
+            <View
+              style={[styles.badge, { backgroundColor: `${badgeColor}1F` }]}
             >
-              <View style={styles.swapTextWrap}>
-                <Text style={styles.bodyBold}>Try {swap.name} instead</Text>
-                <Text style={styles.muted}>
-                  Rated {ratingLabel(swap.rating)} · {swap.amount} ·{" "}
-                  {swap.carbs} carbs. Tap to see it.
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.mutedForeground}
-              />
-            </TouchableOpacity>
-          ) : (
-            <Text style={styles.body}>
-              No swap needed — the advice here is portion and pairing: keep the
-              serving modest and pair it with protein or vegetables.
+              <Text style={[styles.badgeText, { color: badgeColor }]}>
+                {ratingLabel(food.rating)}
+              </Text>
+            </View>
+            <Text style={styles.body}>{RATING_MEANINGS[food.rating]}</Text>
+            <Text style={styles.muted}>
+              {loadLabel(food.load)} for this serving · {food.carbs} carbs,{" "}
+              {food.protein} protein.
             </Text>
-          )}
-        </View>
+          </View>
+        </FadeIn>
 
-        <View style={[styles.card, styles.disclaimerCard]}>
-          <Text style={styles.muted}>{FOOD_GUIDE_DISCLAIMER}</Text>
-        </View>
+        <FadeIn delay={180}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Nutrition per serving</Text>
+            <Text style={styles.muted}>
+              Copied from the app&apos;s own food list — {food.amount}.
+            </Text>
+            <View style={styles.macroRow}>
+              {macros.map((macro) => (
+                <View key={macro.label} style={styles.macroPill}>
+                  <Text style={styles.macroPillVal}>{macro.value}</Text>
+                  <Text style={styles.macroPillLabel}>{macro.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Tip</Text>
+            <Text style={styles.body}>{food.tip}</Text>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={300}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Swap</Text>
+            {swap ? (
+              <PressScale
+                onPress={() =>
+                  navigation?.push("FoodDetail", { foodId: swap.id })
+                }
+                style={styles.swapRow}
+                accessibilityLabel={`See ${swap.name} in the guide`}
+              >
+                <View style={styles.swapTextWrap}>
+                  <Text style={styles.bodyBold}>Try {swap.name} instead</Text>
+                  <Text style={styles.muted}>
+                    Rated {ratingLabel(swap.rating)} · {swap.amount} ·{" "}
+                    {swap.carbs} carbs. Tap to see it.
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.mutedForeground}
+                />
+              </PressScale>
+            ) : (
+              <Text style={styles.body}>
+                No swap needed — the advice here is portion and pairing: keep
+                the serving modest and pair it with protein or vegetables.
+              </Text>
+            )}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={360}>
+          <View style={[styles.card, styles.disclaimerCard]}>
+            <Text style={styles.muted}>{FOOD_GUIDE_DISCLAIMER}</Text>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -166,7 +197,7 @@ function makeStyles(colors) {
       backgroundColor: colors.background,
     },
     scroll: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 20,
       paddingTop: 16,
       paddingBottom: 120,
       gap: 16,
@@ -178,19 +209,28 @@ function makeStyles(colors) {
       alignSelf: "flex-start",
     },
     backText: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       fontWeight: "600",
       color: colors.primary,
+    },
+    heroPhoto: {
+      width: "100%",
+      height: 230,
+      borderRadius: 28,
     },
     header: {
       gap: 4,
     },
     title: {
-      fontSize: 26,
-      fontWeight: "700",
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
       color: colors.text,
+      letterSpacing: -0.5,
     },
     subtitle: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.mutedForeground,
       lineHeight: 21,
@@ -199,41 +239,46 @@ function makeStyles(colors) {
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 24,
+      padding: 20,
       gap: 10,
     },
     disclaimerCard: {
       backgroundColor: colors.muted,
     },
     cardTitle: {
+      fontFamily: FONTS.display,
       fontSize: 17,
       fontWeight: "700",
       color: colors.text,
     },
     body: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
       lineHeight: 21,
     },
     bodyBold: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       fontWeight: "600",
       color: colors.text,
       lineHeight: 21,
     },
     muted: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.mutedForeground,
       lineHeight: 20,
     },
     badge: {
-      borderRadius: 12,
+      borderRadius: 999,
       paddingVertical: 6,
-      paddingHorizontal: 10,
+      paddingHorizontal: 12,
       alignSelf: "flex-start",
     },
     badgeText: {
+      fontFamily: FONTS.body,
       fontSize: 13,
       fontWeight: "700",
     },
@@ -244,17 +289,19 @@ function makeStyles(colors) {
     macroPill: {
       flex: 1,
       backgroundColor: colors.muted,
-      borderRadius: 12,
-      paddingVertical: 10,
+      borderRadius: 20,
+      paddingVertical: 12,
       alignItems: "center",
       gap: 2,
     },
     macroPillVal: {
+      fontFamily: FONTS.display,
       fontSize: 14,
       fontWeight: "700",
       color: colors.text,
     },
     macroPillLabel: {
+      fontFamily: FONTS.body,
       fontSize: 10,
       color: colors.mutedForeground,
     },
@@ -276,13 +323,14 @@ function makeStyles(colors) {
     },
     primaryButton: {
       backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      borderRadius: 999,
+      paddingVertical: 15,
+      paddingHorizontal: 20,
       alignItems: "center",
       marginTop: 4,
     },
     primaryButtonText: {
+      fontFamily: FONTS.display,
       color: colors.primaryForeground,
       fontSize: 16,
       fontWeight: "700",

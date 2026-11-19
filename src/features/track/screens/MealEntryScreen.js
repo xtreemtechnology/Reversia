@@ -30,7 +30,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   withSpring,
   withSequence,
   Easing,
@@ -45,6 +44,8 @@ import { trackEvent } from "../../../utils/analytics";
 import secureStorage from "../../../utils/secureStorage";
 import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -54,31 +55,6 @@ const MEAL_TYPES = [
   { label: "Dinner", icon: "moon-outline" },
   { label: "Snack", icon: "leaf-outline" },
 ];
-
-// ── Animated section wrapper ──────────────────────────────────────────────────
-
-function FadeSlide({ delay = 0, children }) {
-  const opacity = useSharedValue(0);
-  const y = useSharedValue(16);
-
-  useEffect(() => {
-    opacity.value = withDelay(
-      delay,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-    y.value = withDelay(
-      delay,
-      withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-  }, [delay, opacity, y]);
-
-  const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: y.value }],
-  }));
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
 
 // ── Camera permission screen ──────────────────────────────────────────────────
 
@@ -124,7 +100,7 @@ function CameraPermissionScreen({ onGrant, onSkip, colors }) {
           activeOpacity={0.85}
           style={[cpSt.grantBtn, { backgroundColor: colors.primary }]}
         >
-          <Ionicons name="camera" size={18} color="#FFFFFF" />
+          <Ionicons name="camera" size={18} color={T.WHITE} />
           <Text style={cpSt.grantBtnText}>Enable camera</Text>
         </TouchableOpacity>
 
@@ -168,13 +144,13 @@ const cpSt = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -0.5,
     textAlign: "center",
   },
   body: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 23,
     textAlign: "center",
   },
@@ -190,9 +166,9 @@ const cpSt = StyleSheet.create({
     marginTop: 8,
   },
   grantBtnText: {
-    color: "#FFFFFF",
+    color: T.WHITE,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   skipBtn: {
@@ -200,7 +176,7 @@ const cpSt = StyleSheet.create({
   },
   skipText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 });
 
@@ -279,9 +255,9 @@ function CameraSection({
         {/* Photo captured tick */}
         {photo?.uri && (
           <View
-            style={[camSt.capturedBadge, { backgroundColor: "#10B981" + "E6" }]}
+            style={[camSt.capturedBadge, { backgroundColor: T.SUCCESS + "E6" }]}
           >
-            <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+            <Ionicons name="checkmark-circle" size={14} color={T.WHITE} />
             <Text style={camSt.capturedText}>Photo captured</Text>
           </View>
         )}
@@ -302,10 +278,10 @@ function CameraSection({
           ]}
         >
           {capturing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={T.WHITE} />
           ) : (
             <>
-              <Ionicons name="camera" size={18} color="#FFFFFF" />
+              <Ionicons name="camera" size={18} color={T.WHITE} />
               <Text style={camSt.actionBtnText}>Snap photo</Text>
             </>
           )}
@@ -358,7 +334,7 @@ const camSt = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   aiBadge: {
     position: "absolute",
@@ -374,7 +350,7 @@ const camSt = StyleSheet.create({
   },
   aiBadgeText: {
     fontSize: 11,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   capturedBadge: {
@@ -390,8 +366,8 @@ const camSt = StyleSheet.create({
   },
   capturedText: {
     fontSize: 11,
-    fontFamily: undefined,
-    color: "#FFFFFF",
+    fontFamily: FONTS.body,
+    color: T.WHITE,
   },
   actionBtn: {
     flexDirection: "row",
@@ -402,9 +378,9 @@ const camSt = StyleSheet.create({
     paddingVertical: 14,
   },
   actionBtnText: {
-    color: "#FFFFFF",
+    color: T.WHITE,
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
 });
@@ -469,7 +445,7 @@ const mtSt = StyleSheet.create({
   },
   pillText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
   },
 });
@@ -487,7 +463,7 @@ function SectionLabel({ children, colors }) {
 const slSt = StyleSheet.create({
   label: {
     fontSize: 11,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -502,10 +478,10 @@ function ErrorBanner({ message, colors }) {
     <View
       style={[
         ebSt.banner,
-        { backgroundColor: "#E28A82" + "18", borderColor: "#E28A82" + "40" },
+        { backgroundColor: T.DANGER + "18", borderColor: T.DANGER + "40" },
       ]}
     >
-      <Ionicons name="warning-outline" size={16} color="#E28A82" />
+      <Ionicons name="warning-outline" size={16} color={T.DANGER} />
       <Text style={ebSt.text}>{message}</Text>
     </View>
   );
@@ -524,8 +500,8 @@ const ebSt = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: undefined,
-    color: "#E28A82",
+    fontFamily: FONTS.body,
+    color: T.DANGER,
     lineHeight: 19,
   },
 });
@@ -753,7 +729,7 @@ export default function MealEntryScreen({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Header ── */}
-          <FadeSlide delay={0}>
+          <FadeIn delay={0}>
             <View style={styles.header}>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -775,11 +751,11 @@ export default function MealEntryScreen({ navigation, route }) {
                 </Text>
               </View>
             </View>
-          </FadeSlide>
+          </FadeIn>
 
           {/* ── Camera section ── */}
           {cameraOpen ? (
-            <FadeSlide delay={80}>
+            <FadeIn delay={80}>
               <View
                 style={[
                   styles.card,
@@ -799,10 +775,10 @@ export default function MealEntryScreen({ navigation, route }) {
                   colors={colors}
                 />
               </View>
-            </FadeSlide>
+            </FadeIn>
           ) : (
             /* ── Camera closed: snap prompt ── */
-            <FadeSlide delay={80}>
+            <FadeIn delay={80}>
               <TouchableOpacity
                 onPress={handleOpenCamera}
                 activeOpacity={0.8}
@@ -845,11 +821,11 @@ export default function MealEntryScreen({ navigation, route }) {
                   </Text>
                 </View>
               </TouchableOpacity>
-            </FadeSlide>
+            </FadeIn>
           )}
 
           {/* ── Form card ── */}
-          <FadeSlide delay={160}>
+          <FadeIn delay={160}>
             <View
               style={[
                 styles.card,
@@ -966,15 +942,22 @@ export default function MealEntryScreen({ navigation, route }) {
                 ]}
               >
                 {saving ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color={T.WHITE} />
                 ) : (
                   <>
                     <Ionicons
                       name="checkmark-circle"
                       size={18}
-                      color="#FFFFFF"
+                      color={canSave ? T.WHITE : T.MUTED}
                     />
-                    <Text style={styles.saveBtnText}>Save meal</Text>
+                    <Text
+                      style={[
+                        styles.saveBtnText,
+                        !canSave && { color: T.MUTED },
+                      ]}
+                    >
+                      Save meal
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -986,7 +969,7 @@ export default function MealEntryScreen({ navigation, route }) {
                 </Text>
               )}
             </View>
-          </FadeSlide>
+          </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1034,13 +1017,13 @@ const styles = StyleSheet.create({
   },
   preTitle: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
     letterSpacing: 0.3,
   },
   title: {
     fontSize: 36,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
     lineHeight: 44,
   },
@@ -1065,12 +1048,12 @@ const styles = StyleSheet.create({
   },
   snapTitle: {
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   snapSub: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   snapBadge: {
     flexDirection: "row",
@@ -1083,7 +1066,7 @@ const styles = StyleSheet.create({
   },
   snapBadgeText: {
     fontSize: 11,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
 
@@ -1126,13 +1109,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     height: 50,
   },
   textArea: {
     flex: 1,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     minHeight: 96,
     lineHeight: 24,
   },
@@ -1148,14 +1131,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   saveBtnText: {
-    color: "#FFFFFF",
+    color: T.WHITE,
     fontSize: 16,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
   },
   hint: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     textAlign: "center",
     marginTop: -8,
   },

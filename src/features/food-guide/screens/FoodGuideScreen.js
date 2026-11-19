@@ -1,11 +1,12 @@
 // src/features/food-guide/screens/FoodGuideScreen.js
 // Home screen of the Natural Food Guide: search, rating filter chips and
-// food cards in the LogMealScreen card style. Ratings are a simple guide
-// from the foods' carbs, protein and preparation — not measured
-// glycaemic index values.
+// food cards with a real photo on top where one exists. Ratings are a
+// simple guide from the foods' carbs, protein and preparation — not
+// measured glycaemic index values.
 
 import React, { useMemo, useState } from "react";
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,12 +17,15 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
-import { T } from "../../../theme/tokens";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import {
   FOOD_GUIDE_RATINGS,
   FOOD_GUIDE_DISCLAIMER,
 } from "../data/foodGuideData";
 import { searchFoodGuide, countByRating } from "../services/foodGuideService";
+import { getFoodPhoto } from "../foodPhotos";
 
 export const RATING_MEANINGS = {
   safe: "A good everyday choice for steady sugar.",
@@ -83,86 +87,111 @@ export default function FoodGuideScreen({ navigation }) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Food Guide</Text>
-          <Text style={styles.subtitle}>
-            Natural foods for steady sugar — search a food, then check its
-            rating.
-          </Text>
-        </View>
+        <FadeIn delay={0}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Food Guide</Text>
+            <Text style={styles.subtitle}>
+              Natural foods for steady sugar — search a food, then check its
+              rating.
+            </Text>
+          </View>
+        </FadeIn>
 
-        <View style={styles.searchWrapper}>
-          <Ionicons
-            name="search-outline"
-            size={18}
-            color={colors.mutedForeground}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search food or drink..."
-            placeholderTextColor={colors.mutedForeground}
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-          />
-          {query.length > 0 ? (
-            <TouchableOpacity onPress={() => setQuery("")} activeOpacity={0.8}>
-              <Ionicons
-                name="close-circle"
-                size={18}
-                color={colors.mutedForeground}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        <View style={styles.chipRow}>
-          {chips.map((chip) => {
-            const active = rating === chip.key;
-            return (
+        <FadeIn delay={60}>
+          <View style={styles.searchWrapper}>
+            <Ionicons
+              name="search-outline"
+              size={18}
+              color={colors.mutedForeground}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search food or drink..."
+              placeholderTextColor={colors.mutedForeground}
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+            />
+            {query.length > 0 ? (
               <TouchableOpacity
-                key={chip.key || "all"}
-                onPress={() => setRating(chip.key)}
+                onPress={() => setQuery("")}
                 activeOpacity={0.8}
-                style={[styles.chip, active && styles.chipActive]}
               >
-                <Text
-                  style={[styles.chipText, active && styles.chipTextActive]}
-                >
-                  {chip.label} ({chip.count})
-                </Text>
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={colors.mutedForeground}
+                />
               </TouchableOpacity>
-            );
-          })}
-        </View>
+            ) : null}
+          </View>
+        </FadeIn>
 
-        {rating ? (
-          <Text style={styles.ratingMeaning}>{RATING_MEANINGS[rating]}</Text>
-        ) : null}
-
-        <View style={styles.card}>
-          {results.length === 0 ? (
-            <View style={styles.emptyRow}>
-              <Text style={styles.emptyText}>No foods found</Text>
-              <Text style={styles.muted}>
-                Try a different name — beans, yam, zobo, suya.
-              </Text>
-            </View>
-          ) : (
-            results.map((food, index) => (
-              <View key={food.id}>
+        <FadeIn delay={120}>
+          <View style={styles.chipRow}>
+            {chips.map((chip) => {
+              const active = rating === chip.key;
+              return (
                 <TouchableOpacity
+                  key={chip.key || "all"}
+                  onPress={() => setRating(chip.key)}
+                  activeOpacity={0.8}
+                  style={[styles.chip, active && styles.chipActive]}
+                >
+                  <Text
+                    style={[styles.chipText, active && styles.chipTextActive]}
+                  >
+                    {chip.label} ({chip.count})
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {rating ? (
+            <Text style={styles.ratingMeaning}>{RATING_MEANINGS[rating]}</Text>
+          ) : null}
+        </FadeIn>
+
+        {results.length === 0 ? (
+          <FadeIn delay={180}>
+            <View style={styles.card}>
+              <View style={styles.emptyRow}>
+                <Text style={styles.emptyText}>No foods found</Text>
+                <Text style={styles.muted}>
+                  Try a different name — beans, yam, zobo, suya.
+                </Text>
+              </View>
+            </View>
+          </FadeIn>
+        ) : (
+          results.map((food, index) => {
+            const photo = getFoodPhoto(food.id);
+            return (
+              <FadeIn key={food.id} delay={Math.min(180 + index * 40, 420)}>
+                <PressScale
+                  style={styles.foodCard}
                   onPress={() =>
                     navigation?.navigate("FoodDetail", {
                       foodId: food.id,
                     })
                   }
-                  activeOpacity={0.8}
-                  style={styles.foodRow}
+                  accessibilityLabel={`${food.name}, rated ${food.rating}`}
                 >
-                  <View style={styles.foodTextWrap}>
-                    <Text style={styles.foodName}>{food.name}</Text>
+                  {photo ? (
+                    <Image
+                      source={photo}
+                      style={styles.foodPhoto}
+                      resizeMode="cover"
+                      accessibilityLabel={`Photo of ${food.name}`}
+                    />
+                  ) : null}
+                  <View style={styles.foodBody}>
+                    <View style={styles.foodTopRow}>
+                      <Text style={styles.foodName}>{food.name}</Text>
+                      <RatingBadge rating={food.rating} styles={styles} />
+                    </View>
                     <Text style={styles.foodMeta}>
                       {food.amount} · {food.cal} kcal · {food.carbs} carbs ·{" "}
                       {food.protein} protein
@@ -171,19 +200,17 @@ export default function FoodGuideScreen({ navigation }) {
                       {food.category} · {loadLabel(food.load)}
                     </Text>
                   </View>
-                  <RatingBadge rating={food.rating} styles={styles} />
-                </TouchableOpacity>
-                {index < results.length - 1 ? (
-                  <View style={styles.divider} />
-                ) : null}
-              </View>
-            ))
-          )}
-        </View>
+                </PressScale>
+              </FadeIn>
+            );
+          })
+        )}
 
-        <View style={[styles.card, styles.disclaimerCard]}>
-          <Text style={styles.muted}>{FOOD_GUIDE_DISCLAIMER}</Text>
-        </View>
+        <FadeIn delay={240}>
+          <View style={[styles.card, styles.disclaimerCard]}>
+            <Text style={styles.muted}>{FOOD_GUIDE_DISCLAIMER}</Text>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -196,7 +223,7 @@ function makeStyles(colors) {
       backgroundColor: colors.background,
     },
     scroll: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 20,
       paddingTop: 16,
       paddingBottom: 120,
       gap: 16,
@@ -205,11 +232,14 @@ function makeStyles(colors) {
       gap: 4,
     },
     title: {
-      fontSize: 26,
-      fontWeight: "700",
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
       color: colors.text,
+      letterSpacing: -0.5,
     },
     subtitle: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.mutedForeground,
       lineHeight: 21,
@@ -218,9 +248,9 @@ function makeStyles(colors) {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: colors.card,
-      borderRadius: 16,
-      paddingHorizontal: 14,
-      height: 48,
+      borderRadius: 999,
+      paddingHorizontal: 16,
+      height: 52,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -229,6 +259,7 @@ function makeStyles(colors) {
     },
     searchInput: {
       flex: 1,
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
     },
@@ -240,16 +271,17 @@ function makeStyles(colors) {
     chip: {
       paddingVertical: 9,
       paddingHorizontal: 14,
-      borderRadius: 14,
+      borderRadius: 999,
       backgroundColor: colors.muted,
       borderWidth: 1.5,
       borderColor: "transparent",
     },
     chipActive: {
-      backgroundColor: "rgba(128,85,232,0.14)",
+      backgroundColor: "rgba(139,195,74,0.14)",
       borderColor: colors.primary,
     },
     chipText: {
+      fontFamily: FONTS.body,
       fontSize: 13,
       color: colors.mutedForeground,
       fontWeight: "600",
@@ -259,54 +291,66 @@ function makeStyles(colors) {
       fontWeight: "700",
     },
     ratingMeaning: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.mutedForeground,
       lineHeight: 20,
+      marginTop: 10,
     },
     card: {
       backgroundColor: colors.card,
       borderRadius: 24,
       paddingHorizontal: 20,
-      paddingVertical: 8,
+      paddingVertical: 16,
       borderWidth: 1,
       borderColor: colors.border,
     },
     disclaimerCard: {
       backgroundColor: colors.muted,
-      paddingVertical: 16,
     },
-    foodRow: {
+    foodCard: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+    foodPhoto: {
+      width: "100%",
+      height: 150,
+    },
+    foodBody: {
+      padding: 16,
+      gap: 4,
+    },
+    foodTopRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 12,
+      justifyContent: "space-between",
       gap: 12,
     },
-    foodTextWrap: {
-      flex: 1,
-      gap: 2,
-    },
     foodName: {
-      fontSize: 15,
+      fontFamily: FONTS.display,
+      fontSize: 16,
       fontWeight: "700",
       color: colors.text,
+      flex: 1,
     },
     foodMeta: {
+      fontFamily: FONTS.body,
       fontSize: 13,
       color: colors.mutedForeground,
       lineHeight: 18,
     },
     badge: {
-      borderRadius: 12,
+      borderRadius: 999,
       paddingVertical: 6,
       paddingHorizontal: 10,
     },
     badgeText: {
+      fontFamily: FONTS.body,
       fontSize: 12,
       fontWeight: "700",
-    },
-    divider: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.border,
     },
     emptyRow: {
       alignItems: "center",
@@ -314,11 +358,13 @@ function makeStyles(colors) {
       gap: 6,
     },
     emptyText: {
+      fontFamily: FONTS.display,
       fontSize: 15,
       fontWeight: "700",
       color: colors.text,
     },
     muted: {
+      fontFamily: FONTS.body,
       fontSize: 14,
       color: colors.mutedForeground,
       lineHeight: 20,

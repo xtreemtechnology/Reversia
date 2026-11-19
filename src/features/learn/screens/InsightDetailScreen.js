@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SolarIcon from "../../../components/SolarIcon";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../../home/components/FadeIn";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
 function getLatestMeal(logs) {
@@ -30,7 +32,10 @@ function toDate(ts) {
 /** Format a Date as "h:mm AM/PM" */
 function formatTime(date) {
   if (!date) return "";
-  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 /** Returns "YYYY-MM-DD" for a log entry */
@@ -74,24 +79,74 @@ function buildTimeline(logs) {
     const time = formatTime(toDate(log.createdAt));
     if (log.category === "meal") {
       const name = log.name || log.type || "Meal";
-      return { time, event: `${log.type ? log.type.charAt(0).toUpperCase() + log.type.slice(1) : "Meal"} logged`, detail: name, icon: "restaurant-outline", color: "#8055E8" };
+      return {
+        time,
+        event: `${
+          log.type
+            ? log.type.charAt(0).toUpperCase() + log.type.slice(1)
+            : "Meal"
+        } logged`,
+        detail: name,
+        icon: "restaurant-outline",
+        color: T.PRIMARY,
+      };
     }
     if (log.category === "water" || log.category === "hydration") {
-      const glasses = log.glasses ? `${log.glasses} glass${log.glasses !== 1 ? "es" : ""}` : log.liters ? `${log.liters}L` : "Water";
-      return { time, event: "Water logged", detail: glasses, icon: "water-outline", color: "#8B75C8" };
+      const glasses = log.glasses
+        ? `${log.glasses} glass${log.glasses !== 1 ? "es" : ""}`
+        : log.liters
+        ? `${log.liters}L`
+        : "Water";
+      return {
+        time,
+        event: "Water logged",
+        detail: glasses,
+        icon: "water-outline",
+        color: T.SECONDARY,
+      };
     }
     if (log.category === "sleep") {
-      return { time, event: "Sleep logged", detail: `${log.duration || log.hours || "?"}h · ${log.quality || ""}`, icon: "moon-outline", color: "#7B8FD8" };
+      return {
+        time,
+        event: "Sleep logged",
+        detail: `${log.duration || log.hours || "?"}h · ${log.quality || ""}`,
+        icon: "moon-outline",
+        color: "#7B8FD8",
+      };
     }
     if (log.category === "body_check") {
-      const mood = log.mood ? log.mood.charAt(0).toUpperCase() + log.mood.slice(1) : "Check-in";
-      const symptoms = log.symptoms?.length ? ` · ${log.symptoms.slice(0, 2).join(", ")}` : "";
-      return { time, event: `Body check — ${mood}`, detail: log.energy ? `Energy ${log.energy}/10${symptoms}` : symptoms.trim() || "Logged", icon: "happy-outline", color: "#CE6C60" };
+      const mood = log.mood
+        ? log.mood.charAt(0).toUpperCase() + log.mood.slice(1)
+        : "Check-in";
+      const symptoms = log.symptoms?.length
+        ? ` · ${log.symptoms.slice(0, 2).join(", ")}`
+        : "";
+      return {
+        time,
+        event: `Body check — ${mood}`,
+        detail: log.energy
+          ? `Energy ${log.energy}/10${symptoms}`
+          : symptoms.trim() || "Logged",
+        icon: "happy-outline",
+        color: "#CE6C60",
+      };
     }
     if (log.category === "glucose") {
-      return { time, event: "Glucose logged", detail: `${log.value} ${log.unit || "mg/dL"} · ${log.context || ""}`, icon: "analytics-outline", color: "#64A0DC" };
+      return {
+        time,
+        event: "Glucose logged",
+        detail: `${log.value} ${log.unit || "mg/dL"} · ${log.context || ""}`,
+        icon: "analytics-outline",
+        color: "#64A0DC",
+      };
     }
-    return { time, event: "Log entry", detail: log.category || "", icon: "ellipse-outline", color: "#756D84" };
+    return {
+      time,
+      event: "Log entry",
+      detail: log.category || "",
+      icon: "ellipse-outline",
+      color: T.MUTED,
+    };
   });
 
   return { dayLabel, items };
@@ -102,26 +157,53 @@ function buildObservations(logs) {
   const obs = [];
   const meals = (logs || []).filter((l) => l?.category === "meal");
   const checks = (logs || []).filter((l) => l?.category === "body_check");
-  const water = (logs || []).filter((l) => l?.category === "water" || l?.category === "hydration");
+  const water = (logs || []).filter(
+    (l) => l?.category === "water" || l?.category === "hydration"
+  );
 
   const breakfast = meals.filter((l) => l?.type?.toLowerCase() === "breakfast");
-  const noProteinBreakfast = breakfast.filter((l) => !l?.protein || Number(l.protein) < 5);
+  const noProteinBreakfast = breakfast.filter(
+    (l) => !l?.protein || Number(l.protein) < 5
+  );
   if (noProteinBreakfast.length > 0) {
-    obs.push({ label: "Low protein in some breakfasts", impact: "May contribute to mid-morning energy dips", color: "#CE6C60" });
+    obs.push({
+      label: "Low protein in some breakfasts",
+      impact: "May contribute to mid-morning energy dips",
+      color: "#CE6C60",
+    });
   }
 
   const lowWaterDays = water.length < 3;
   if (lowWaterDays) {
-    obs.push({ label: "Water intake could be higher", impact: "Hydration affects focus and mood throughout the day", color: "#A78BFA" });
+    obs.push({
+      label: "Water intake could be higher",
+      impact: "Hydration affects focus and mood throughout the day",
+      color: T.PRIMARY,
+    });
   }
 
-  const tiredChecks = checks.filter((l) => l?.symptoms?.some((s) => ["Tired", "Fatigue", "Brain Fog", "Low Energy"].includes(s)) || l?.energy <= 4);
+  const tiredChecks = checks.filter(
+    (l) =>
+      l?.symptoms?.some((s) =>
+        ["Tired", "Fatigue", "Brain Fog", "Low Energy"].includes(s)
+      ) || l?.energy <= 4
+  );
   if (tiredChecks.length > 0) {
-    obs.push({ label: `${tiredChecks.length} low-energy check-in${tiredChecks.length > 1 ? "s" : ""} logged`, impact: "These moments help Reversia identify what triggered the dip", color: "#8055E8" });
+    obs.push({
+      label: `${tiredChecks.length} low-energy check-in${
+        tiredChecks.length > 1 ? "s" : ""
+      } logged`,
+      impact: "These moments help Reversia identify what triggered the dip",
+      color: T.PRIMARY,
+    });
   }
 
   if (obs.length === 0) {
-    obs.push({ label: "Keep logging to unlock observations", impact: "Reversia needs more data to identify meaningful patterns", color: "#756D84" });
+    obs.push({
+      label: "Keep logging to unlock observations",
+      impact: "Reversia needs more data to identify meaningful patterns",
+      color: T.MUTED,
+    });
   }
 
   return obs.slice(0, 3);
@@ -145,12 +227,13 @@ function confidenceLabel(score) {
   return "No data yet";
 }
 
-function SectionLabel({ text, color = "#756D84" }) {
+function SectionLabel({ text, color = T.MUTED }) {
   return <Text style={[sl.text, { color }]}>{text.toUpperCase()}</Text>;
 }
 
 const sl = StyleSheet.create({
   text: {
+    fontFamily: FONTS.body,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
@@ -160,7 +243,7 @@ const sl = StyleSheet.create({
 
 function WhyBox({ text, colors }) {
   return (
-    <View style={[wb.box, { backgroundColor: "rgba(33,22,19,0.42)" }]}>
+    <View style={[wb.box, { backgroundColor: T.PRIMARY_LIGHT }]}>
       <View style={wb.row}>
         <SolarIcon
           name="info-circle-bold-duotone"
@@ -229,190 +312,218 @@ export default function InsightDetailScreen({ navigation }) {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        <View
-          style={[
-            styles.heroCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
+        <FadeIn delay={0}>
           <View
             style={[
-              styles.heroIconBadge,
-              { backgroundColor: "rgba(128,85,232,0.14)" },
-            ]}
-          >
-            <Ionicons name="analytics-outline" size={22} color="#8055E8" />
-          </View>
-          <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            {mealName} appears in your low-energy afternoons.
-          </Text>
-          <Text style={[styles.heroBody, { color: colors.mutedForeground }]}>
-            Across your recent logs, meals that were followed by a lower-energy
-            body check-in most often contained {mealName}. This is a pattern
-            worth testing.
-          </Text>
-          <View style={styles.confidenceRow}>
-            <Text
-              style={[
-                styles.confidenceLabel,
-                { color: colors.mutedForeground },
-              ]}
-            >
-              Pattern confidence
-            </Text>
-            <View style={styles.dotRow}>
-              {[1, 2, 3, 4, 5].map((d) => (
-                <View
-                  key={d}
-                  style={[styles.dot, d <= confidence && styles.dotFilled]}
-                />
-              ))}
-            </View>
-            <Text style={styles.confidenceVal}>{confidenceLabel(confidence)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionBlock}>
-          <SectionLabel text={`${dayLabel}'s Timeline`} />
-          <View
-            style={[
-              styles.card,
+              styles.heroCard,
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            {timeline.length === 0 ? (
-              <View style={styles.emptyTimeline}>
-                <Text style={[styles.timelineDetail, { color: colors.mutedForeground, textAlign: "center", paddingVertical: 20 }]}>
-                  No logs found yet. Start logging meals, water, and body check-ins to see your timeline here.
-                </Text>
-              </View>
-            ) : (
-            timeline.map((item, i) => (
-              <View key={i} style={styles.timelineRow}>
-                <View style={styles.timelineLeft}>
-                  <Text
-                    style={[
-                      styles.timelineTime,
-                      { color: colors.mutedForeground },
-                    ]}
-                  >
-                    {item.time}
-                  </Text>
-                </View>
-                <View style={styles.timelineSpine}>
+            <View
+              style={[
+                styles.heroIconBadge,
+                { backgroundColor: "rgba(139,195,74,0.14)" },
+              ]}
+            >
+              <Ionicons name="analytics-outline" size={22} color={T.PRIMARY} />
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.foreground }]}>
+              {mealName} appears in your low-energy afternoons.
+            </Text>
+            <Text style={[styles.heroBody, { color: colors.mutedForeground }]}>
+              Across your recent logs, meals that were followed by a
+              lower-energy body check-in most often contained {mealName}. This
+              is a pattern worth testing.
+            </Text>
+            <View style={styles.confidenceRow}>
+              <Text
+                style={[
+                  styles.confidenceLabel,
+                  { color: colors.mutedForeground },
+                ]}
+              >
+                Pattern confidence
+              </Text>
+              <View style={styles.dotRow}>
+                {[1, 2, 3, 4, 5].map((d) => (
                   <View
-                    style={[
-                      styles.timelineDot,
-                      { backgroundColor: item.color },
-                    ]}
+                    key={d}
+                    style={[styles.dot, d <= confidence && styles.dotFilled]}
                   />
-                  {i < timeline.length - 1 && (
-                    <View
-                      style={[
-                        styles.timelineLine,
-                        { backgroundColor: colors.border },
-                      ]}
-                    />
-                  )}
-                </View>
-                <View style={styles.timelineContent}>
-                  <Text
-                    style={[styles.timelineEvent, { color: colors.foreground }]}
-                  >
-                    {item.event}
-                  </Text>
+                ))}
+              </View>
+              <Text style={styles.confidenceVal}>
+                {confidenceLabel(confidence)}
+              </Text>
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.sectionBlock}>
+            <SectionLabel text={`${dayLabel}'s Timeline`} />
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              {timeline.length === 0 ? (
+                <View style={styles.emptyTimeline}>
                   <Text
                     style={[
                       styles.timelineDetail,
-                      { color: colors.mutedForeground },
+                      {
+                        color: colors.mutedForeground,
+                        textAlign: "center",
+                        paddingVertical: 20,
+                      },
                     ]}
                   >
-                    {item.detail}
+                    No logs found yet. Start logging meals, water, and body
+                    check-ins to see your timeline here.
                   </Text>
                 </View>
-              </View>
-            )))}
-          </View>
-        </View>
-
-        <View style={styles.sectionBlock}>
-          <SectionLabel text="What We Noticed" />
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            {observations.map((obs, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.obsRow,
-                  i < observations.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: "rgba(255,255,255,0.04)",
-                  },
-                ]}
-              >
-                <View style={[styles.obsDot, { backgroundColor: obs.color }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.obsLabel, { color: colors.foreground }]}>
-                    {obs.label}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.obsImpact,
-                      { color: colors.mutedForeground },
-                    ]}
-                  >
-                    {obs.impact}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-          <WhyBox
-            text="These observations are pulled from your actual logs — not a template. They improve as you log more consistently."
-            colors={colors}
-          />
-        </View>
-
-        <View style={styles.sectionBlock}>
-          <SectionLabel text="Suggested Experiment" />
-          <View
-            style={[
-              styles.experimentCard,
-              {
-                backgroundColor: "rgba(128,85,232,0.08)",
-                borderColor: "rgba(128,85,232,0.20)",
-              },
-            ]}
-          >
-            <View style={styles.expHeaderRow}>
-              <Ionicons
-                name="flask-outline"
-                size={18}
-                color="#8055E8"
-                style={{ marginRight: 8 }}
-              />
-              <Text style={[styles.expTitle, { color: colors.foreground }]}>
-                Try adding protein to breakfast
-              </Text>
+              ) : (
+                timeline.map((item, i) => (
+                  <View key={i} style={styles.timelineRow}>
+                    <View style={styles.timelineLeft}>
+                      <Text
+                        style={[
+                          styles.timelineTime,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        {item.time}
+                      </Text>
+                    </View>
+                    <View style={styles.timelineSpine}>
+                      <View
+                        style={[
+                          styles.timelineDot,
+                          { backgroundColor: item.color },
+                        ]}
+                      />
+                      {i < timeline.length - 1 && (
+                        <View
+                          style={[
+                            styles.timelineLine,
+                            { backgroundColor: colors.border },
+                          ]}
+                        />
+                      )}
+                    </View>
+                    <View style={styles.timelineContent}>
+                      <Text
+                        style={[
+                          styles.timelineEvent,
+                          { color: colors.foreground },
+                        ]}
+                      >
+                        {item.event}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.timelineDetail,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        {item.detail}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              )}
             </View>
-            <Text style={[styles.expBody, { color: colors.mutedForeground }]}>
-              For the next 3 days, add eggs, greek yogurt, or beans to your
-              first meal and log a body check-in by 11 AM. Reversia will compare
-              the results.
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={() => navigation?.navigate("ExperimentDetail")}
-              style={styles.expBtn}
-            >
-              <Text style={styles.expBtnText}>Go to Active Experiment</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </FadeIn>
+
+        <FadeIn delay={120}>
+          <View style={styles.sectionBlock}>
+            <SectionLabel text="What We Noticed" />
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              {observations.map((obs, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.obsRow,
+                    i < observations.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: T.BORDER,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[styles.obsDot, { backgroundColor: obs.color }]}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[styles.obsLabel, { color: colors.foreground }]}
+                    >
+                      {obs.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.obsImpact,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      {obs.impact}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <WhyBox
+              text="These observations are pulled from your actual logs — not a template. They improve as you log more consistently."
+              colors={colors}
+            />
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <View style={styles.sectionBlock}>
+            <SectionLabel text="Suggested Experiment" />
+            <View
+              style={[
+                styles.experimentCard,
+                {
+                  backgroundColor: "rgba(139,195,74,0.08)",
+                  borderColor: "rgba(139,195,74,0.20)",
+                },
+              ]}
+            >
+              <View style={styles.expHeaderRow}>
+                <Ionicons
+                  name="flask-outline"
+                  size={18}
+                  color={T.PRIMARY}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={[styles.expTitle, { color: colors.foreground }]}>
+                  Try adding protein to breakfast
+                </Text>
+              </View>
+              <Text style={[styles.expBody, { color: colors.mutedForeground }]}>
+                For the next 3 days, add eggs, greek yogurt, or beans to your
+                first meal and log a body check-in by 11 AM. Reversia will
+                compare the results.
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => navigation?.navigate("ExperimentDetail")}
+                style={styles.expBtn}
+              >
+                <Text style={styles.expBtnText}>Go to Active Experiment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -435,9 +546,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
+  headerTitle: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   headerSub: { fontSize: 12, marginTop: 2 },
   heroCard: {
     borderRadius: 24,
@@ -456,6 +569,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   heroTitle: {
+    fontFamily: FONTS.display,
     fontSize: 20,
     fontWeight: "700",
     lineHeight: 26,
@@ -469,12 +583,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
-  dotFilled: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
-  confidenceVal: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
+  dotFilled: { backgroundColor: T.PRIMARY, borderColor: T.PRIMARY },
+  confidenceVal: { fontSize: 11, color: T.PRIMARY, fontWeight: "600" },
   sectionBlock: { paddingHorizontal: 24, marginBottom: 20 },
   card: {
     borderRadius: 22,
@@ -515,11 +629,11 @@ const styles = StyleSheet.create({
   expTitle: { fontSize: 15, fontWeight: "700", flex: 1 },
   expBody: { fontSize: 13, lineHeight: 19, marginBottom: 16 },
   expBtn: {
-    backgroundColor: "#8055E8",
-    borderRadius: 16,
+    backgroundColor: T.PRIMARY,
+    borderRadius: 999,
     paddingVertical: 13,
     alignItems: "center",
   },
-  expBtnText: { fontSize: 14, fontWeight: "700", color: "#F5F1FF" },
+  expBtnText: { fontSize: 14, fontWeight: "700", color: T.WHITE },
   emptyTimeline: { paddingVertical: 10 },
 });

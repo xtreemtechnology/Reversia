@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 import AuthButton from "../components/AuthButton";
 import { firebaseErrorMessage } from "../authHelpers";
 
@@ -55,9 +56,7 @@ export default function CheckEmailScreen({ navigation, route }) {
           </Text>
           <Text style={[styles.body, { color: colors.mutedForeground }]}>
             We sent a password reset link to{"\n"}
-            <Text
-              style={{ color: colors.text, fontFamily: undefined }}
-            >
+            <Text style={{ color: colors.text, fontFamily: FONTS.body }}>
               {email}
             </Text>
           </Text>
@@ -122,27 +121,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 42,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
     lineHeight: 50,
     textAlign: "center",
   },
   body: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 24,
     textAlign: "center",
   },
   hint: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 20,
     textAlign: "center",
   },
   errorText: {
     fontSize: 14,
-    color: "#E28A82",
-    fontFamily: undefined,
+    color: T.DANGER,
+    fontFamily: FONTS.body,
     textAlign: "center",
   },
   resentRow: {
@@ -154,7 +153,7 @@ const styles = StyleSheet.create({
   },
   resentText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   actions: {
     width: "100%",
