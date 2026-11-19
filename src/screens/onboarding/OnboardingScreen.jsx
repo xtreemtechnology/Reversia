@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { FONTS } from "../../theme/tokens";
+import ILLUSTRATIONS from "../../features/illustrations/illustrations";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
@@ -68,6 +70,7 @@ const SLIDES = [
     accentColor: "#FFFFFF",
     iconName: "sparkles",
     visual: "none",
+    hero: true,
     isFinal: true,
   },
 ];
@@ -258,6 +261,15 @@ function Slide({ slide, index, isActive }) {
       <Text style={[slideStyles.tag, { color: slide.accentColor }]}>
         {slide.tag}
       </Text>
+      {slide.hero && (
+        <View style={slideStyles.heroCard}>
+          <Image
+            source={ILLUSTRATIONS["welcome-hero"]}
+            style={slideStyles.heroImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
       <Text style={slideStyles.headline}>{slide.headline}</Text>
       {slide.visual !== "none" && (
         <View style={slideStyles.visualWrap}>
@@ -296,6 +308,20 @@ const slideStyles = StyleSheet.create({
     marginBottom: 28,
   },
   visualWrap: { marginBottom: 32, paddingLeft: 2 },
+  // The welcome illustration sits in a white card because the slides
+  // live on a green gradient — the drawing's own pale background would
+  // not blend with it the way it does on the sage screens.
+  heroCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    overflow: "hidden",
+    height: 200,
+    marginBottom: 20,
+  },
+  heroImage: {
+    width: "100%",
+    height: "100%",
+  },
   body: {
     fontSize: 16,
     fontFamily: FONTS.body,

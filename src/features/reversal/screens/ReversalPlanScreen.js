@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   ActivityIndicator,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -19,6 +20,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
+import ILLUSTRATIONS from "../../illustrations/illustrations";
 import PlanHeroCard from "../components/PlanHeroCard";
 import { getUserProfile } from "../../profile/services/profileService";
 import {
@@ -122,6 +124,11 @@ export default function ReversalPlanScreen({ navigation }) {
   const phase = progress?.phase || null;
   const weekGoals = week >= 1 ? WEEKLY_GOALS[week - 1] : null;
   const nextMilestone = getNextMilestone(week);
+  const reachedMilestones = MILESTONES.filter(
+    (milestone) => week >= milestone.week
+  );
+  const latestMilestone =
+    reachedMilestones[reachedMilestones.length - 1] || null;
   const lastCheckIn = checkIns[0] || null;
 
   const styles = makeStyles(colors);
@@ -282,6 +289,19 @@ export default function ReversalPlanScreen({ navigation }) {
             <FadeIn delay={300}>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Milestones</Text>
+                {latestMilestone ? (
+                  <View style={styles.milestoneArt}>
+                    <Image
+                      source={ILLUSTRATIONS["milestone-plant"]}
+                      style={styles.milestoneImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.milestoneCaption}>
+                      Week {latestMilestone.week} — {latestMilestone.title}{" "}
+                      reached
+                    </Text>
+                  </View>
+                ) : null}
                 {MILESTONES.map((milestone) => {
                   const reached = week >= milestone.week;
                   return (
@@ -529,6 +549,22 @@ function makeStyles(colors) {
       alignItems: "flex-start",
       gap: 10,
       paddingVertical: 4,
+    },
+    milestoneArt: {
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 6,
+    },
+    milestoneImage: {
+      width: "100%",
+      height: 210,
+    },
+    milestoneCaption: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.primary,
+      textAlign: "center",
     },
     milestoneText: {
       flex: 1,
