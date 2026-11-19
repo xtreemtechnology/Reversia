@@ -124,19 +124,16 @@ describe("classifyRise", () => {
 describe("matchGuideFoods", () => {
   it("matches comma-joined meal names to guide foods", () => {
     const foods = matchGuideFoods("Jollof Rice, Chicken Stew");
-    expect(foods.map((f) => f.id)).toEqual([
-      "jollof-rice",
-      "chicken-stew",
-    ]);
+    expect(foods.map((f) => f.id)).toEqual(["jollof-rice", "chicken-stew"]);
   });
 
   it("matches names with parentheticals and aliases", () => {
     expect(matchGuideFoods("Beans (Ewa)").map((f) => f.id)).toEqual([
       "beans-ewa",
     ]);
-    expect(matchGuideFoods("Ofe Onugbu (Bitter Leaf Soup)").map((f) => f.id)).toEqual([
-      "bitter-leaf-soup",
-    ]);
+    expect(
+      matchGuideFoods("Ofe Onugbu (Bitter Leaf Soup)").map((f) => f.id)
+    ).toEqual(["bitter-leaf-soup"]);
     expect(matchGuideFoods("Moin Moin").map((f) => f.id)).toEqual(["moi-moi"]);
     expect(matchGuideFoods("Dodo").map((f) => f.id)).toEqual([
       "fried-plantain",

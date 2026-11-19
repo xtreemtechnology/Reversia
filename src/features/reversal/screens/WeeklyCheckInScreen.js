@@ -145,12 +145,16 @@ export default function WeeklyCheckInScreen({ navigation }) {
         notes: notes.trim(),
       });
       trackEvent("reversal_weekly_checkin", { week }).catch(() => {});
-      Alert.alert("Check-in saved", `Week ${week} is saved. Well done — keep going.`, [
-        {
-          text: "Done",
-          onPress: () => navigation?.goBack(),
-        },
-      ]);
+      Alert.alert(
+        "Check-in saved",
+        `Week ${week} is saved. Well done — keep going.`,
+        [
+          {
+            text: "Done",
+            onPress: () => navigation?.goBack(),
+          },
+        ]
+      );
     } catch (error) {
       Alert.alert(
         "Could not save your check-in",
@@ -232,10 +236,12 @@ export default function WeeklyCheckInScreen({ navigation }) {
               {fastingChange !== null ? (
                 <Text style={styles.body}>
                   {fastingChange < 0
-                    ? `Down ${Math.abs(fastingChange)} mg/dL since then — nice progress.`
+                    ? `Down ${Math.abs(
+                        fastingChange
+                      )} mg/dL since then — nice progress.`
                     : fastingChange > 0
-                      ? `Up ${fastingChange} mg/dL since then — one week does not define your journey.`
-                      : "Same as last time — steady is good."}
+                    ? `Up ${fastingChange} mg/dL since then — one week does not define your journey.`
+                    : "Same as last time — steady is good."}
                 </Text>
               ) : null}
             </View>
@@ -274,9 +280,7 @@ export default function WeeklyCheckInScreen({ navigation }) {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Natural meals this week (0–21)
-            </Text>
+            <Text style={styles.cardTitle}>Natural meals this week (0–21)</Text>
             <TextInput
               style={styles.input}
               value={naturalMeals}
@@ -292,9 +296,7 @@ export default function WeeklyCheckInScreen({ navigation }) {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Walks after meals (0–21)
-            </Text>
+            <Text style={styles.cardTitle}>Walks after meals (0–21)</Text>
             <TextInput
               style={styles.input}
               value={walksAfterMeals}
@@ -325,7 +327,10 @@ export default function WeeklyCheckInScreen({ navigation }) {
                     color={active ? colors.primary : colors.mutedForeground}
                   />
                   <Text
-                    style={[styles.optionText, active && styles.optionTextActive]}
+                    style={[
+                      styles.optionText,
+                      active && styles.optionTextActive,
+                    ]}
                   >
                     {option.label}
                   </Text>

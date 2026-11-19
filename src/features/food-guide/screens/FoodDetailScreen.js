@@ -76,11 +76,7 @@ export default function FoodDetailScreen({ navigation, route }) {
           activeOpacity={0.8}
           style={styles.backRow}
         >
-          <Ionicons
-            name="chevron-back"
-            size={20}
-            color={colors.primary}
-          />
+          <Ionicons name="chevron-back" size={20} color={colors.primary} />
           <Text style={styles.backText}>Food Guide</Text>
         </TouchableOpacity>
 
@@ -92,22 +88,15 @@ export default function FoodDetailScreen({ navigation, route }) {
         </View>
 
         <View style={styles.card}>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: `${badgeColor}1F` },
-            ]}
-          >
-            <Text
-              style={[styles.badgeText, { color: badgeColor }]}
-            >
+          <View style={[styles.badge, { backgroundColor: `${badgeColor}1F` }]}>
+            <Text style={[styles.badgeText, { color: badgeColor }]}>
               {ratingLabel(food.rating)}
             </Text>
           </View>
           <Text style={styles.body}>{RATING_MEANINGS[food.rating]}</Text>
           <Text style={styles.muted}>
-            {loadLabel(food.load)} for this serving ·{" "}
-            {food.carbs} carbs, {food.protein} protein.
+            {loadLabel(food.load)} for this serving · {food.carbs} carbs,{" "}
+            {food.protein} protein.
           </Text>
         </View>
 
@@ -142,9 +131,7 @@ export default function FoodDetailScreen({ navigation, route }) {
               style={styles.swapRow}
             >
               <View style={styles.swapTextWrap}>
-                <Text style={styles.bodyBold}>
-                  Try {swap.name} instead
-                </Text>
+                <Text style={styles.bodyBold}>Try {swap.name} instead</Text>
                 <Text style={styles.muted}>
                   Rated {ratingLabel(swap.rating)} · {swap.amount} ·{" "}
                   {swap.carbs} carbs. Tap to see it.
@@ -158,9 +145,8 @@ export default function FoodDetailScreen({ navigation, route }) {
             </TouchableOpacity>
           ) : (
             <Text style={styles.body}>
-              No swap needed — the advice here is portion and pairing:
-              keep the serving modest and pair it with protein or
-              vegetables.
+              No swap needed — the advice here is portion and pairing: keep the
+              serving modest and pair it with protein or vegetables.
             </Text>
           )}
         </View>

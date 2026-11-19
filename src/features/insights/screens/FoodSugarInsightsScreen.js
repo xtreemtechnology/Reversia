@@ -70,10 +70,7 @@ function ClassChip({ riseClass, styles }) {
         ]}
       />
       <Text
-        style={[
-          styles.chipText,
-          { color: RISE_COLORS[riseClass] || T.MUTED },
-        ]}
+        style={[styles.chipText, { color: RISE_COLORS[riseClass] || T.MUTED }]}
       >
         {RISE_LABELS[riseClass]}
       </Text>
@@ -123,15 +120,17 @@ export default function FoodSugarInsightsScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={styles.title}>Food &amp; Sugar</Text>
           <Text style={styles.subtitle}>
-            How your meals lined up with your glucose readings — from your
-            own logs, nothing guessed.
+            How your meals lined up with your glucose readings — from your own
+            logs, nothing guessed.
           </Text>
         </View>
 
         {loading && !hasAnyLogs ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.loadingText, { color: colors.mutedForeground }]}
+            >
               Reading your logs…
             </Text>
           </View>
@@ -146,7 +145,9 @@ export default function FoodSugarInsightsScreen({ navigation }) {
             </Text>
             <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
               {summary.totals.unpairedReadings > 0
-                ? `You have ${summary.totals.unpairedReadings} glucose reading${summary.totals.unpairedReadings !== 1 ? "s" : ""} with no meal logged in the 2 hours before — those stay unpaired.`
+                ? `You have ${summary.totals.unpairedReadings} glucose reading${
+                    summary.totals.unpairedReadings !== 1 ? "s" : ""
+                  } with no meal logged in the 2 hours before — those stay unpaired.`
                 : "No paired readings yet."}
             </Text>
           </View>
@@ -161,7 +162,10 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                     {summary.totals.pairedReadings}
                   </Text>
                   <Text
-                    style={[styles.countLabel, { color: colors.mutedForeground }]}
+                    style={[
+                      styles.countLabel,
+                      { color: colors.mutedForeground },
+                    ]}
                   >
                     paired readings
                   </Text>
@@ -171,7 +175,10 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                     {summary.totals.foodsObserved}
                   </Text>
                   <Text
-                    style={[styles.countLabel, { color: colors.mutedForeground }]}
+                    style={[
+                      styles.countLabel,
+                      { color: colors.mutedForeground },
+                    ]}
                   >
                     foods observed
                   </Text>
@@ -181,13 +188,18 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                     {summary.totals.unpairedReadings}
                   </Text>
                   <Text
-                    style={[styles.countLabel, { color: colors.mutedForeground }]}
+                    style={[
+                      styles.countLabel,
+                      { color: colors.mutedForeground },
+                    ]}
                   >
                     unpaired readings
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+              <Text
+                style={[styles.cardBody, { color: colors.mutedForeground }]}
+              >
                 A reading pairs with a meal only when it was logged within 2
                 hours after that meal. Readings outside that window are shown
                 unpaired, never force-matched.
@@ -198,7 +210,9 @@ export default function FoodSugarInsightsScreen({ navigation }) {
             <Text style={styles.sectionTitle}>How foods lined up</Text>
             {summary.byFood.length === 0 ? (
               <View style={styles.card}>
-                <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+                <Text
+                  style={[styles.cardBody, { color: colors.mutedForeground }]}
+                >
                   No logged meal matched a food in the Food Guide yet.
                 </Text>
               </View>
@@ -224,7 +238,9 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                         style={[
                           styles.ratingPill,
                           {
-                            backgroundColor: `${RATING_COLORS[food.rating] || T.MUTED}20`,
+                            backgroundColor: `${
+                              RATING_COLORS[food.rating] || T.MUTED
+                            }20`,
                           },
                         ]}
                       >
@@ -238,8 +254,14 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                         </Text>
                       </View>
                     </View>
-                    <CountsLine counts={entry.counts} colors={colors} styles={styles} />
-                    <Text style={[styles.verdictText, { color: colors.foreground }]}>
+                    <CountsLine
+                      counts={entry.counts}
+                      colors={colors}
+                      styles={styles}
+                    />
+                    <Text
+                      style={[styles.verdictText, { color: colors.foreground }]}
+                    >
                       {entry.verdict
                         ? VERDICT_LABELS[entry.verdict]
                         : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
@@ -253,7 +275,9 @@ export default function FoodSugarInsightsScreen({ navigation }) {
             <Text style={styles.sectionTitle}>Meals with a pattern</Text>
             {summary.byMeal.length === 0 ? (
               <View style={styles.card}>
-                <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+                <Text
+                  style={[styles.cardBody, { color: colors.mutedForeground }]}
+                >
                   No meal has a paired reading yet.
                 </Text>
               </View>
@@ -271,7 +295,9 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                   }
                 >
                   <Text style={styles.rowTitle}>{entry.mealName}</Text>
-                  <Text style={[styles.rowMeta, { color: colors.mutedForeground }]}>
+                  <Text
+                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                  >
                     {formatWhen(
                       entry.pairs.length > 0
                         ? entry.pairs[entry.pairs.length - 1].mealTime
@@ -279,8 +305,14 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                     )}
                     {entry.mealType ? ` · ${entry.mealType}` : ""}
                   </Text>
-                  <CountsLine counts={entry.counts} colors={colors} styles={styles} />
-                  <Text style={[styles.verdictText, { color: colors.foreground }]}>
+                  <CountsLine
+                    counts={entry.counts}
+                    colors={colors}
+                    styles={styles}
+                  />
+                  <Text
+                    style={[styles.verdictText, { color: colors.foreground }]}
+                  >
                     {entry.verdict
                       ? VERDICT_LABELS[entry.verdict]
                       : `Not enough readings yet — ${MIN_READINGS_FOR_VERDICT} paired readings needed for a pattern.`}
@@ -301,14 +333,18 @@ export default function FoodSugarInsightsScreen({ navigation }) {
                     <Text style={styles.rowTitle}>{pair.mealName}</Text>
                     <ClassChip riseClass={pair.riseClass} styles={styles} />
                   </View>
-                  <Text style={[styles.rowMeta, { color: colors.mutedForeground }]}>
+                  <Text
+                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                  >
                     {formatWhen(pair.readingTime)}
                     {pair.mealType ? ` · ${pair.mealType}` : ""} ·{" "}
                     {pair.baselineMgdl === null
                       ? "no earlier reading to compare"
                       : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL` +
                         (pair.riseMgdl !== null
-                          ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${pair.riseMgdl})`
+                          ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${
+                              pair.riseMgdl
+                            })`
                           : "")}
                   </Text>
                 </View>
@@ -340,7 +376,12 @@ function makeStyles(colors) {
     backText: { fontSize: 15, fontWeight: "600", color: colors.primary },
     header: { marginBottom: 4 },
     title: { fontSize: 24, fontWeight: "800", color: colors.foreground },
-    subtitle: { fontSize: 14, color: colors.mutedForeground, marginTop: 6, lineHeight: 20 },
+    subtitle: {
+      fontSize: 14,
+      color: colors.mutedForeground,
+      marginTop: 6,
+      lineHeight: 20,
+    },
     loadingWrap: { alignItems: "center", paddingVertical: 40, gap: 12 },
     loadingText: { fontSize: 14 },
     card: {
@@ -370,11 +411,24 @@ function makeStyles(colors) {
       justifyContent: "space-between",
       gap: 10,
     },
-    rowTitle: { fontSize: 15, fontWeight: "700", color: colors.foreground, flex: 1 },
+    rowTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.foreground,
+      flex: 1,
+    },
     rowMeta: { fontSize: 12, marginTop: 6, lineHeight: 17 },
     verdictText: { fontSize: 13, fontWeight: "600", marginTop: 8 },
-    ratingPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
-    ratingText: { fontSize: 11, fontWeight: "700", textTransform: "capitalize" },
+    ratingPill: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    ratingText: {
+      fontSize: 11,
+      fontWeight: "700",
+      textTransform: "capitalize",
+    },
     chip: {
       flexDirection: "row",
       alignItems: "center",

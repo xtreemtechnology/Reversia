@@ -15,32 +15,48 @@ describe("reversalPlan helpers", () => {
 
   describe("getCurrentWeek", () => {
     it("is week 1 on the start date", () => {
-      expect(getCurrentWeek(start, new Date("2026-11-18T12:00:00.000Z"))).toBe(1);
+      expect(getCurrentWeek(start, new Date("2026-11-18T12:00:00.000Z"))).toBe(
+        1
+      );
     });
 
     it("is week 2 after 7 days", () => {
-      expect(getCurrentWeek(start, new Date("2026-11-25T00:00:00.000Z"))).toBe(2);
+      expect(getCurrentWeek(start, new Date("2026-11-25T00:00:00.000Z"))).toBe(
+        2
+      );
     });
 
     it("is week 3 after 14 days", () => {
-      expect(getCurrentWeek(start, new Date("2026-12-02T00:00:00.000Z"))).toBe(3);
+      expect(getCurrentWeek(start, new Date("2026-12-02T00:00:00.000Z"))).toBe(
+        3
+      );
     });
 
     it("is week 12 after 77 days", () => {
-      expect(getCurrentWeek(start, new Date("2027-02-03T00:00:00.000Z"))).toBe(12);
+      expect(getCurrentWeek(start, new Date("2027-02-03T00:00:00.000Z"))).toBe(
+        12
+      );
     });
 
     it("clamps at week 12 long after the plan ends", () => {
-      expect(getCurrentWeek(start, new Date("2027-06-01T00:00:00.000Z"))).toBe(12);
+      expect(getCurrentWeek(start, new Date("2027-06-01T00:00:00.000Z"))).toBe(
+        12
+      );
     });
 
     it("returns 0 when there is no start date", () => {
-      expect(getCurrentWeek(null, new Date("2026-11-18T00:00:00.000Z"))).toBe(0);
-      expect(getCurrentWeek(undefined, new Date("2026-11-18T00:00:00.000Z"))).toBe(0);
+      expect(getCurrentWeek(null, new Date("2026-11-18T00:00:00.000Z"))).toBe(
+        0
+      );
+      expect(
+        getCurrentWeek(undefined, new Date("2026-11-18T00:00:00.000Z"))
+      ).toBe(0);
     });
 
     it("returns 0 when now is before the start date", () => {
-      expect(getCurrentWeek(start, new Date("2026-11-17T00:00:00.000Z"))).toBe(0);
+      expect(getCurrentWeek(start, new Date("2026-11-17T00:00:00.000Z"))).toBe(
+        0
+      );
     });
   });
 

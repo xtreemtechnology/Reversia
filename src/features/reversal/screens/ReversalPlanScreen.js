@@ -184,7 +184,9 @@ export default function ReversalPlanScreen({ navigation }) {
               {plan.primaryGoal ? (
                 <Text style={styles.body}>
                   Goal:{" "}
-                  {plan.primaryGoal.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}
+                  {plan.primaryGoal
+                    .replace(/_/g, " ")
+                    .replace(/^./, (c) => c.toUpperCase())}
                 </Text>
               ) : null}
             </View>
@@ -195,10 +197,15 @@ export default function ReversalPlanScreen({ navigation }) {
               </Text>
               <View style={styles.progressTrack}>
                 <View
-                  style={[styles.progressFill, { width: `${progress.percent}%` }]}
+                  style={[
+                    styles.progressFill,
+                    { width: `${progress.percent}%` },
+                  ]}
                 />
               </View>
-              <Text style={styles.muted}>{progress.percent}% through the plan</Text>
+              <Text style={styles.muted}>
+                {progress.percent}% through the plan
+              </Text>
               {phase ? (
                 <>
                   <Text style={styles.phaseTitle}>
@@ -283,7 +290,9 @@ export default function ReversalPlanScreen({ navigation }) {
               <Text style={styles.body}>
                 {checkIns.length === 0
                   ? "No check-ins yet. Your first check-in is in week 3."
-                  : `${checkIns.length} check-in${checkIns.length === 1 ? "" : "s"} saved.`}
+                  : `${checkIns.length} check-in${
+                      checkIns.length === 1 ? "" : "s"
+                    } saved.`}
               </Text>
               {lastCheckIn?.fastingSugar ? (
                 <Text style={styles.body}>
@@ -305,8 +314,8 @@ export default function ReversalPlanScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>7-day meal plan</Text>
           <Text style={styles.body}>
-            A week of natural-food meals from the Food Guide — breakfast,
-            lunch and dinner, with recipes and a shopping list.
+            A week of natural-food meals from the Food Guide — breakfast, lunch
+            and dinner, with recipes and a shopping list.
           </Text>
           <TouchableOpacity
             style={styles.primaryButton}

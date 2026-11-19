@@ -21,10 +21,7 @@ import {
   FOOD_GUIDE_RATINGS,
   FOOD_GUIDE_DISCLAIMER,
 } from "../data/foodGuideData";
-import {
-  searchFoodGuide,
-  countByRating,
-} from "../services/foodGuideService";
+import { searchFoodGuide, countByRating } from "../services/foodGuideService";
 
 export const RATING_MEANINGS = {
   safe: "A good everyday choice for steady sugar.",
@@ -110,10 +107,7 @@ export default function FoodGuideScreen({ navigation }) {
             returnKeyType="search"
           />
           {query.length > 0 ? (
-            <TouchableOpacity
-              onPress={() => setQuery("")}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity onPress={() => setQuery("")} activeOpacity={0.8}>
               <Ionicons
                 name="close-circle"
                 size={18}
@@ -144,9 +138,7 @@ export default function FoodGuideScreen({ navigation }) {
         </View>
 
         {rating ? (
-          <Text style={styles.ratingMeaning}>
-            {RATING_MEANINGS[rating]}
-          </Text>
+          <Text style={styles.ratingMeaning}>{RATING_MEANINGS[rating]}</Text>
         ) : null}
 
         <View style={styles.card}>

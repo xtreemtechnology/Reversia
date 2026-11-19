@@ -63,7 +63,9 @@ export function calculateProgress(startDate, now = new Date()) {
     week,
     totalWeeks: PLAN_LENGTH_WEEKS,
     percent:
-      week === 0 ? 0 : Math.min(100, Math.round((week / PLAN_LENGTH_WEEKS) * 100)),
+      week === 0
+        ? 0
+        : Math.min(100, Math.round((week / PLAN_LENGTH_WEEKS) * 100)),
     phase: getPhaseForWeek(week),
   };
 }
@@ -87,7 +89,8 @@ function normalizePlan(snapshotData = {}) {
     primaryGoal: snapshotData.primaryGoal || null,
     status: snapshotData.status || "active",
     completedGoals:
-      snapshotData.completedGoals && typeof snapshotData.completedGoals === "object"
+      snapshotData.completedGoals &&
+      typeof snapshotData.completedGoals === "object"
         ? snapshotData.completedGoals
         : {},
     // Firestore Timestamps become ISO strings; plain strings pass through.
