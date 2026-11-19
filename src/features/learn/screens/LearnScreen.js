@@ -395,6 +395,13 @@ function RecommendedReads({ navigation, colors }) {
       tint: { bg: "rgba(128,85,232,0.10)", fg: "#8B75C8" },
       route: "ProteinEnergy",
     },
+    {
+      title: "Food & Sugar",
+      body: "How your meals lined up with your glucose readings.",
+      icon: "analytics-outline",
+      tint: { bg: "rgba(111,159,131,0.12)", fg: "#6F9F83" },
+      route: "FoodSugarInsights",
+    },
   ];
 
   return (

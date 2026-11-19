@@ -6,6 +6,10 @@ import HydrationConnectionScreen from "./screens/HydrationConnectionScreen";
 import SleepRecoveryScreen from "./screens/SleepRecoveryScreen";
 import ProteinEnergyScreen from "./screens/ProteinEnergyScreen";
 import ExperimentDetailScreen from "./screens/ExperimentDetailScreen";
+import {
+  FoodSugarInsightsScreen,
+  FoodSugarDetailScreen,
+} from "../insights";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +27,14 @@ export default function LearnNavigator() {
       <Stack.Screen
         name="ExperimentDetail"
         component={ExperimentDetailScreen}
+      />
+      <Stack.Screen
+        name="FoodSugarInsights"
+        component={FoodSugarInsightsScreen}
+      />
+      <Stack.Screen
+        name="FoodSugarDetail"
+        component={FoodSugarDetailScreen}
       />
     </Stack.Navigator>
   );
