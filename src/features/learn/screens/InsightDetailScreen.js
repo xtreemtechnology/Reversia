@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SolarIcon from "../../../components/SolarIcon";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
-import FadeIn from "../../../home/components/FadeIn";
+import FadeIn from "../../home/components/FadeIn";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
 function getLatestMeal(logs) {

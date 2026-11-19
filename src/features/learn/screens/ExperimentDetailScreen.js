@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
-import FadeIn from "../../../home/components/FadeIn";
+import FadeIn from "../../home/components/FadeIn";
 import secureStorage from "../../../utils/secureStorage";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
