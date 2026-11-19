@@ -10,6 +10,7 @@ import {
 import { auth } from "../../../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 
 export default function LoginScreen({ navigation }) {
   const { colors } = useTheme();
@@ -62,7 +63,7 @@ export default function LoginScreen({ navigation }) {
       />
 
       {error ? (
-        <Text style={[styles.error, { color: "#EF4444" }]}>{error}</Text>
+        <Text style={[styles.error, { color: T.DANGER }]}>{error}</Text>
       ) : null}
 
       <TouchableOpacity
@@ -81,7 +82,9 @@ export default function LoginScreen({ navigation }) {
         onPress={() => navigation?.goBack?.()}
         style={styles.close}
       >
-        <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
+        <Text style={{ fontFamily: FONTS.body, color: colors.mutedForeground }}>
+          Cancel
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -93,22 +96,27 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: "center",
   },
-  title: { fontSize: 28, fontWeight: "700", marginBottom: 24 },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 28,
+    fontWeight: "700",
+    marginBottom: 24,
+  },
   input: {
     height: 48,
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderRadius: 24,
+    paddingHorizontal: 16,
     marginBottom: 12,
   },
   button: {
-    height: 48,
-    borderRadius: 12,
+    height: 56,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 12,
   },
-  buttonText: { color: "#fff", fontWeight: "700" },
+  buttonText: { fontFamily: FONTS.body, color: "#fff", fontWeight: "700" },
   close: { marginTop: 16, alignItems: "center" },
   error: { marginTop: 8 },
 });

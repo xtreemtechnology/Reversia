@@ -1,11 +1,11 @@
+/* eslint-disable react-native/no-inline-styles */
 // screens/home/components/BottomNav.jsx
 //
-// Full-width border-top nav — matches HTML design exactly.
-// NOT a floating pill. Fixed to bottom with blur background.
-//
-// Install: npx expo install expo-blur
+// Light bar following the fresh reference: white, soft top border, and the
+// active tab as a dark pill holding its icon and label. Inactive tabs show
+// an icon only, in muted grey-green.
 
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import SolarIcon from "../../../components/SolarIcon";
 import { useTheme } from "../../../theme/ThemeProvider";
@@ -47,95 +46,76 @@ const NAV_ITEMS = [
   },
 ];
 
-// HTML nav height = h-20 = 80px content + safe-area padding below
-const NAV_CONTENT_HEIGHT = 80;
+// Nav content height: 64px + safe-area padding below on iOS.
+const NAV_CONTENT_HEIGHT = 64;
+
+function TabIcon({ route, active, color }) {
+  const size = 22;
+  if (route === "Home") {
+    return <SolarIcon name="home-bottomnav-bold" size={size} color={color} />;
+  }
+  if (route === "Learn") {
+    return (
+      <SolarIcon name="book-bookmark-bold-duotone" size={size} color={color} />
+    );
+  }
+  if (route === "Profile") {
+    return (
+      <SolarIcon name="user-circle-bold-duotone" size={size} color={color} />
+    );
+  }
+  const item = NAV_ITEMS.find((entry) => entry.route === route);
+  return (
+    <Ionicons
+      name={active ? item.icon : item.iconOut}
+      size={size}
+      color={color}
+    />
+  );
+}
 
 export default function BottomNav({ navigation, currentRouteName }) {
-  const { colors, theme } = useTheme();
-
-  const wrapperStyle = useMemo(
-    () => [styles.wrapper, { borderTopColor: colors.border }],
-    [colors.border]
-  );
-
-  // rgba(background, 0.80) — matches HTML bg-background/80
-  const blurOverlayStyle = useMemo(
-    () => [
-      StyleSheet.absoluteFill,
-      { backgroundColor: `${colors.background}CC` },
-    ],
-    [colors.background]
-  );
-
-  const innerStyle = useMemo(
-    () => [
-      styles.inner,
-      {
-        // iOS: add physical home-indicator space (≈20–34 pt)
-        // Android: no extra padding needed
-        paddingBottom: Platform.OS === "ios" ? 20 : 0,
-      },
-    ],
-    []
-  );
+  const { colors } = useTheme();
 
   return (
-    <View style={wrapperStyle}>
-      {/* Blur layer — mirrors backdrop-blur-xl */}
-      <BlurView
-        intensity={70}
-        tint={theme === "dark" ? "dark" : "light"}
-        style={StyleSheet.absoluteFill}
-      />
-      {/* Tint overlay on top of blur */}
-      <View style={blurOverlayStyle} />
-
-      <View style={innerStyle}>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          paddingBottom: Platform.OS === "ios" ? 20 : 8,
+        },
+      ]}
+    >
+      <View style={styles.inner}>
         {NAV_ITEMS.map((item) => {
           const isActive = currentRouteName === item.route;
-          const iconColor = isActive ? colors.primary : colors.mutedForeground;
-
           return (
             <TouchableOpacity
               key={item.route}
               onPress={() => navigation?.navigate(item.route)}
-              activeOpacity={0.7}
+              activeOpacity={0.75}
               style={styles.tab}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
             >
-              {item.route === "Home" ? (
-                <SolarIcon
-                  name="home-bottomnav-bold"
-                  size={24}
-                  color={iconColor}
-                />
-              ) : item.route === "Learn" ? (
-                <SolarIcon
-                  name="book-bookmark-bold-duotone"
-                  size={24}
-                  color={iconColor}
-                />
-              ) : item.route === "Profile" ? (
-                <SolarIcon
-                  name="user-circle-bold-duotone"
-                  size={24}
-                  color={iconColor}
-                />
+              {isActive ? (
+                <View
+                  style={[styles.activePill, { backgroundColor: colors.text }]}
+                >
+                  <TabIcon route={item.route} active color="#FFFFFF" />
+                  <Text style={styles.activeLabel}>{item.label}</Text>
+                </View>
               ) : (
-                <Ionicons
-                  name={isActive ? item.icon : item.iconOut}
-                  size={24}
-                  color={iconColor}
-                />
+                <View style={styles.inactiveTab}>
+                  <TabIcon
+                    route={item.route}
+                    active={false}
+                    color={colors.mutedForeground}
+                  />
+                </View>
               )}
-              <Text
-                style={[
-                  styles.tabLabel,
-                  { color: iconColor },
-                  isActive && styles.tabLabelActive,
-                ]}
-              >
-                {item.label}
-              </Text>
             </TouchableOpacity>
           );
         })}
@@ -150,32 +130,42 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: StyleSheet.hairlineWidth, // matches border-white/5 — ultra-thin
-    overflow: "hidden",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    shadowColor: "#1E2B1A",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 8,
   },
   inner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingHorizontal: 8,
-    height: NAV_CONTENT_HEIGHT, // h-20 = 80px, matching HTML exactly
+    paddingHorizontal: 10,
+    height: NAV_CONTENT_HEIGHT,
   },
   tab: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6, // gap-1.5 ≈ 6px
+  },
+  activePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  activeLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  inactiveTab: {
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 8,
-  },
-  tabLabel: {
-    fontSize: 10, // text-[10px]
-    fontWeight: "500",
-    letterSpacing: 0.5, // tracking-wide approximation
-  },
-  tabLabelActive: {
-    fontWeight: "700", // active tab is bolder in the HTML
+    paddingHorizontal: 10,
   },
 });
-
-// NOTE: If expo-blur causes issues on older devices, replace the BlurView with:
-//   <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background + "E6" }]} />

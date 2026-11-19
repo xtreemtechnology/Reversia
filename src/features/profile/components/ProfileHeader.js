@@ -5,6 +5,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 export default function ProfileHeader({ onBack, onEditAvatar }) {
   const { colors } = useTheme();
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
   },
   editBtn: {
     paddingHorizontal: 18,
@@ -65,6 +66,6 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: 13,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 });

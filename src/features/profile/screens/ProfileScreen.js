@@ -1,8 +1,9 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   SafeAreaView,
   ScrollView,
+  View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
@@ -23,10 +24,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import ProfileHeader from "../components/ProfileHeader";
 import ProfileHeroCard from "../components/ProfileHeroCard";
-import ProfileStatsRow from "../components/ProfileStatsRow";
 import ProfileInfoCard, { InfoRow } from "../components/ProfileInfoCard";
 import ProfilePreferencesCard from "../components/ProfilePreferencesCard";
 import ProfileEditModal from "../components/ProfileEditModal";
+import { useUserLogs } from "../../../hooks/useUserLogs";
+import {
+  getReversalPlan,
+  calculateProgress,
+} from "../../reversal/services/reversalService";
+import PlanHeroCard from "../../reversal/components/PlanHeroCard";
+import { FONTS } from "../../../theme/tokens";
 
 const getInitials = (first = "", last = "") =>
   `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || "ME";
@@ -58,6 +65,62 @@ export default function ProfileScreen({ navigation }) {
   const userId = auth?.currentUser?.uid;
   const { profile, isLoading, error, updateProfile, loadProfile } =
     useProfile(userId);
+  const { logs } = useUserLogs(100);
+  const [plan, setPlan] = useState(null);
+
+  // Real stats for the profile grid, from the user's own logs and plan:
+  // consecutive logging days, meals logged, glucose readings, plan %.
+  useEffect(() => {
+    if (!userId) return;
+    let mounted = true;
+    getReversalPlan(userId)
+      .then((loaded) => {
+        if (mounted) setPlan(loaded);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
+
+  const stats = useMemo(() => {
+    const mealsLogged = logs.filter((log) => log?.category === "meal").length;
+    const readingsLogged = logs.filter(
+      (log) => log?.category === "glucose"
+    ).length;
+    const daySet = new Set(
+      logs
+        .map((log) => {
+          const date = log?.createdAt ? new Date(log.createdAt) : null;
+          return date && !Number.isNaN(date.getTime())
+            ? date.toDateString()
+            : null;
+        })
+        .filter(Boolean)
+    );
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+    if (!daySet.has(cursor.toDateString())) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (daySet.has(cursor.toDateString())) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    const progress = plan?.startDate ? calculateProgress(plan.startDate) : null;
+    return {
+      streak,
+      mealsLogged,
+      readingsLogged,
+      planPercent: progress ? progress.percent : 0,
+      planLine: progress
+        ? `Week ${progress.week} · ${
+            progress.phase ? progress.phase.title : "Reversal Plan"
+          }`
+        : null,
+    };
+  }, [logs, plan]);
 
   const [authChecked, setAuthChecked] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -73,16 +136,19 @@ export default function ProfileScreen({ navigation }) {
       .catch(() => {});
   }, [userId]);
 
-  const handleToggleNotifications = useCallback(async (val) => {
-    setNotificationsEnabled(val);
-    if (!userId) return;
-    try {
-      await AsyncStorage.setItem(
-        `@reversia_notifications_enabled_${userId}`,
-        String(val)
-      );
-    } catch (_) {}
-  }, [userId]);
+  const handleToggleNotifications = useCallback(
+    async (val) => {
+      setNotificationsEnabled(val);
+      if (!userId) return;
+      try {
+        await AsyncStorage.setItem(
+          `@reversia_notifications_enabled_${userId}`,
+          String(val)
+        );
+      } catch (_) {}
+    },
+    [userId]
+  );
 
   const [editVisible, setEditVisible] = useState(false);
   const [editPhotoURL, setEditPhotoURL] = useState("");
@@ -368,7 +434,7 @@ export default function ProfileScreen({ navigation }) {
       <SafeAreaView
         style={[styles.centered, { backgroundColor: colors.background }]}
       >
-        <Ionicons name="warning" size={64} color="#8055E8" />
+        <Ionicons name="warning" size={64} color={colors.destructive} />
         <Text style={[styles.guardTitle, { color: colors.foreground }]}>
           Something went wrong
         </Text>
@@ -471,6 +537,7 @@ export default function ProfileScreen({ navigation }) {
           fullName={fullName}
           email={email}
           diabetesStatus={diabetesLabel(profile?.diabetesType)}
+          planLine={stats.planLine}
           photoURL={
             profile?.photoURL ||
             profile?.profileImage ||
@@ -480,7 +547,135 @@ export default function ProfileScreen({ navigation }) {
           onEditProfile={openEdit}
         />
 
-        <ProfileStatsRow profile={profile} />
+        {/* Real stats: logging streak, meals, readings, plan progress. */}
+        <View style={styles.statsGrid}>
+          {[
+            {
+              icon: "flame",
+              label: "Day streak",
+              value: String(stats.streak),
+              suffix: stats.streak === 1 ? " day" : " days",
+            },
+            {
+              icon: "restaurant",
+              label: "Meals logged",
+              value: String(stats.mealsLogged),
+              suffix: "",
+            },
+            {
+              icon: "pulse",
+              label: "Readings",
+              value: String(stats.readingsLogged),
+              suffix: "",
+            },
+            {
+              icon: "trending-up",
+              label: "Plan progress",
+              value: String(stats.planPercent),
+              suffix: "%",
+            },
+          ].map((stat) => (
+            <View
+              key={stat.label}
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border + "80",
+                },
+              ]}
+            >
+              <Ionicons name={stat.icon} size={20} color={colors.primary} />
+              <Text style={[styles.statValue, { color: colors.foreground }]}>
+                {stat.value}
+                <Text style={styles.statSuffix}>{stat.suffix}</Text>
+              </Text>
+              <Text
+                style={[styles.statLabel, { color: colors.mutedForeground }]}
+              >
+                {stat.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <PlanHeroCard
+          plan={plan}
+          style={{ marginHorizontal: 0 }}
+          onPress={() => navigation.navigate("Plan")}
+        />
+
+        <TouchableOpacity
+          style={[
+            styles.linkRow,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border + "80",
+            },
+          ]}
+          onPress={() => navigation.navigate("Foods")}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[
+              styles.linkIcon,
+              { backgroundColor: colors.primary + "22" },
+            ]}
+          >
+            <Ionicons
+              name="bookmark-outline"
+              size={20}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.linkTextCol}>
+            <Text style={[styles.linkTitle, { color: colors.foreground }]}>
+              Saved Foods
+            </Text>
+            <Text style={[styles.linkSub, { color: colors.mutedForeground }]}>
+              Your safe foods from the Food Guide
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={colors.mutedForeground}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.linkRow,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border + "80",
+            },
+          ]}
+          onPress={() => navigation.navigate("Track")}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[
+              styles.linkIcon,
+              { backgroundColor: colors.primary + "22" },
+            ]}
+          >
+            <Ionicons name="time-outline" size={20} color={colors.primary} />
+          </View>
+          <View style={styles.linkTextCol}>
+            <Text style={[styles.linkTitle, { color: colors.foreground }]}>
+              Meal History
+            </Text>
+            <Text style={[styles.linkSub, { color: colors.mutedForeground }]}>
+              Everything you have logged so far
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={colors.mutedForeground}
+          />
+        </TouchableOpacity>
 
         <ProfileInfoCard title="Personal Info">
           <InfoRow
@@ -627,10 +822,10 @@ export default function ProfileScreen({ navigation }) {
         <ProfilePreferencesCard
           notificationsEnabled={notificationsEnabled}
           setNotificationsEnabled={handleToggleNotifications}
-          isDarkMode={currentTheme === "dark"}
-          onToggleDarkMode={async (val) => {
+          currentTheme={currentTheme}
+          onSelectTheme={async (theme) => {
             try {
-              await setTheme(val ? "dark" : "light");
+              await setTheme(theme);
             } catch (err) {
               showNotification({
                 type: "error",
@@ -643,12 +838,25 @@ export default function ProfileScreen({ navigation }) {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("ExportReport")}
-          style={[styles.exportBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[
+            styles.exportBtn,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
           activeOpacity={0.8}
         >
-          <Ionicons name="document-text-outline" size={20} color={colors.primary} />
-          <Text style={[styles.exportBtnText, { color: colors.foreground }]}>Export Health Report</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+          <Ionicons
+            name="document-text-outline"
+            size={20}
+            color={colors.primary}
+          />
+          <Text style={[styles.exportBtnText, { color: colors.foreground }]}>
+            Export Health Report
+          </Text>
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={colors.mutedForeground}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -689,7 +897,7 @@ const styles = StyleSheet.create({
   guardTitle: {
     fontSize: 20,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
   },
   guardSub: {
     fontSize: 14,
@@ -738,5 +946,57 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     fontWeight: "600",
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    minWidth: "45%",
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+    gap: 6,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  statSuffix: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  statLabel: {
+    fontSize: 12,
+  },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 12,
+  },
+  linkIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  linkTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  linkTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  linkSub: {
+    fontSize: 12,
   },
 });

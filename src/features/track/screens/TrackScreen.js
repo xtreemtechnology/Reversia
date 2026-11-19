@@ -16,6 +16,9 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import secureStorage from "../../../utils/secureStorage";
 import SolarIcon from "../../../components/SolarIcon";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 
 const FAVORITES_KEY = "@reversia_local_favorites";
 
@@ -27,8 +30,8 @@ const DEFAULT_FAVORITES = [
     image:
       "https://ggrhecslgdflloszjkwl.supabase.co/storage/v1/object/public/user-assets/pPgHdP4qecK/components/X16anVRGLVq.png",
     icon: "plate-bold-duotone",
-    tint: "rgba(128,85,232,0.13)",
-    accent: "#8055E8",
+    tint: "rgba(139,195,74,0.13)",
+    accent: T.PRIMARY,
   },
   {
     id: "pounded-yam",
@@ -37,24 +40,24 @@ const DEFAULT_FAVORITES = [
     image:
       "https://ggrhecslgdflloszjkwl.supabase.co/storage/v1/object/public/user-assets/pPgHdP4qecK/components/Uuwn4s5TRFb.png",
     icon: "plate-bold-duotone",
-    tint: "rgba(128,85,232,0.12)",
-    accent: "#8B75C8",
+    tint: "rgba(139,195,74,0.12)",
+    accent: T.SECONDARY,
   },
   {
     id: "akara",
     name: "Akara",
     subtitle: "Protein-rich",
     icon: "cup-bold-duotone",
-    tint: "rgba(206,108,96,0.16)",
-    accent: "#CE6C60",
+    tint: "rgba(232,163,61,0.16)",
+    accent: T.AMBER,
   },
   {
     id: "moi-moi",
     name: "Moi Moi",
     subtitle: "Steamed beans",
     icon: "book-bookmark-bold-duotone",
-    tint: "rgba(128,85,232,0.14)",
-    accent: "#8B75C8",
+    tint: "rgba(139,195,74,0.14)",
+    accent: T.SECONDARY,
   },
 ];
 
@@ -73,18 +76,18 @@ function buildFavoriteFromMeal(meal) {
     name: label,
     subtitle: meal?.type || "From your story",
     icon: "history-bold-duotone",
-    tint: "rgba(128,85,232,0.16)",
-    accent: "#8055E8",
+    tint: "rgba(139,195,74,0.16)",
+    accent: T.PRIMARY,
     sourceMealType: meal?.type || "Lunch",
   };
 }
 
 function FavoriteCard({ item, onPress, onRemove, colors }) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.92}
+    <PressScale
       onPress={onPress}
       style={styles.favoriteCard}
+      accessibilityLabel={item.name}
     >
       <View style={styles.favoriteMedia}>
         {item.image ? (
@@ -122,7 +125,7 @@ function FavoriteCard({ item, onPress, onRemove, colors }) {
           {item.subtitle}
         </Text>
       </View>
-    </TouchableOpacity>
+    </PressScale>
   );
 }
 
@@ -132,6 +135,38 @@ export default function TrackScreen({ navigation, route }) {
   const { logs } = useUserLogs(30);
   const latestMeal = getLatestMeal(logs);
   const latestMealName = mealLabel(latestMeal);
+
+  // Today's progress — the hero moment for this screen, derived from the
+  // same logs the rest of the tab already reads. Four moments make a full
+  // day: a meal, enough water, a glucose reading, and a body check-in.
+  const todayProgress = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    const todayLogs = (logs || []).filter(
+      (log) =>
+        log?.createdAt && new Date(log.createdAt).toDateString() === todayStr
+    );
+    const meals = todayLogs.filter((log) => log?.category === "meal").length;
+    const water = todayLogs
+      .filter(
+        (log) => log?.category === "water" || log?.category === "hydration"
+      )
+      .reduce((sum, log) => {
+        if (typeof log?.glasses === "number") return sum + log.glasses;
+        if (typeof log?.liters === "number")
+          return sum + Math.max(1, Math.round(log.liters / 0.25));
+        return sum + 1;
+      }, 0);
+    const glucose = todayLogs.filter(
+      (log) => log?.category === "glucose"
+    ).length;
+    const bodyCheck = todayLogs.some((log) => log?.category === "body_check");
+    const moments =
+      (meals > 0 ? 1 : 0) +
+      (water >= 4 ? 1 : 0) +
+      (glucose > 0 ? 1 : 0) +
+      (bodyCheck ? 1 : 0);
+    return { meals, water, glucose, bodyCheck, moments };
+  }, [logs]);
 
   const [favorites, setFavorites] = useState(DEFAULT_FAVORITES);
   const [favoritesReady, setFavoritesReady] = useState(false);
@@ -359,202 +394,252 @@ export default function TrackScreen({ navigation, route }) {
           </Text>
         </View>
 
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            activeOpacity={0.92}
-            onPress={voiceAction}
-            style={styles.voiceCard}
-          >
-            <View
-              style={[
-                styles.actionCircle,
-                { backgroundColor: "rgba(128,85,232,0.12)" },
-              ]}
-            >
-              <SolarIcon
-                name="microphone-bold-duotone"
-                size={22}
-                color={colors.primary}
-              />
-            </View>
-            <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
-              Voice Log
+        {/* Hero — today's progress at a glance */}
+        <FadeIn delay={0}>
+          <View style={styles.heroCard}>
+            <Text style={styles.heroEyebrow}>Today&apos;s progress</Text>
+            <Text style={styles.heroBig}>
+              {todayProgress.moments} of 4 moments captured
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.92}
-            onPress={photoAction}
-            style={styles.voiceCard}
-          >
-            <View
-              style={[
-                styles.actionCircle,
-                { backgroundColor: "rgba(128,85,232,0.10)" },
-              ]}
-            >
-              <SolarIcon
-                name="camera-bold-duotone"
-                size={22}
-                color={colors.accent}
-              />
-            </View>
-            <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
-              Photo Log
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.92}
-            onPress={glucoseAction}
-            style={styles.voiceCard}
-          >
-            <View
-              style={[
-                styles.actionCircle,
-                { backgroundColor: "rgba(100,160,220,0.12)" },
-              ]}
-            >
-              <SolarIcon
-                name="drop-bold-duotone"
-                size={22}
-                color="#64A0DC"
-              />
-            </View>
-            <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
-              Log Glucose
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sectionGap}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Smart Suggestions
-            </Text>
-            <View style={styles.badge}>
-              <Text
-                style={[styles.badgeText, { color: colors.mutedForeground }]}
-              >
-                Based on your story
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.94}
-            onPress={voiceAction}
-            style={styles.suggestionCard}
-          >
-            <View style={styles.suggestionInnerRow}>
+            <View style={styles.heroBarTrack}>
               <View
                 style={[
-                  styles.suggestionIcon,
-                  { backgroundColor: "rgba(128,85,232,0.13)" },
+                  styles.heroBarFill,
+                  { width: `${(todayProgress.moments / 4) * 100}%` },
+                ]}
+              />
+            </View>
+            <View style={styles.heroStats}>
+              <View style={styles.heroStat}>
+                <Text style={styles.heroStatNum}>{todayProgress.meals}</Text>
+                <Text style={styles.heroStatLabel}>Meals</Text>
+              </View>
+              <View style={styles.heroStat}>
+                <Text style={styles.heroStatNum}>{todayProgress.water}</Text>
+                <Text style={styles.heroStatLabel}>Glasses</Text>
+              </View>
+              <View style={styles.heroStat}>
+                <Text style={styles.heroStatNum}>{todayProgress.glucose}</Text>
+                <Text style={styles.heroStatLabel}>Sugar checks</Text>
+              </View>
+              <View style={styles.heroStat}>
+                <Text style={styles.heroStatNum}>
+                  {todayProgress.bodyCheck ? "✓" : "–"}
+                </Text>
+                <Text style={styles.heroStatLabel}>Body check</Text>
+              </View>
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.actionRow}>
+            <PressScale
+              onPress={voiceAction}
+              style={styles.voiceCard}
+              accessibilityLabel="Voice Log"
+            >
+              <View
+                style={[
+                  styles.actionCircle,
+                  { backgroundColor: "rgba(139,195,74,0.12)" },
                 ]}
               >
                 <SolarIcon
-                  name="history-bold-duotone"
-                  size={24}
+                  name="microphone-bold-duotone"
+                  size={22}
                   color={colors.primary}
                 />
               </View>
-              <View style={styles.suggestionTextWrap}>
+              <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
+                Voice Log
+              </Text>
+            </PressScale>
+
+            <PressScale
+              onPress={photoAction}
+              style={styles.voiceCard}
+              accessibilityLabel="Photo Log"
+            >
+              <View
+                style={[
+                  styles.actionCircle,
+                  { backgroundColor: "rgba(139,195,74,0.10)" },
+                ]}
+              >
+                <SolarIcon
+                  name="camera-bold-duotone"
+                  size={22}
+                  color={colors.accent}
+                />
+              </View>
+              <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
+                Photo Log
+              </Text>
+            </PressScale>
+
+            <PressScale
+              onPress={glucoseAction}
+              style={styles.voiceCard}
+              accessibilityLabel="Log Glucose"
+            >
+              <View
+                style={[
+                  styles.actionCircle,
+                  { backgroundColor: "rgba(139,195,74,0.12)" },
+                ]}
+              >
+                <SolarIcon
+                  name="drop-bold-duotone"
+                  size={22}
+                  color={T.SECONDARY}
+                />
+              </View>
+              <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
+                Log Glucose
+              </Text>
+            </PressScale>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={120}>
+          <View style={styles.sectionGap}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                Smart Suggestions
+              </Text>
+              <View style={styles.badge}>
                 <Text
-                  style={[styles.suggestionTitle, { color: colors.foreground }]}
+                  style={[styles.badgeText, { color: colors.mutedForeground }]}
                 >
-                  {smartSuggestion.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.suggestionBody,
-                    { color: colors.mutedForeground },
-                  ]}
-                >
-                  {smartSuggestion.body}
+                  Based on your story
                 </Text>
               </View>
-              <SolarIcon
-                name="alt-arrow-right-linear"
-                size={18}
-                color={colors.mutedForeground}
-              />
             </View>
-            <View style={styles.whyBlock}>
-              <View style={styles.whyRow}>
+
+            <PressScale
+              onPress={voiceAction}
+              style={styles.suggestionCard}
+              accessibilityLabel="Smart suggestion"
+            >
+              <View style={styles.suggestionInnerRow}>
+                <View
+                  style={[
+                    styles.suggestionIcon,
+                    { backgroundColor: "rgba(139,195,74,0.13)" },
+                  ]}
+                >
+                  <SolarIcon
+                    name="history-bold-duotone"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.suggestionTextWrap}>
+                  <Text
+                    style={[
+                      styles.suggestionTitle,
+                      { color: colors.foreground },
+                    ]}
+                  >
+                    {smartSuggestion.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.suggestionBody,
+                      { color: colors.mutedForeground },
+                    ]}
+                  >
+                    {smartSuggestion.body}
+                  </Text>
+                </View>
                 <SolarIcon
-                  name="info-circle-bold-duotone"
+                  name="alt-arrow-right-linear"
                   size={18}
                   color={colors.mutedForeground}
                 />
-                <View style={styles.whyTextWrap}>
-                  <Text style={[styles.whyTitle, { color: colors.foreground }]}>
-                    Why this matters
-                  </Text>
-                  <Text
-                    style={[styles.whyBody, { color: colors.mutedForeground }]}
-                  >
-                    {smartSuggestion.why}
-                  </Text>
+              </View>
+              <View style={styles.whyBlock}>
+                <View style={styles.whyRow}>
+                  <SolarIcon
+                    name="info-circle-bold-duotone"
+                    size={18}
+                    color={colors.mutedForeground}
+                  />
+                  <View style={styles.whyTextWrap}>
+                    <Text
+                      style={[styles.whyTitle, { color: colors.foreground }]}
+                    >
+                      Why this matters
+                    </Text>
+                    <Text
+                      style={[
+                        styles.whyBody,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      {smartSuggestion.why}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        </View>
+            </PressScale>
+          </View>
+        </FadeIn>
 
-        <View style={styles.sectionGap}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Local Favorites
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.82}
-              onPress={addLastMeal}
-              style={styles.addButton}
-            >
-              <SolarIcon
-                name="add-circle-bold"
-                size={14}
-                color={colors.primary}
-              />
-              <Text style={[styles.addButtonText, { color: colors.primary }]}>
-                Add last meal
+        <FadeIn delay={180}>
+          <View style={styles.sectionGap}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                Local Favorites
               </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={addLastMeal}
+                style={styles.addButton}
+              >
+                <SolarIcon
+                  name="add-circle-bold"
+                  size={14}
+                  color={colors.primary}
+                />
+                <Text style={[styles.addButtonText, { color: colors.primary }]}>
+                  Add last meal
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.favoritesGrid}>
-            {favorites.map((item) => (
-              <FavoriteCard
-                key={item.id}
-                item={item}
-                colors={colors}
-                onPress={() =>
-                  navigation?.navigate("MealEntry", {
-                    mealName: item.name,
-                    mealType: item.sourceMealType || item.name,
-                  })
-                }
-                onRemove={() => removeFavorite(item.id)}
-              />
-            ))}
+            <View style={styles.favoritesGrid}>
+              {favorites.map((item) => (
+                <FavoriteCard
+                  key={item.id}
+                  item={item}
+                  colors={colors}
+                  onPress={() =>
+                    navigation?.navigate("MealEntry", {
+                      mealName: item.name,
+                      mealType: item.sourceMealType || item.name,
+                    })
+                  }
+                  onRemove={() => removeFavorite(item.id)}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        </FadeIn>
 
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => navigation?.navigate("MealEntry")}
-          style={styles.searchButton}
-        >
-          <SolarIcon
-            name="magnifer-linear"
-            size={18}
-            color={colors.foreground}
-          />
-          <Text style={[styles.searchButtonText, { color: colors.foreground }]}>
-            Search other meals
-          </Text>
-        </TouchableOpacity>
+        <FadeIn delay={240}>
+          <PressScale
+            onPress={() => navigation?.navigate("MealEntry")}
+            style={styles.searchButton}
+            accessibilityLabel="Search other meals"
+          >
+            <SolarIcon name="magnifer-linear" size={18} color={T.WHITE} />
+            <Text style={[styles.searchButtonText, { color: T.WHITE }]}>
+              Search other meals
+            </Text>
+          </PressScale>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -569,12 +654,74 @@ const styles = StyleSheet.create({
   },
   header: { gap: 8 },
   heading: {
+    fontFamily: FONTS.display,
     fontSize: 30,
     lineHeight: 34,
     fontWeight: "700",
   },
   subheading: {
+    fontFamily: FONTS.body,
     fontSize: 15,
+  },
+  heroCard: {
+    backgroundColor: T.SURFACE,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    padding: 20,
+    gap: 12,
+  },
+  heroEyebrow: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    fontWeight: "700",
+    color: T.SECONDARY,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  heroBig: {
+    fontFamily: FONTS.display,
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "800",
+    color: T.TEXT,
+    letterSpacing: -0.3,
+  },
+  heroBarTrack: {
+    height: 8,
+    backgroundColor: T.PRIMARY_LIGHT,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  heroBarFill: {
+    height: "100%",
+    backgroundColor: T.PRIMARY,
+    borderRadius: 4,
+  },
+  heroStats: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 4,
+  },
+  heroStat: {
+    flex: 1,
+    backgroundColor: T.PRIMARY_LIGHT,
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+    gap: 2,
+  },
+  heroStatNum: {
+    fontFamily: FONTS.display,
+    fontSize: 22,
+    fontWeight: "800",
+    color: T.SECONDARY,
+  },
+  heroStatLabel: {
+    fontFamily: FONTS.body,
+    fontSize: 10,
+    fontWeight: "600",
+    color: T.MUTED,
   },
   actionRow: {
     flexDirection: "row",
@@ -582,10 +729,10 @@ const styles = StyleSheet.create({
   },
   voiceCard: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     padding: 16,
     gap: 12,
     alignItems: "center",
@@ -608,11 +755,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   sectionTitle: {
+    fontFamily: FONTS.display,
     fontSize: 18,
     fontWeight: "700",
   },
   badge: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -624,10 +772,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   suggestionCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     padding: 20,
     gap: 16,
   },
@@ -656,7 +804,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   whyBlock: {
-    backgroundColor: "rgba(33,22,19,0.42)",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderRadius: 20,
     padding: 15,
   },
@@ -678,7 +826,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -694,11 +842,11 @@ const styles = StyleSheet.create({
   },
   favoriteCard: {
     width: "48%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   favoriteMedia: {
     height: 128,
@@ -720,7 +868,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 999,
-    backgroundColor: "rgba(33,22,19,0.75)",
+    backgroundColor: "rgba(30,43,26,0.75)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -729,6 +877,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: "700",
     marginTop: -1,
+    color: T.WHITE,
   },
   favoriteBody: {
     padding: 14,
@@ -744,7 +893,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   searchButton: {
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY,
     borderRadius: 22,
     flexDirection: "row",
     alignItems: "center",

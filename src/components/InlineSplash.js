@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import ReversiaMark from "./ReversiaMark";
+import { T } from "../theme/tokens";
 
 export default function InlineSplash() {
   const logoScale = useSharedValue(0.9);
@@ -73,7 +74,7 @@ export default function InlineSplash() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
       <Animated.View style={[styles.glow, glowStyle]} />
       <Animated.View style={logoStyle}>
         <ReversiaMark size={112} />
@@ -85,7 +86,7 @@ export default function InlineSplash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F1FF",
+    backgroundColor: T.BG,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -95,8 +96,8 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: "rgba(224, 122, 95, 0.18)",
-    shadowColor: "#8055E8",
+    backgroundColor: "rgba(139,195,74,0.18)",
+    shadowColor: T.PRIMARY,
     shadowOpacity: 0.4,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 0 },

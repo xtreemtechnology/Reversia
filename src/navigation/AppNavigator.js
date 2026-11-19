@@ -13,6 +13,7 @@ import VoiceLogScreen from "../features/track/screens/VoiceLogScreen";
 import PhotoLogScreen from "../features/track/screens/PhotoLogScreen";
 import GlucoseLogScreen from "../features/track/screens/GlucoseLogScreen";
 import ExportReportScreen from "../features/profile/screens/ExportReportScreen";
+import { GuideScreen } from "../features/guide";
 
 const Stack = createNativeStackNavigator();
 
@@ -83,6 +84,11 @@ export default function AppNavigator() {
         name="ExportReport"
         component={ExportReportScreen}
         options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="Guide"
+        component={GuideScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

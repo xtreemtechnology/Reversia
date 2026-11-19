@@ -19,6 +19,7 @@ import { auth, db } from "../../../config/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { DeviceEventEmitter } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import {
@@ -51,7 +52,9 @@ export default function SignUpScreen({ navigation }) {
       ? 2
       : 3;
   const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
-  const strengthColor = ["", "#E28A82", "#F2CC8F", colors.secondary][strength];
+  const strengthColor = ["", colors.destructive, "#F2CC8F", colors.secondary][
+    strength
+  ];
 
   const handleSignUp = async () => {
     const nextErrors = {};
@@ -147,15 +150,16 @@ export default function SignUpScreen({ navigation }) {
                   label="First name"
                   placeholder="Chioma"
                   value={firstName}
-                onChangeText=
-                {(t) => {
-                  setFirstName(t);
-                  setFieldErrors((e) => ({ ...e, firstName: "" }));
-                }}
-                autoCapitalize="words" autoComplete="given-name"
-                iconName="person-outline" error={fieldErrors.firstName}
-                returnKeyType="next" onSubmitEditing=
-                {() => lastRef.current?.focus()}
+                  onChangeText={(t) => {
+                    setFirstName(t);
+                    setFieldErrors((e) => ({ ...e, firstName: "" }));
+                  }}
+                  autoCapitalize="words"
+                  autoComplete="given-name"
+                  iconName="person-outline"
+                  error={fieldErrors.firstName}
+                  returnKeyType="next"
+                  onSubmitEditing={() => lastRef.current?.focus()}
                 />
               </View>
               <View style={styles.flex1}>
@@ -257,7 +261,7 @@ export default function SignUpScreen({ navigation }) {
 
           {error ? (
             <View style={styles.errorBanner}>
-              <Ionicons name="warning-outline" size={16} color="#E28A82" />
+              <Ionicons name="warning-outline" size={16} color={T.DANGER} />
               <Text style={styles.errorBannerText}>{error}</Text>
             </View>
           ) : null}
@@ -287,7 +291,7 @@ export default function SignUpScreen({ navigation }) {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontFamily: undefined,
+                    fontFamily: FONTS.body,
                   }}
                 >
                   Sign in
@@ -326,13 +330,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 23,
   },
   form: {
@@ -363,7 +367,7 @@ const styles = StyleSheet.create({
   },
   strengthLabel: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "600",
     width: 44,
     textAlign: "right",
@@ -372,18 +376,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderColor: "rgba(226,138,130,0.4)",
-    backgroundColor: "rgba(226,138,130,0.18)",
+    borderColor: "rgba(217,108,131,0.4)",
+    backgroundColor: "rgba(217,108,131,0.18)",
   },
   errorBannerText: {
     flex: 1,
     fontSize: 14,
-    color: "#E28A82",
-    fontFamily: undefined,
+    color: T.DANGER,
+    fontFamily: FONTS.body,
     lineHeight: 20,
   },
   ctaGroup: {
@@ -395,6 +399,6 @@ const styles = StyleSheet.create({
   },
   signinLinkText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
 });

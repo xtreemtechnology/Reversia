@@ -2,7 +2,7 @@
 // Glucose blood sugar logging screen for Reversia
 // Matches the Reversia design system (same tokens/patterns as SleepEntryScreen, BodyCheckScreen)
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -16,19 +16,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -45,12 +40,16 @@ const CONTEXTS = [
 
 // Reference ranges in mg/dL
 const RANGES_MGDL = [
-  { label: "Normal fasting", range: "< 100 mg/dL", color: "#10B981" },
-  { label: "Pre-diabetic (fasting)", range: "100–125 mg/dL", color: "#F59E0B" },
-  { label: "Diabetic (fasting)", range: "≥ 126 mg/dL", color: "#EF4444" },
-  { label: "Normal after meal (2hr)", range: "< 140 mg/dL", color: "#10B981" },
-  { label: "Pre-diabetic after meal", range: "140–199 mg/dL", color: "#F59E0B" },
-  { label: "Diabetic after meal", range: "≥ 200 mg/dL", color: "#EF4444" },
+  { label: "Normal fasting", range: "< 100 mg/dL", color: T.SUCCESS },
+  { label: "Pre-diabetic (fasting)", range: "100–125 mg/dL", color: T.WARNING },
+  { label: "Diabetic (fasting)", range: "≥ 126 mg/dL", color: T.DANGER },
+  { label: "Normal after meal (2hr)", range: "< 140 mg/dL", color: T.SUCCESS },
+  {
+    label: "Pre-diabetic after meal",
+    range: "140–199 mg/dL",
+    color: T.WARNING,
+  },
+  { label: "Diabetic after meal", range: "≥ 200 mg/dL", color: T.DANGER },
 ];
 
 function mgdlToMmol(mgdl) {
@@ -62,40 +61,27 @@ function mmolToMgdl(mmol) {
 
 /** Returns color and category based on value and context */
 function classifyReading(value, unit, context) {
-  const mgdl = unit === "mmol/L" ? mmolToMgdl(parseFloat(value)) : parseFloat(value);
-  if (isNaN(mgdl)) return { color: "#756D84", label: "" };
+  const mgdl =
+    unit === "mmol/L" ? mmolToMgdl(parseFloat(value)) : parseFloat(value);
+  if (isNaN(mgdl)) return { color: T.MUTED, label: "" };
   const isFasting = context === "fasting" || context === "before_meal";
-  const isAfterMeal = context === "after_meal_1h" || context === "after_meal_2h";
+  const isAfterMeal =
+    context === "after_meal_1h" || context === "after_meal_2h";
 
   if (isFasting) {
-    if (mgdl < 100) return { color: "#10B981", label: "Normal" };
-    if (mgdl < 126) return { color: "#F59E0B", label: "Pre-diabetic range" };
-    return { color: "#EF4444", label: "High — log and monitor" };
+    if (mgdl < 100) return { color: T.SUCCESS, label: "Normal" };
+    if (mgdl < 126) return { color: T.WARNING, label: "Pre-diabetic range" };
+    return { color: T.DANGER, label: "High — log and monitor" };
   }
   if (isAfterMeal) {
-    if (mgdl < 140) return { color: "#10B981", label: "Normal" };
-    if (mgdl < 200) return { color: "#F59E0B", label: "Pre-diabetic range" };
-    return { color: "#EF4444", label: "High — log and monitor" };
+    if (mgdl < 140) return { color: T.SUCCESS, label: "Normal" };
+    if (mgdl < 200) return { color: T.WARNING, label: "Pre-diabetic range" };
+    return { color: T.DANGER, label: "High — log and monitor" };
   }
   // Bedtime / random
-  if (mgdl < 100) return { color: "#10B981", label: "Normal" };
-  if (mgdl < 180) return { color: "#F59E0B", label: "Moderate" };
-  return { color: "#EF4444", label: "Elevated" };
-}
-
-// ── Animated entrance helper ─────────────────────────────────────────────────
-
-function FadeSlideIn({ delay = 0, children }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(18);
-
-  useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }));
-    translateY.value = withDelay(delay, withTiming(0, { duration: 380, easing: Easing.out(Easing.quad) }));
-  }, [delay, opacity, translateY]);
-
-  const style = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ translateY: translateY.value }] }));
-  return <Animated.View style={style}>{children}</Animated.View>;
+  if (mgdl < 100) return { color: T.SUCCESS, label: "Normal" };
+  if (mgdl < 180) return { color: T.WARNING, label: "Moderate" };
+  return { color: T.DANGER, label: "Elevated" };
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
@@ -110,11 +96,7 @@ export default function GlucoseLogScreen({ navigation }) {
 
   const classification = classifyReading(value, unit, context);
 
-  const displayValue = value
-    ? unit === "mmol/L"
-      ? value
-      : value
-    : "";
+  const displayValue = value ? (unit === "mmol/L" ? value : value) : "";
 
   const handleUnitToggle = useCallback(() => {
     setUnit((u) => {
@@ -137,12 +119,18 @@ export default function GlucoseLogScreen({ navigation }) {
   const handleSave = async () => {
     const uid = auth.currentUser?.uid;
     if (!uid) {
-      Alert.alert("Sign in required", "Please sign in before saving glucose readings.");
+      Alert.alert(
+        "Sign in required",
+        "Please sign in before saving glucose readings."
+      );
       return;
     }
     const numVal = parseFloat(value);
     if (!value || isNaN(numVal) || numVal <= 0) {
-      Alert.alert("Enter a value", "Please enter a valid glucose reading before saving.");
+      Alert.alert(
+        "Enter a value",
+        "Please enter a valid glucose reading before saving."
+      );
       return;
     }
 
@@ -217,8 +205,12 @@ export default function GlucoseLogScreen({ navigation }) {
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </TouchableOpacity>
           <View style={s.headerCenter}>
-            <Text style={[s.headerTitle, { color: colors.foreground }]}>Log Glucose</Text>
-            <Text style={[s.headerSub, { color: colors.mutedForeground }]}>Record a blood sugar reading</Text>
+            <Text style={[s.headerTitle, { color: colors.foreground }]}>
+              Log Glucose
+            </Text>
+            <Text style={[s.headerSub, { color: colors.mutedForeground }]}>
+              Record a blood sugar reading
+            </Text>
           </View>
           <View style={s.backBtn} />
         </View>
@@ -229,30 +221,64 @@ export default function GlucoseLogScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* Value input card */}
-          <FadeSlideIn delay={40}>
-            <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <FadeIn delay={40}>
+            <View
+              style={[
+                s.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
               {/* Unit toggle */}
               <View style={s.unitRow}>
                 <TouchableOpacity
-                  style={[s.unitBtn, unit === "mg/dL" && { backgroundColor: colors.primary }]}
+                  style={[
+                    s.unitBtn,
+                    unit === "mg/dL" && { backgroundColor: colors.primary },
+                  ]}
                   onPress={() => unit !== "mg/dL" && handleUnitToggle()}
                   activeOpacity={0.8}
                 >
-                  <Text style={[s.unitBtnText, { color: unit === "mg/dL" ? "#fff" : colors.mutedForeground }]}>mg/dL</Text>
+                  <Text
+                    style={[
+                      s.unitBtnText,
+                      {
+                        color:
+                          unit === "mg/dL" ? "#fff" : colors.mutedForeground,
+                      },
+                    ]}
+                  >
+                    mg/dL
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[s.unitBtn, unit === "mmol/L" && { backgroundColor: colors.primary }]}
+                  style={[
+                    s.unitBtn,
+                    unit === "mmol/L" && { backgroundColor: colors.primary },
+                  ]}
                   onPress={() => unit !== "mmol/L" && handleUnitToggle()}
                   activeOpacity={0.8}
                 >
-                  <Text style={[s.unitBtnText, { color: unit === "mmol/L" ? "#fff" : colors.mutedForeground }]}>mmol/L</Text>
+                  <Text
+                    style={[
+                      s.unitBtnText,
+                      {
+                        color:
+                          unit === "mmol/L" ? "#fff" : colors.mutedForeground,
+                      },
+                    ]}
+                  >
+                    mmol/L
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {/* Large input */}
               <View style={s.inputRow}>
                 <TextInput
-                  style={[s.glucoseInput, { color: classification.color || colors.foreground }]}
+                  style={[
+                    s.glucoseInput,
+                    { color: classification.color || colors.foreground },
+                  ]}
                   value={displayValue}
                   onChangeText={setValue}
                   placeholder="0"
@@ -261,46 +287,101 @@ export default function GlucoseLogScreen({ navigation }) {
                   maxLength={6}
                   autoFocus
                 />
-                <Text style={[s.unitLabel, { color: colors.mutedForeground }]}>{unit}</Text>
+                <Text style={[s.unitLabel, { color: colors.mutedForeground }]}>
+                  {unit}
+                </Text>
               </View>
 
               {/* Classification badge */}
               {value && classification.label ? (
-                <View style={[s.classBadge, { backgroundColor: `${classification.color}20`, borderColor: `${classification.color}40` }]}>
-                  <View style={[s.classDot, { backgroundColor: classification.color }]} />
-                  <Text style={[s.classText, { color: classification.color }]}>{classification.label}</Text>
+                <View
+                  style={[
+                    s.classBadge,
+                    {
+                      backgroundColor: `${classification.color}20`,
+                      borderColor: `${classification.color}40`,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      s.classDot,
+                      { backgroundColor: classification.color },
+                    ]}
+                  />
+                  <Text style={[s.classText, { color: classification.color }]}>
+                    {classification.label}
+                  </Text>
                 </View>
               ) : null}
             </View>
-          </FadeSlideIn>
+          </FadeIn>
 
           {/* Context selector */}
-          <FadeSlideIn delay={100}>
-            <Text style={[s.sectionTitle, { color: colors.mutedForeground }]}>When was this reading?</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.contextRow}>
+          <FadeIn delay={100}>
+            <Text style={[s.sectionTitle, { color: colors.mutedForeground }]}>
+              When was this reading?
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.contextRow}
+            >
               {CONTEXTS.map((ctx) => {
                 const active = context === ctx.key;
                 return (
                   <TouchableOpacity
                     key={ctx.key}
-                    style={[s.contextPill, { backgroundColor: active ? colors.primary : colors.card, borderColor: active ? colors.primary : colors.border }]}
+                    style={[
+                      s.contextPill,
+                      {
+                        backgroundColor: active ? colors.primary : colors.card,
+                        borderColor: active ? colors.primary : colors.border,
+                      },
+                    ]}
                     onPress={() => setContext(ctx.key)}
                     activeOpacity={0.8}
                   >
-                    <Ionicons name={ctx.icon} size={15} color={active ? "#fff" : colors.mutedForeground} />
-                    <Text style={[s.contextText, { color: active ? "#fff" : colors.foreground }]}>{ctx.label}</Text>
+                    <Ionicons
+                      name={ctx.icon}
+                      size={15}
+                      color={active ? "#fff" : colors.mutedForeground}
+                    />
+                    <Text
+                      style={[
+                        s.contextText,
+                        { color: active ? "#fff" : colors.foreground },
+                      ]}
+                    >
+                      {ctx.label}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
-          </FadeSlideIn>
+          </FadeIn>
 
           {/* Notes */}
-          <FadeSlideIn delay={160}>
-            <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[s.sectionTitle, { color: colors.mutedForeground, marginBottom: 10 }]}>Notes (optional)</Text>
+          <FadeIn delay={160}>
+            <View
+              style={[
+                s.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <Text
+                style={[
+                  s.sectionTitle,
+                  { color: colors.mutedForeground, marginBottom: 10 },
+                ]}
+              >
+                Notes (optional)
+              </Text>
               <TextInput
-                style={[s.notesInput, { color: colors.foreground, borderColor: colors.border }]}
+                style={[
+                  s.notesInput,
+                  { color: colors.foreground, borderColor: colors.border },
+                ]}
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="e.g. After jollof rice, felt slightly dizzy..."
@@ -310,33 +391,64 @@ export default function GlucoseLogScreen({ navigation }) {
                 textAlignVertical="top"
               />
             </View>
-          </FadeSlideIn>
+          </FadeIn>
 
           {/* Reference ranges */}
-          <FadeSlideIn delay={220}>
-            <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[s.sectionTitle, { color: colors.mutedForeground, marginBottom: 12 }]}>Reference ranges</Text>
+          <FadeIn delay={220}>
+            <View
+              style={[
+                s.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <Text
+                style={[
+                  s.sectionTitle,
+                  { color: colors.mutedForeground, marginBottom: 12 },
+                ]}
+              >
+                Reference ranges
+              </Text>
               {RANGES_MGDL.map((r, i) => (
-                <View key={i} style={[s.rangeRow, i < RANGES_MGDL.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
+                <View
+                  key={i}
+                  style={[
+                    s.rangeRow,
+                    i < RANGES_MGDL.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    },
+                  ]}
+                >
                   <View style={[s.rangeDot, { backgroundColor: r.color }]} />
-                  <Text style={[s.rangeLabel, { color: colors.foreground }]}>{r.label}</Text>
-                  <Text style={[s.rangeVal, { color: r.color }]}>{r.range}</Text>
+                  <Text style={[s.rangeLabel, { color: colors.foreground }]}>
+                    {r.label}
+                  </Text>
+                  <Text style={[s.rangeVal, { color: r.color }]}>
+                    {r.range}
+                  </Text>
                 </View>
               ))}
             </View>
-          </FadeSlideIn>
+          </FadeIn>
 
           {/* Save button */}
-          <FadeSlideIn delay={280}>
+          <FadeIn delay={280}>
             <TouchableOpacity
-              style={[s.saveBtn, { backgroundColor: colors.primary }, saving && s.saveBtnDisabled]}
+              style={[
+                s.saveBtn,
+                { backgroundColor: colors.primary },
+                saving && s.saveBtnDisabled,
+              ]}
               onPress={handleSave}
               activeOpacity={0.85}
               disabled={saving}
             >
-              <Text style={s.saveBtnText}>{saving ? "Saving..." : "Save Reading"}</Text>
+              <Text style={s.saveBtnText}>
+                {saving ? "Saving..." : "Save Reading"}
+              </Text>
             </TouchableOpacity>
-          </FadeSlideIn>
+          </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -351,12 +463,19 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 8 : 8,
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 8 : 8,
     paddingBottom: 12,
   },
-  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
+  headerTitle: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   headerSub: { fontSize: 12, marginTop: 2 },
   scroll: { paddingHorizontal: 20, paddingBottom: 60, gap: 16 },
   card: {
@@ -364,11 +483,17 @@ const s = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
   },
-  unitRow: { flexDirection: "row", alignSelf: "flex-end", gap: 6, marginBottom: 16 },
+  unitRow: {
+    flexDirection: "row",
+    alignSelf: "flex-end",
+    gap: 6,
+    marginBottom: 16,
+  },
   unitBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 },
   unitBtnText: { fontSize: 13, fontWeight: "700" },
   inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
   glucoseInput: {
+    fontFamily: FONTS.display,
     fontSize: 72,
     fontWeight: "800",
     lineHeight: 80,
@@ -388,7 +513,13 @@ const s = StyleSheet.create({
   },
   classDot: { width: 7, height: 7, borderRadius: 4 },
   classText: { fontSize: 13, fontWeight: "700" },
-  sectionTitle: { fontSize: 11, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase" },
+  sectionTitle: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
   contextRow: { paddingVertical: 10, gap: 8 },
   contextPill: {
     flexDirection: "row",
@@ -425,5 +556,10 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  saveBtnText: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#fff",
+  },
 });

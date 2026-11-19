@@ -16,6 +16,8 @@ import { auth, db } from "../../../config/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 import MoodFace from "../../../components/MoodFace";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 const MOODS = [
   { key: "great", emoji: "😄", label: "Great" },
@@ -40,7 +42,9 @@ const ENERGY_LEVELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const SLEEP_HOURS = ["4", "5", "6", "7", "8", "9", "10+"];
 
 export default function BodyCheckScreen({ navigation, route }) {
-  const [selectedMood, setSelectedMood] = useState(route?.params?.initialMood || null);
+  const [selectedMood, setSelectedMood] = useState(
+    route?.params?.initialMood || null
+  );
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [energyLevel, setEnergyLevel] = useState(null);
   const [sleepHours, setSleepHours] = useState(null);
@@ -95,7 +99,10 @@ export default function BodyCheckScreen({ navigation, route }) {
         const existing = await AsyncStorage.getItem("@reversia_offline_logs");
         const logs = existing ? JSON.parse(existing) : [];
         logs.push(newEntry);
-        await AsyncStorage.setItem("@reversia_offline_logs", JSON.stringify(logs));
+        await AsyncStorage.setItem(
+          "@reversia_offline_logs",
+          JSON.stringify(logs)
+        );
       } catch (_storageError) {
         // Don't block UI on offline mirror failure
       }
@@ -133,7 +140,7 @@ export default function BodyCheckScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -141,7 +148,7 @@ export default function BodyCheckScreen({ navigation, route }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#242033" />
+          <Ionicons name="chevron-back" size={24} color={T.TEXT} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Body Check</Text>
@@ -154,154 +161,167 @@ export default function BodyCheckScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <View style={styles.cardIconBadge}>
-              <Ionicons name="happy-outline" size={18} color="#8B75C8" />
+        <FadeIn delay={0}>
+          <View style={styles.card}>
+            <View style={styles.cardLabelRow}>
+              <View style={styles.cardIconBadge}>
+                <Ionicons name="happy-outline" size={18} color={T.SECONDARY} />
+              </View>
+              <Text style={styles.cardLabel}>Overall Mood</Text>
             </View>
-            <Text style={styles.cardLabel}>Overall Mood</Text>
-          </View>
-          <View style={styles.moodRow}>
-            {MOODS.map((mood) => {
-              const active = selectedMood === mood.key;
-              return (
-                <TouchableOpacity
-                  key={mood.key}
-                  onPress={() => setSelectedMood(mood.key)}
-                  activeOpacity={0.8}
-                  style={[styles.moodItem, active && styles.moodItemActive]}
-                >
-                  <MoodFace mood={mood.key} size={42} selected={active} />
-                  <Text
-                    style={[styles.moodLabel, active && styles.moodLabelActive]}
+            <View style={styles.moodRow}>
+              {MOODS.map((mood) => {
+                const active = selectedMood === mood.key;
+                return (
+                  <TouchableOpacity
+                    key={mood.key}
+                    onPress={() => setSelectedMood(mood.key)}
+                    activeOpacity={0.8}
+                    style={[styles.moodItem, active && styles.moodItemActive]}
                   >
-                    {mood.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <View style={[styles.cardIconBadge, styles.energyBadge]}>
-              <Ionicons name="flash-outline" size={18} color="#8055E8" />
+                    <MoodFace mood={mood.key} size={42} selected={active} />
+                    <Text
+                      style={[
+                        styles.moodLabel,
+                        active && styles.moodLabelActive,
+                      ]}
+                    >
+                      {mood.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <Text style={styles.cardLabel}>Energy Level</Text>
-            {energyLevel ? (
-              <Text style={styles.cardValueBadge}>{energyLevel}/10</Text>
-            ) : null}
           </View>
-          <View style={styles.scaleRow}>
-            {ENERGY_LEVELS.map((level) => {
-              const active = energyLevel === level;
-              return (
-                <TouchableOpacity
-                  key={level}
-                  onPress={() => setEnergyLevel(level)}
-                  activeOpacity={0.8}
-                  style={[styles.scaleBtn, active && styles.scaleBtnActive]}
-                >
-                  <Text
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.card}>
+            <View style={styles.cardLabelRow}>
+              <View style={[styles.cardIconBadge, styles.energyBadge]}>
+                <Ionicons name="flash-outline" size={18} color={T.PRIMARY} />
+              </View>
+              <Text style={styles.cardLabel}>Energy Level</Text>
+              {energyLevel ? (
+                <Text style={styles.cardValueBadge}>{energyLevel}/10</Text>
+              ) : null}
+            </View>
+            <View style={styles.scaleRow}>
+              {ENERGY_LEVELS.map((level) => {
+                const active = energyLevel === level;
+                return (
+                  <TouchableOpacity
+                    key={level}
+                    onPress={() => setEnergyLevel(level)}
+                    activeOpacity={0.8}
+                    style={[styles.scaleBtn, active && styles.scaleBtnActive]}
+                  >
+                    <Text
+                      style={[
+                        styles.scaleBtnText,
+                        active && styles.scaleBtnTextActive,
+                      ]}
+                    >
+                      {level}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={styles.scaleLabels}>
+              <Text style={styles.scaleLabelText}>Low</Text>
+              <Text style={styles.scaleLabelText}>High</Text>
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={120}>
+          <View style={styles.card}>
+            <View style={styles.cardLabelRow}>
+              <View style={[styles.cardIconBadge, styles.sleepBadge]}>
+                <Ionicons name="moon-outline" size={18} color={T.AMBER} />
+              </View>
+              <Text style={styles.cardLabel}>Sleep Last Night</Text>
+              {sleepHours ? (
+                <Text style={styles.cardValueBadge}>{sleepHours}h</Text>
+              ) : null}
+            </View>
+            <View style={styles.scaleRow}>
+              {SLEEP_HOURS.map((hours) => {
+                const active = sleepHours === hours;
+                return (
+                  <TouchableOpacity
+                    key={hours}
+                    onPress={() => setSleepHours(hours)}
+                    activeOpacity={0.8}
                     style={[
-                      styles.scaleBtnText,
-                      active && styles.scaleBtnTextActive,
+                      styles.scaleBtn,
+                      styles.flexScaleBtn,
+                      active && styles.scaleBtnActive,
                     ]}
                   >
-                    {level}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <View style={styles.scaleLabels}>
-            <Text style={styles.scaleLabelText}>Low</Text>
-            <Text style={styles.scaleLabelText}>High</Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <View style={[styles.cardIconBadge, styles.sleepBadge]}>
-              <Ionicons name="moon-outline" size={18} color="#A78BFA" />
+                    <Text
+                      style={[
+                        styles.scaleBtnText,
+                        active && styles.scaleBtnTextActive,
+                      ]}
+                    >
+                      {hours}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <Text style={styles.cardLabel}>Sleep Last Night</Text>
-            {sleepHours ? (
-              <Text style={styles.cardValueBadge}>{sleepHours}h</Text>
-            ) : null}
-          </View>
-          <View style={styles.scaleRow}>
-            {SLEEP_HOURS.map((hours) => {
-              const active = sleepHours === hours;
-              return (
-                <TouchableOpacity
-                  key={hours}
-                  onPress={() => setSleepHours(hours)}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.scaleBtn,
-                    styles.flexScaleBtn,
-                    active && styles.scaleBtnActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.scaleBtnText,
-                      active && styles.scaleBtnTextActive,
-                    ]}
-                  >
-                    {hours}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <View style={styles.scaleLabels}>
-            <Text style={styles.scaleLabelText}>Less</Text>
-            <Text style={styles.scaleLabelText}>More</Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <View style={[styles.cardIconBadge, styles.symptomBadge]}>
-              <Ionicons name="medical-outline" size={18} color="#CE6C60" />
+            <View style={styles.scaleLabels}>
+              <Text style={styles.scaleLabelText}>Less</Text>
+              <Text style={styles.scaleLabelText}>More</Text>
             </View>
-            <Text style={styles.cardLabel}>Any Symptoms?</Text>
-            <Text style={styles.cardOptional}>Optional</Text>
           </View>
-          <View style={styles.chipWrap}>
-            {SYMPTOMS.map((symptom) => {
-              const active = selectedSymptoms.includes(symptom);
-              return (
-                <TouchableOpacity
-                  key={symptom}
-                  onPress={() => toggleSymptom(symptom)}
-                  activeOpacity={0.8}
-                  style={[styles.chip, active && styles.chipActive]}
-                >
-                  <Text
-                    style={[styles.chipText, active && styles.chipTextActive]}
-                  >
-                    {symptom}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        </FadeIn>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
-          disabled={!canSave || saving}
-          onPress={saveCheckIn}
-        >
-          <Text style={styles.saveBtnText}>
-            {saving ? "Saving..." : "Save Check-in"}
-          </Text>
-        </TouchableOpacity>
+        <FadeIn delay={180}>
+          <View style={styles.card}>
+            <View style={styles.cardLabelRow}>
+              <View style={[styles.cardIconBadge, styles.symptomBadge]}>
+                <Ionicons name="medical-outline" size={18} color={T.DANGER} />
+              </View>
+              <Text style={styles.cardLabel}>Any Symptoms?</Text>
+              <Text style={styles.cardOptional}>Optional</Text>
+            </View>
+            <View style={styles.chipWrap}>
+              {SYMPTOMS.map((symptom) => {
+                const active = selectedSymptoms.includes(symptom);
+                return (
+                  <TouchableOpacity
+                    key={symptom}
+                    onPress={() => toggleSymptom(symptom)}
+                    activeOpacity={0.8}
+                    style={[styles.chip, active && styles.chipActive]}
+                  >
+                    <Text
+                      style={[styles.chipText, active && styles.chipTextActive]}
+                    >
+                      {symptom}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
+            disabled={!canSave || saving}
+            onPress={saveCheckIn}
+          >
+            <Text style={[styles.saveBtnText, !canSave && { color: T.MUTED }]}>
+              {saving ? "Saving..." : "Save Check-in"}
+            </Text>
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -310,7 +330,7 @@ export default function BodyCheckScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F1FF",
+    backgroundColor: T.WHITE,
   },
   scroll: {
     paddingBottom: 48,
@@ -327,7 +347,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -336,23 +356,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
+    fontFamily: FONTS.display,
     fontSize: 17,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
   },
   headerSub: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 2,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -363,36 +384,37 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(128,85,232,0.12)",
+    backgroundColor: "rgba(139,195,74,0.12)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
   energyBadge: {
-    backgroundColor: "rgba(128,85,232,0.14)",
+    backgroundColor: "rgba(139,195,74,0.14)",
   },
   sleepBadge: {
-    backgroundColor: "rgba(167,139,250,0.16)",
+    backgroundColor: "rgba(139,195,74,0.16)",
   },
   symptomBadge: {
     backgroundColor: "rgba(206,108,96,0.15)",
   },
   cardLabel: {
+    fontFamily: FONTS.display,
     fontSize: 15,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     flex: 1,
   },
   cardOptional: {
     fontSize: 11,
-    color: "#756D84",
+    color: T.MUTED,
     fontWeight: "500",
   },
   cardValueBadge: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#8055E8",
-    backgroundColor: "rgba(128,85,232,0.14)",
+    color: T.PRIMARY,
+    backgroundColor: "rgba(139,195,74,0.14)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -408,24 +430,24 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: "transparent",
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     marginHorizontal: 3,
   },
   moodItemActive: {
-    borderColor: "#8B75C8",
-    backgroundColor: "rgba(128,85,232,0.12)",
+    borderColor: T.SECONDARY,
+    backgroundColor: "rgba(139,195,74,0.12)",
   },
   moodEmoji: {
     fontSize: 22,
   },
   moodLabel: {
     fontSize: 10,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 4,
     fontWeight: "500",
   },
   moodLabelActive: {
-    color: "#8B75C8",
+    color: T.SECONDARY,
     fontWeight: "700",
   },
   scaleRow: {
@@ -437,7 +459,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
@@ -447,16 +469,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scaleBtnActive: {
-    backgroundColor: "rgba(128,85,232,0.14)",
-    borderColor: "#8055E8",
+    backgroundColor: "rgba(139,195,74,0.14)",
+    borderColor: T.PRIMARY,
   },
   scaleBtnText: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     fontWeight: "600",
   },
   scaleBtnTextActive: {
-    color: "#8055E8",
+    color: T.PRIMARY,
     fontWeight: "700",
   },
   scaleLabels: {
@@ -466,7 +488,7 @@ const styles = StyleSheet.create({
   },
   scaleLabelText: {
     fontSize: 11,
-    color: "#756D84",
+    color: T.MUTED,
   },
   chipWrap: {
     flexDirection: "row",
@@ -477,25 +499,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   chipActive: {
     backgroundColor: "rgba(206,108,96,0.15)",
-    borderColor: "#CE6C60",
+    borderColor: T.DANGER,
   },
   chipText: {
     fontSize: 13,
-    color: "#756D84",
+    color: T.MUTED,
     fontWeight: "500",
   },
   chipTextActive: {
-    color: "#CE6C60",
+    color: T.DANGER,
     fontWeight: "700",
   },
   saveBtn: {
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -504,11 +526,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveBtnDisabled: {
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
   },
   saveBtnText: {
+    fontFamily: FONTS.display,
     fontSize: 16,
     fontWeight: "700",
-    color: "#F5F1FF",
+    color: T.WHITE,
   },
 });

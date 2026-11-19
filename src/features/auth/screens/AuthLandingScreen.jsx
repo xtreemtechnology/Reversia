@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 import ReversiaMark from "../../../components/ReversiaMark";
 import AuthButton from "../components/AuthButton";
 import CompanionBuddy from "../../../components/CompanionBuddy";
@@ -198,12 +199,12 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     fontSize: 36,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     letterSpacing: 0.2,
   },
   card: {
@@ -218,12 +219,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 24,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -0.4,
   },
   cardSubtitle: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 22,
     marginBottom: 8,
   },

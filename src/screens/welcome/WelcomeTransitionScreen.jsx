@@ -12,6 +12,7 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../theme/ThemeProvider";
+import { FONTS } from "../../theme/tokens";
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -63,7 +64,7 @@ export default function WelcomeTransitionScreen({
         0,
         { duration: 520, easing: Easing.in(Easing.cubic) },
         (done) => {
-          'worklet';
+          "worklet";
           if (done && onFinish) {
             runOnJS(onFinish)();
           }
@@ -173,18 +174,18 @@ const styles = StyleSheet.create({
   },
   welcomeLabel: {
     fontSize: 18,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     textAlign: "center",
   },
   userName: {
     fontSize: 40,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     textAlign: "center",
     lineHeight: 24,
   },

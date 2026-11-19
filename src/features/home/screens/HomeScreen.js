@@ -1,9 +1,9 @@
 // screens/HomeScreen.js
-// Redesigned — Personal Health Companion v2
-// Changes: dynamic Quick Actions, Next Best Action card, data-driven Recent Wins,
-//          personality-rich header, Weekly Momentum card (scaffold-ready)
+// Redesigned — fresh light look, following the soft-green reference:
+// header → headline → ask pill → plan hero → quick tiles →
+// today's tasks → glucose → clarity → mood → focus → wins → momentum.
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -20,16 +20,19 @@ import SolarIcon from "../../../components/SolarIcon";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import { useUserProfile } from "../../../hooks/useUserProfile";
 import GlucoseTrendChart from "../components/GlucoseTrendChart";
-import { LinearGradient } from "expo-linear-gradient";
+import FadeIn from "../components/FadeIn";
+import PressScale from "../components/PressScale";
+import PlanHeroCard from "../../reversal/components/PlanHeroCard";
+import { auth } from "../../../config/firebase";
+import { getReversalPlan } from "../../reversal/services/reversalService";
+import { getFoodById } from "../../food-guide/services/foodGuideService";
+import {
+  getFoodPhoto,
+  FOOD_PHOTO_STRIP_IDS,
+} from "../../food-guide/foodPhotos";
+import { T, FONTS } from "../../../theme/tokens";
 import CompanionBuddy from "../../../components/CompanionBuddy";
 import MoodFace from "../../../components/MoodFace";
-
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning,";
-  if (hour < 17) return "Good afternoon,";
-  return "Good evening,";
-}
 
 // ─────────────────────────────────────────────
 // Data helpers — derive everything from logs
@@ -191,7 +194,10 @@ function useDerivedState(logs = []) {
     // Story progress steps
     const storySteps = [
       { label: "Body Check", done: bodyCheckToday },
-      { label: "Glucose", done: todayLogs.some((l) => l?.category === "glucose") },
+      {
+        label: "Glucose",
+        done: todayLogs.some((l) => l?.category === "glucose"),
+      },
       { label: "Breakfast Logged", done: breakfastLogged },
       { label: "Water Check-In", done: waterCount >= 4 },
       { label: "Lunch", done: lunchLogged },
@@ -213,8 +219,8 @@ function useDerivedState(logs = []) {
     if (!bodyCheckToday) {
       nextAction = {
         icon: "happy-outline",
-        iconColor: "#8B75C8",
-        iconBg: "rgba(128,85,232,0.12)",
+        iconColor: "#689F38",
+        iconBg: "rgba(139,195,74,0.12)",
         title: "Log a body check-in",
         impact: latestMeal
           ? `You already logged ${latestMealLabel}; a body check-in completes the morning picture.`
@@ -226,8 +232,8 @@ function useDerivedState(logs = []) {
     } else if (waterCount < 3) {
       nextAction = {
         icon: "water-outline",
-        iconColor: "#A78BFA",
-        iconBg: "rgba(167,139,250,0.16)",
+        iconColor: "#5E9B4A",
+        iconBg: "rgba(139,195,74,0.12)",
         title: "Drink a glass of water",
         impact: latestMeal
           ? `${latestMealLabel} is already in your log. Water helps the app see how that meal is landing.`
@@ -239,8 +245,8 @@ function useDerivedState(logs = []) {
     } else if (!lunchLogged) {
       nextAction = {
         icon: "restaurant-outline",
-        iconColor: "#756D84",
-        iconBg: "rgba(154,132,120,0.15)",
+        iconColor: "#E8A33D",
+        iconBg: "rgba(232,163,61,0.12)",
         title: "Log your lunch",
         impact: lunchImpact,
         cta: "Log Meal",
@@ -250,8 +256,8 @@ function useDerivedState(logs = []) {
     } else if (waterCount < waterGoal) {
       nextAction = {
         icon: "water-outline",
-        iconColor: "#A78BFA",
-        iconBg: "rgba(167,139,250,0.16)",
+        iconColor: "#5E9B4A",
+        iconBg: "rgba(139,195,74,0.12)",
         title: `${waterGoal - waterCount} more glasses to hit your goal`,
         impact: latestMeal
           ? `You're on track after ${latestMealLabel}. Keep hydration going to keep the pattern readable.`
@@ -263,8 +269,8 @@ function useDerivedState(logs = []) {
     } else {
       nextAction = {
         icon: "moon-outline",
-        iconColor: "#8055E8",
-        iconBg: "rgba(128,85,232,0.14)",
+        iconColor: "#689F38",
+        iconBg: "rgba(139,195,74,0.12)",
         title: latestMeal
           ? `${latestMealLabel} is already shaping today`
           : "You're doing well today",
@@ -379,242 +385,96 @@ function useDerivedState(logs = []) {
 }
 
 // ─────────────────────────────────────────────
-// ① Today's Story Progress
+// Today's Tasks — the day's remaining moments as a tappable list, built
+// from the same story steps the old ring hero used. Done rows show a
+// green check; open rows show where to go next.
 // ─────────────────────────────────────────────
-function TodaysStoryProgress({ storySteps, storyCompleted }) {
-  const total = storySteps.length;
-  const pct = Math.round((storyCompleted / total) * 100);
+const TASK_ROUTES = {
+  "Body Check": "BodyCheck",
+  Glucose: "GlucoseLog",
+  "Breakfast Logged": "LogMeal",
+  "Water Check-In": "LogWater",
+  Lunch: "LogMeal",
+};
 
+function TasksList({ storySteps, navigation }) {
   return (
-    <View style={sp.card}>
-      <View style={sp.topRow}>
-        <View style={sp.titleCol}>
-          <Text style={sp.label}>TODAY'S STORY</Text>
-          <Text style={sp.headline}>
-            {storyCompleted} of {total} moments captured
-          </Text>
-        </View>
-        <View style={sp.pctBadge}>
-          <Text style={sp.pctNum}>{pct}%</Text>
-          <Text style={sp.pctSub}>today</Text>
-        </View>
-      </View>
-
-      <View style={sp.track}>
-        <View style={[sp.fill, { width: `${pct}%` }]} />
-      </View>
-
-      <View style={sp.pillRow}>
-        {storySteps.map((s, i) => (
-          <View key={i} style={[sp.pill, s.done && sp.pillDone]}>
-            <Ionicons
-              name={s.done ? "checkmark-circle" : "ellipse-outline"}
-              size={12}
-              color={s.done ? "#8B75C8" : "#E8E1F5"}
-              style={sp.pillIcon}
-            />
-            <Text style={[sp.pillText, s.done && sp.pillTextDone]}>
-              {s.label}
+    <View style={tl.card}>
+      {storySteps.map((step, i) => {
+        const route = TASK_ROUTES[step.label];
+        const row = (
+          <View style={tl.row}>
+            <View style={[tl.iconBadge, step.done && tl.iconBadgeDone]}>
+              <Ionicons
+                name={step.done ? "checkmark" : "ellipse-outline"}
+                size={16}
+                color={step.done ? "#FFFFFF" : T.MUTED}
+              />
+            </View>
+            <Text style={[tl.label, step.done && tl.labelDone]}>
+              {step.label}
             </Text>
+            {route && !step.done ? (
+              <Ionicons name="chevron-forward" size={16} color={T.MUTED} />
+            ) : null}
           </View>
-        ))}
-      </View>
-
-      {storyCompleted < total && (
-        <View style={sp.nudge}>
-          <Ionicons
-            name="partly-sunny-outline"
-            size={13}
-            color="#756D84"
-            style={sp.nudgeIcon}
-          />
-          <Text style={sp.nudgeText}>
-            Your story is still unfolding — a few moments left to capture.
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-const sp = StyleSheet.create({
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    padding: 22,
-    marginHorizontal: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E8E1F5",
-  },
-  topRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 14 },
-  titleCol: { flex: 1 },
-  label: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#756D84",
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  headline: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#242033",
-    lineHeight: 22,
-  },
-  pctBadge: {
-    backgroundColor: "rgba(128,85,232,0.12)",
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.22)",
-  },
-  pctNum: { fontSize: 18, fontWeight: "700", color: "#8B75C8" },
-  pctSub: { fontSize: 9, color: "#756D84", marginTop: 1 },
-  track: {
-    height: 4,
-    backgroundColor: "#F0E9FF",
-    borderRadius: 2,
-    marginBottom: 16,
-    overflow: "hidden",
-  },
-  fill: { height: "100%", backgroundColor: "#8B75C8", borderRadius: 2 },
-  pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 14 },
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F0E9FF",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  pillIcon: { marginRight: 5 },
-  pillDone: {
-    backgroundColor: "rgba(128,85,232,0.10)",
-    borderColor: "rgba(128,85,232,0.22)",
-  },
-  pillText: { fontSize: 11, color: "#756D84", fontWeight: "500" },
-  pillTextDone: { color: "#8B75C8", fontWeight: "600" },
-  nudge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    borderRadius: 12,
-    padding: 10,
-  },
-  nudgeIcon: { marginRight: 6 },
-  nudgeText: { fontSize: 12, color: "#756D84", flex: 1, lineHeight: 17 },
-});
-
-// ─────────────────────────────────────────────
-// ② Next Best Action (new — main CTA)
-// ─────────────────────────────────────────────
-function NextBestAction({ action, navigation }) {
-  if (!action) return null;
-  return (
-    <View style={nb.outer}>
-      <View style={nb.inner}>
-        <Text style={nb.sectionLabel}>NEXT BEST ACTION</Text>
-
-        <View style={nb.contentRow}>
-          <View style={[nb.iconBadge, { backgroundColor: action.iconBg }]}>
-            <Ionicons name={action.icon} size={22} color={action.iconColor} />
-          </View>
-          <View style={nb.contentTextCol}>
-            <Text style={nb.title}>{action.title}</Text>
-            <Text style={nb.impact}>{action.impact}</Text>
-          </View>
-        </View>
-
-        {action.cta && (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={[nb.ctaBtn, { borderColor: action.iconColor }]}
-            onPress={() =>
-              navigation?.navigate(action.route, action.routeParams)
-            }
+        );
+        if (!route) {
+          return <View key={i}>{row}</View>;
+        }
+        return (
+          <PressScale
+            key={i}
+            onPress={() => navigation?.navigate(route)}
+            accessibilityLabel={step.label}
           >
-            <Text style={[nb.ctaText, { color: action.iconColor }]}>
-              {action.cta}
-            </Text>
-            <Ionicons
-              name="arrow-forward"
-              size={14}
-              color={action.iconColor}
-              style={nb.ctaArrow}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
+            {row}
+          </PressScale>
+        );
+      })}
     </View>
   );
 }
 
-const nb = StyleSheet.create({
-  outer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    padding: 4,
-    marginHorizontal: 24,
+const tl = StyleSheet.create({
+  card: {
+    backgroundColor: T.SURFACE,
+    borderRadius: 24,
+    marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
-    overflow: "hidden",
+    borderColor: T.BORDER,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
   },
-  inner: {
-    backgroundColor: "rgba(128,85,232,0.08)",
-    borderRadius: 24,
-    padding: 20,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#756D84",
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-    marginBottom: 14,
-  },
-  contentRow: {
+  row: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 16,
-    gap: 14,
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 11,
   },
-  contentTextCol: { flex: 1 },
   iconBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: T.PRIMARY_LIGHT,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 2,
   },
-  title: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#242033",
-    marginBottom: 5,
-    lineHeight: 22,
+  iconBadgeDone: {
+    backgroundColor: T.SECONDARY,
   },
-  impact: { fontSize: 13, color: "#756D84", lineHeight: 18 },
-  ctaBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderRadius: 16,
-    paddingVertical: 12,
-    backgroundColor: "rgba(255,255,255,0.03)",
+  label: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    fontWeight: "600",
+    color: T.TEXT,
+    flex: 1,
   },
-  ctaText: { fontSize: 14, fontWeight: "700" },
-  ctaArrow: { marginLeft: 6 },
+  labelDone: {
+    color: T.MUTED,
+  },
 });
-
 // ─────────────────────────────────────────────
 // ③ Clarity Insight Card
 // ─────────────────────────────────────────────
@@ -625,7 +485,7 @@ function ClarityCard({ clarity }) {
       <View style={cc.glowBottomLeft} />
       <View style={cc.headerRow}>
         <View style={cc.iconBadge}>
-          <SolarIcon name="focus-star-bold" size={20} color="#8B75C8" />
+          <SolarIcon name="focus-star-bold" size={20} color={T.PRIMARY} />
         </View>
         <View style={cc.headerTextCol}>
           <Text style={cc.title}>{clarity.title}</Text>
@@ -648,7 +508,7 @@ function ClarityCard({ clarity }) {
         <Ionicons
           name="git-branch-outline"
           size={12}
-          color="#8055E8"
+          color={T.PRIMARY}
           style={cc.patternIcon}
         />
         <Text style={cc.patternText}>{clarity.patternText}</Text>
@@ -659,13 +519,13 @@ function ClarityCard({ clarity }) {
 
 const cc = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
     padding: 22,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     overflow: "hidden",
   },
   glowTopRight: {
@@ -675,7 +535,7 @@ const cc = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(128,85,232,0.10)",
+    backgroundColor: "rgba(139,195,74,0.07)",
   },
   glowBottomLeft: {
     position: "absolute",
@@ -684,7 +544,7 @@ const cc = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(128,85,232,0.10)",
+    backgroundColor: "rgba(139,195,74,0.05)",
   },
   headerRow: {
     flexDirection: "row",
@@ -696,40 +556,62 @@ const cc = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(128,85,232,0.18)",
+    backgroundColor: "rgba(139,195,74,0.14)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
     marginTop: 2,
   },
-  title: { fontSize: 18, fontWeight: "700", color: "#242033", marginBottom: 6 },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 18,
+    fontWeight: "700",
+    color: T.TEXT,
+    marginBottom: 6,
+  },
   confidenceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  confidenceLabel: { fontSize: 11, color: "#756D84" },
+  confidenceLabel: { fontFamily: FONTS.body, fontSize: 11, color: T.MUTED },
   dotRow: { flexDirection: "row", gap: 3 },
   dot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
-  dotFilled: { backgroundColor: "#8055E8", borderColor: "#8055E8" },
-  confidenceVal: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
-  body: { fontSize: 14, color: "#756D84", lineHeight: 21, marginBottom: 14 },
+  dotFilled: { backgroundColor: T.PRIMARY, borderColor: T.PRIMARY },
+  confidenceVal: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    color: T.PRIMARY,
+    fontWeight: "600",
+  },
+  body: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    color: T.MUTED,
+    lineHeight: 21,
+    marginBottom: 14,
+  },
   patternChip: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "rgba(128,85,232,0.10)",
+    backgroundColor: "rgba(139,195,74,0.10)",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.20)",
+    borderColor: "rgba(139,195,74,0.25)",
   },
   patternIcon: { marginRight: 5 },
-  patternText: { fontSize: 11, color: "#8055E8", fontWeight: "600" },
+  patternText: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    color: T.PRIMARY,
+    fontWeight: "600",
+  },
 });
 
 // ─────────────────────────────────────────────
@@ -814,36 +696,34 @@ function TodaysFocusCard({
 
   return (
     <View style={tf.outer}>
-      <View style={tf.inner}>
-        <View style={tf.headerRow}>
-          <SolarIcon name="sun-fog-bold" size={18} color="#8055E8" />
-          <Text style={tf.overline}>TODAY'S FOCUS</Text>
+      <View style={tf.headerRow}>
+        <SolarIcon name="sun-fog-bold" size={18} color={T.PRIMARY} />
+        <Text style={tf.overline}>TODAY'S FOCUS</Text>
+      </View>
+      <Text style={tf.headline}>{headline}</Text>
+      <View style={tf.actionBox}>
+        <View style={tf.actionLabelRow}>
+          <Ionicons
+            name="arrow-forward-circle"
+            size={15}
+            color={T.PRIMARY}
+            style={tf.actionIcon}
+          />
+          <Text style={tf.actionLabel}>RECOMMENDED ACTION</Text>
         </View>
-        <Text style={tf.headline}>{headline}</Text>
-        <View style={tf.actionBox}>
-          <View style={tf.actionLabelRow}>
-            <Ionicons
-              name="arrow-forward-circle"
-              size={15}
-              color="#8055E8"
-              style={tf.actionIcon}
-            />
-            <Text style={tf.actionLabel}>RECOMMENDED ACTION</Text>
-          </View>
-          <Text style={tf.actionBody}>{actionBody}</Text>
-        </View>
-        <View style={tf.whyBox}>
-          <View style={tf.whyRow}>
-            <Ionicons
-              name="information-circle"
-              size={17}
-              color="#756D84"
-              style={tf.whyIcon}
-            />
-            <View style={tf.whyTextCol}>
-              <Text style={tf.whyTitle}>Why this matters</Text>
-              <Text style={tf.whyBody}>{whyBody}</Text>
-            </View>
+        <Text style={tf.actionBody}>{actionBody}</Text>
+      </View>
+      <View style={tf.whyBox}>
+        <View style={tf.whyRow}>
+          <Ionicons
+            name="information-circle"
+            size={17}
+            color={T.MUTED}
+            style={tf.whyIcon}
+          />
+          <View style={tf.whyTextCol}>
+            <Text style={tf.whyTitle}>Why this matters</Text>
+            <Text style={tf.whyBody}>{whyBody}</Text>
           </View>
         </View>
       </View>
@@ -853,44 +733,40 @@ function TodaysFocusCard({
 
 const tf = StyleSheet.create({
   outer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
-    padding: 4,
-    marginHorizontal: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#E8E1F5",
-    overflow: "hidden",
-  },
-  inner: {
-    backgroundColor: "rgba(128,85,232,0.10)",
-    borderRadius: 24,
     padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
   headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   overline: {
+    fontFamily: FONTS.body,
     fontSize: 11,
     fontWeight: "700",
-    color: "#8055E8",
+    color: T.PRIMARY,
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginLeft: 8,
   },
   headline: {
+    fontFamily: FONTS.display,
     fontSize: 22,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     lineHeight: 30,
     letterSpacing: -0.3,
     marginBottom: 14,
   },
   actionBox: {
-    backgroundColor: "rgba(128,85,232,0.12)",
+    backgroundColor: "rgba(139,195,74,0.08)",
     borderRadius: 14,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(128,85,232,0.20)",
+    borderColor: "rgba(139,195,74,0.20)",
   },
   actionLabelRow: {
     flexDirection: "row",
@@ -899,14 +775,21 @@ const tf = StyleSheet.create({
   },
   actionIcon: { marginRight: 7 },
   actionLabel: {
+    fontFamily: FONTS.body,
     fontSize: 11,
     fontWeight: "700",
-    color: "#8055E8",
+    color: T.PRIMARY,
     letterSpacing: 0.6,
   },
-  actionBody: { fontSize: 13, color: "#242033", lineHeight: 19, opacity: 0.85 },
+  actionBody: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    color: T.TEXT,
+    lineHeight: 19,
+    opacity: 0.85,
+  },
   whyBox: {
-    backgroundColor: "rgba(33,22,19,0.40)",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderRadius: 14,
     padding: 13,
   },
@@ -914,160 +797,96 @@ const tf = StyleSheet.create({
   whyIcon: { marginRight: 9, marginTop: 1 },
   whyTextCol: { flex: 1 },
   whyTitle: {
+    fontFamily: FONTS.display,
     fontSize: 13,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     marginBottom: 4,
   },
-  whyBody: { fontSize: 13, color: "#756D84", lineHeight: 19 },
+  whyBody: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    color: T.MUTED,
+    lineHeight: 19,
+  },
 });
 
 // ─────────────────────────────────────────────
-// ⑤ Quick Actions — fully dynamic
+// Quick tiles — three in a row, like the reference's Math Solver /
+// Give Answer / Textbooks. Each opens a real flow: log a meal, the
+// Food Guide, or a glucose check.
 // ─────────────────────────────────────────────
-function QuickActions({ navigation, derived }) {
-  const { bodyCheckToday, waterCount, lunchLogged, latestMeal } = derived;
-
-  const actions = [
+function QuickActions({ navigation }) {
+  const tiles = [
     {
-      icon: "body-check-bold",
-      isSolar: true,
-      color: "#8B75C8",
-      bg: "rgba(128,85,232,0.12)",
-      label: "Body Check",
-      sub: bodyCheckToday ? "Checked in today" : "Log how you feel",
-      dimmed: bodyCheckToday,
-      onPress: () => navigation?.navigate("BodyCheck"),
-    },
-    {
-      icon: "repeat-meal-bold",
-      isSolar: true,
-      color: "#8055E8",
-      bg: "rgba(128,85,232,0.14)",
-      label: "Repeat Meal",
-      sub: latestMeal
-        ? `Repeat ${latestMeal.type || "last"} meal`
-        : "Repeat yesterday's dinner",
-      dimmed: false,
-      onPress: () =>
-        navigation?.navigate("RepeatMeal", {
-          mealType: latestMeal?.type || "Dinner",
-        }),
-    },
-    {
-      icon: "plate-bold-duotone",
-      isSolar: true,
-      color: "#756D84",
-      bg: "rgba(154,132,120,0.15)",
+      icon: "restaurant-outline",
       label: "Log Meal",
-      sub: lunchLogged ? "Lunch already logged" : "No lunch logged yet",
-      dimmed: false,
       onPress: () => navigation?.navigate("LogMeal"),
     },
     {
-      icon: "water-outline",
-      isSolar: false,
-      color: "#A78BFA",
-      bg: "rgba(167,139,250,0.16)",
-      label: "Log Water",
-      sub:
-        waterCount > 0
-          ? `${waterCount} glass${waterCount !== 1 ? "es" : ""} logged today`
-          : "None logged yet",
-      dimmed: false,
-      onPress: () => navigation?.navigate("LogWater"),
+      icon: "book-outline",
+      label: "Food Guide",
+      onPress: () => navigation?.navigate("Foods"),
+    },
+    {
+      icon: "pulse-outline",
+      label: "Check Sugar",
+      onPress: () => navigation?.navigate("GlucoseLog"),
     },
   ];
 
   return (
-    <View style={qa.grid}>
-      {actions.map((item, i) => (
-        <TouchableOpacity
-          key={i}
-          activeOpacity={0.85}
-          style={[qa.card, item.dimmed && qa.cardDimmed]}
-          onPress={item.onPress}
+    <View style={qa.row}>
+      {tiles.map((tile) => (
+        <PressScale
+          key={tile.label}
+          style={qa.card}
+          onPress={tile.onPress}
+          accessibilityLabel={tile.label}
         >
-          <View style={[qa.iconBadge, { backgroundColor: item.bg }]}>
-            {item.isSolar ? (
-              <SolarIcon name={item.icon} size={24} color={item.color} />
-            ) : (
-              <Ionicons name={item.icon} size={24} color={item.color} />
-            )}
+          <View style={qa.iconBadge}>
+            <Ionicons name={tile.icon} size={24} color={T.SECONDARY} />
           </View>
-          <Text style={qa.label}>{item.label}</Text>
-          <Text style={qa.sub}>{item.sub}</Text>
-          {item.dimmed && (
-            <View style={qa.doneBadge}>
-              <Ionicons
-                name="checkmark-circle"
-                size={13}
-                color="#8B75C8"
-                style={qa.doneIcon}
-              />
-              <Text style={qa.doneBadgeText}>Done</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          <Text style={qa.label}>{tile.label}</Text>
+        </PressScale>
       ))}
     </View>
   );
 }
 
 const qa = StyleSheet.create({
-  grid: {
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    width: "47.5%",
-    paddingVertical: 20,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#E8E1F5",
+    gap: 12,
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
-  cardDimmed: { opacity: 0.65 },
+  card: {
+    flex: 1,
+    backgroundColor: T.SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    paddingVertical: 18,
+    alignItems: "center",
+    gap: 10,
+  },
   iconBadge: {
     width: 48,
     height: 48,
     borderRadius: 24,
+    backgroundColor: T.PRIMARY_LIGHT,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
   },
   label: {
-    fontSize: 14,
+    fontFamily: FONTS.display,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     textAlign: "center",
   },
-  sub: {
-    fontSize: 11,
-    color: "#756D84",
-    marginTop: 4,
-    textAlign: "center",
-    paddingHorizontal: 8,
-    lineHeight: 15,
-  },
-  doneBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    backgroundColor: "rgba(128,85,232,0.10)",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  doneIcon: { marginRight: 3 },
-  doneBadgeText: { fontSize: 10, color: "#8B75C8", fontWeight: "700" },
 });
-
 // ─────────────────────────────────────────────
 // ⑥ Recent Wins — data-driven
 // ─────────────────────────────────────────────
@@ -1084,7 +903,7 @@ function RecentWins({ wins }) {
       <View style={rw.card}>
         <View style={rw.headerRow}>
           <View style={rw.iconBadge}>
-            <Ionicons name="ribbon-outline" size={18} color="#8B75C8" />
+            <Ionicons name="ribbon-outline" size={18} color={T.PRIMARY} />
           </View>
           <View>
             <Text style={rw.title}>Recent Wins</Text>
@@ -1103,7 +922,7 @@ function RecentWins({ wins }) {
     <View style={rw.card}>
       <View style={rw.headerRow}>
         <View style={rw.iconBadge}>
-          <Ionicons name="ribbon-outline" size={18} color="#8B75C8" />
+          <Ionicons name="ribbon-outline" size={18} color={T.PRIMARY} />
         </View>
         <View>
           <Text style={rw.title}>Recent Wins</Text>
@@ -1128,13 +947,13 @@ function RecentWins({ wins }) {
 
 const rw = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
     padding: 22,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   headerRow: {
     flexDirection: "row",
@@ -1146,37 +965,58 @@ const rw = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "rgba(128,85,232,0.12)",
+    backgroundColor: "rgba(139,195,74,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 16, fontWeight: "700", color: "#242033" },
-  subtitle: { fontSize: 12, color: "#756D84", marginTop: 2 },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  subtitle: {
+    fontFamily: FONTS.body,
+    fontSize: 12,
+    color: T.MUTED,
+    marginTop: 2,
+  },
   winRow: { flexDirection: "row", alignItems: "flex-start" },
   timelineCol: { width: 20, alignItems: "center", marginRight: 14 },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#8B75C8",
+    backgroundColor: T.PRIMARY,
     marginTop: 5,
   },
   line: {
     width: 1.5,
     flex: 1,
-    backgroundColor: "rgba(128,85,232,0.18)",
+    backgroundColor: "rgba(139,195,74,0.25)",
     marginTop: 4,
     minHeight: 22,
   },
   winTextCol: { flex: 1, paddingBottom: 18 },
   winText: {
+    fontFamily: FONTS.body,
     fontSize: 14,
-    color: "#242033",
+    color: T.TEXT,
     fontWeight: "500",
     lineHeight: 20,
   },
-  winWhen: { fontSize: 11, color: "#756D84", marginTop: 3 },
-  emptyState: { fontSize: 13, color: "#756D84", lineHeight: 19 },
+  winWhen: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    color: T.MUTED,
+    marginTop: 3,
+  },
+  emptyState: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    color: T.MUTED,
+    lineHeight: 19,
+  },
 });
 
 // ─────────────────────────────────────────────
@@ -1191,7 +1031,7 @@ function WeeklyMomentum({ momentum }) {
     <View style={wm.card}>
       <View style={wm.headerRow}>
         <View style={wm.iconBadge}>
-          <Ionicons name="trending-up-outline" size={18} color="#8055E8" />
+          <Ionicons name="trending-up-outline" size={18} color={T.PRIMARY} />
         </View>
         <View>
           <Text style={wm.title}>Weekly Momentum</Text>
@@ -1206,7 +1046,7 @@ function WeeklyMomentum({ momentum }) {
       ) : (
         momentum.map((item, index) => {
           const delta = item.current - item.previous;
-          const deltaColor = delta >= 0 ? "#8B75C8" : "#CE6C60";
+          const deltaColor = delta >= 0 ? T.PRIMARY : T.DANGER;
           const deltaLabel =
             item.previous === 0
               ? item.current > 0
@@ -1247,13 +1087,13 @@ function WeeklyMomentum({ momentum }) {
 
 const wm = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
     padding: 22,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   headerRow: {
     flexDirection: "row",
@@ -1265,12 +1105,22 @@ const wm = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "rgba(128,85,232,0.14)",
+    backgroundColor: "rgba(139,195,74,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 16, fontWeight: "700", color: "#242033" },
-  subtitle: { fontSize: 12, color: "#756D84", marginTop: 2 },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  subtitle: {
+    fontFamily: FONTS.body,
+    fontSize: 12,
+    color: T.MUTED,
+    marginTop: 2,
+  },
   trendRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1279,50 +1129,213 @@ const wm = StyleSheet.create({
   },
   trendRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.04)",
+    borderBottomColor: T.BORDER,
   },
-  trendLabel: { fontSize: 14, color: "#242033", fontWeight: "500" },
+  trendLabel: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    color: T.TEXT,
+    fontWeight: "500",
+  },
   trendRight: { flexDirection: "row", alignItems: "center" },
   trendCurrent: {
+    fontFamily: FONTS.body,
     fontSize: 12,
-    color: "#242033",
+    color: T.TEXT,
     fontWeight: "600",
     marginRight: 6,
   },
   trendArrow: { marginRight: 3 },
-  trendDelta: { fontSize: 14, fontWeight: "700" },
-  emptyState: { fontSize: 13, color: "#756D84", lineHeight: 19 },
+  trendDelta: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  emptyState: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    color: T.MUTED,
+    lineHeight: 19,
+  },
+});
+
+// ─────────────────────────────────────────────
+// From the Food Guide — horizontal photo strip of guide foods that have
+// a real photo. Tapping a card opens that food in the Food Guide.
+// ─────────────────────────────────────────────
+function FoodGuideStrip({ navigation }) {
+  const foods = FOOD_PHOTO_STRIP_IDS.map((id) => getFoodById(id)).filter(
+    Boolean
+  );
+  if (!foods.length) return null;
+  return (
+    <View style={fg.section}>
+      <View style={fg.headerRow}>
+        <Text style={fg.title}>From the Food Guide</Text>
+        <TouchableOpacity
+          onPress={() => navigation?.navigate("Foods")}
+          activeOpacity={0.7}
+        >
+          <Text style={fg.viewAll}>View All</Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={fg.strip}
+      >
+        {foods.map((food) => {
+          const photo = getFoodPhoto(food.id);
+          const badgeColor =
+            food.rating === "safe"
+              ? T.SUCCESS
+              : food.rating === "caution"
+              ? T.WARNING
+              : T.DANGER;
+          return (
+            <PressScale
+              key={food.id}
+              style={fg.card}
+              onPress={() =>
+                navigation?.navigate("Foods", {
+                  screen: "FoodDetail",
+                  params: { foodId: food.id },
+                })
+              }
+              accessibilityLabel={`${food.name}, rated ${food.rating}`}
+            >
+              {photo ? (
+                <Image
+                  source={photo}
+                  style={fg.photo}
+                  resizeMode="cover"
+                  accessibilityLabel={`Photo of ${food.name}`}
+                />
+              ) : null}
+              <View style={fg.body}>
+                <Text style={fg.name} numberOfLines={1}>
+                  {food.name}
+                </Text>
+                <View
+                  style={[fg.badge, { backgroundColor: `${badgeColor}1F` }]}
+                >
+                  <Text style={[fg.badgeText, { color: badgeColor }]}>
+                    {food.rating.charAt(0).toUpperCase() + food.rating.slice(1)}
+                  </Text>
+                </View>
+              </View>
+            </PressScale>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+const fg = StyleSheet.create({
+  section: { marginBottom: 32 },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    paddingHorizontal: 22,
+    marginBottom: 14,
+    marginTop: 4,
+  },
+  title: {
+    fontFamily: FONTS.display,
+    fontSize: 18,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  viewAll: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    fontWeight: "600",
+    color: T.MUTED,
+  },
+  strip: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  card: {
+    width: 160,
+    backgroundColor: T.SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    overflow: "hidden",
+  },
+  photo: {
+    width: "100%",
+    height: 110,
+  },
+  body: {
+    padding: 12,
+    gap: 8,
+  },
+  name: {
+    fontFamily: FONTS.display,
+    fontSize: 14,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  badge: {
+    borderRadius: 999,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+  },
+  badgeText: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    fontWeight: "700",
+  },
 });
 
 // ─────────────────────────────────────────────
 // Theme colors passed to chart components
 // ─────────────────────────────────────────────
 const HOME_COLORS = {
-  card: "#FFFFFF",
-  border: "#E8E1F5",
-  text: "#242033",
-  textMuted: "#756D84",
-  accent: "#8055E8",
-  green: "#8B75C8",
-  amber: "#8055E8",
-  red: "#CE6C60",
-  background: "#F5F1FF",
+  card: T.SURFACE,
+  border: T.BORDER,
+  text: T.TEXT,
+  textMuted: T.MUTED,
+  accent: T.PRIMARY,
+  green: T.PRIMARY,
+  amber: T.AMBER,
+  red: T.DANGER,
+  background: T.BG,
 };
 
 // ─────────────────────────────────────────────
-// Root HomeScreen
+// Root HomeScreen — fresh reference layout:
+// header → headline → ask pill → plan hero → quick tiles →
+// today's tasks → glucose → clarity → mood → focus → wins → momentum.
 // ─────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
   const { logs } = useUserLogs(20);
   const { userData, displayName } = useUserProfile();
   const derived = useDerivedState(logs);
+  const [plan, setPlan] = useState(null);
+
+  useEffect(() => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) return;
+    let mounted = true;
+    getReversalPlan(uid)
+      .then((loaded) => {
+        if (mounted) setPlan(loaded);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const {
     storySteps,
-    storyCompleted,
-    nextAction,
     wins,
-    headerSub,
     clarity,
     momentum,
     breakfastLogged,
@@ -1342,204 +1355,432 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* ── Header ── */}
+        {/* ── Header: avatar + hello, Guide sparkle + menu ── */}
         <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.greetingTitle}>
-              {getGreeting()} {firstName}
-            </Text>
-            <Text style={styles.greetingSub}>{headerSub}</Text>
-          </View>
           <TouchableOpacity
             activeOpacity={0.8}
-            style={styles.profileImageWrapper}
-            onPress={() => navigation.navigate('Profile')}
+            style={styles.avatarWrap}
+            onPress={() => navigation.navigate("Profile")}
+            accessibilityLabel="Open your profile"
           >
             {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
             ) : (
-              <View style={styles.profileFallback}>
-                <Text style={styles.profileFallbackText}>{avatarInitial}</Text>
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarFallbackText}>{avatarInitial}</Text>
               </View>
             )}
           </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.helloPill}
+            onPress={() => navigation.navigate("Profile")}
+          >
+            <Text style={styles.helloText}>Hello, {firstName}!</Text>
+            <Ionicons name="chevron-down" size={14} color={T.TEXT} />
+          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.headerIconBtn}
+            onPress={() => navigation.navigate("Guide")}
+            accessibilityLabel="Ask the Reversia Guide"
+          >
+            <Ionicons name="sparkles" size={20} color={T.SECONDARY} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.headerIconBtn}
+            onPress={() => navigation.navigate("Profile")}
+            accessibilityLabel="Menu"
+          >
+            <Ionicons name="menu" size={20} color={T.TEXT} />
+          </TouchableOpacity>
         </View>
+
+        {/* ── Headline ── */}
+        <Text style={styles.headline}>
+          <Text style={styles.headlineStrong}>Need help{"\n"}</Text>
+          eating well <Text style={styles.headlineStrong}>today?</Text>
+        </Text>
+
+        {/* ── Ask pill: tap to ask the Guide; camera/mic log a meal ── */}
+        <View style={styles.askPill}>
+          <TouchableOpacity
+            style={styles.askTextWrap}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("Guide")}
+            accessibilityLabel="Ask a question"
+          >
+            <Text style={styles.askText}>Ask a question</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.askIcon}
+            onPress={() => navigation.navigate("PhotoLog")}
+            accessibilityLabel="Log a meal by photo"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="camera-outline" size={20} color={T.TEXT} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.askIcon}
+            onPress={() => navigation.navigate("VoiceLog")}
+            accessibilityLabel="Log a meal by voice"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="mic-outline" size={20} color={T.TEXT} />
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Reversal Plan hero ── */}
+        <FadeIn delay={0}>
+          <PlanHeroCard
+            plan={plan}
+            onPress={() => navigation.navigate("Plan")}
+          />
+        </FadeIn>
+
+        {/* ── Quick tiles ── */}
+        <FadeIn delay={60}>
+          <QuickActions navigation={navigation} />
+        </FadeIn>
+
+        {/* ── Today's Tasks ── */}
+        <FadeIn delay={120}>
+          <View style={styles.tasksHeader}>
+            <Text style={styles.tasksTitle}>Today&apos;s Tasks</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Track")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewAll}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <TasksList storySteps={storySteps} navigation={navigation} />
+        </FadeIn>
+
+        {/* ── Glucose Trend Chart ── */}
+        <FadeIn delay={180}>
+          <GlucoseTrendChart
+            logs={logs}
+            colors={HOME_COLORS}
+            onPress={() => navigation.navigate("GlucoseLog")}
+          />
+        </FadeIn>
+
+        {/* ── Clarity Insight ── */}
+        <FadeIn delay={240}>
+          <ClarityCard clarity={clarity} />
+        </FadeIn>
 
         {/* Companion check-in — a quick, friendly entry point into the existing body-check flow. */}
-        <View style={styles.moodCard}>
-          <LinearGradient
-            pointerEvents="none"
-            colors={["#FFFFFF", "#F2ECFF"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
+        <FadeIn delay={300}>
+          <View style={styles.moodCard}>
+            <View style={styles.moodCardHeader}>
+              <View style={styles.moodCardCopy}>
+                <Text style={styles.moodEyebrow}>A MOMENT FOR YOU</Text>
+                <Text style={styles.moodTitle}>How are you feeling today?</Text>
+                <Text style={styles.moodSubtitle}>
+                  A quick check-in helps Reversia understand your day.
+                </Text>
+              </View>
+              <View style={styles.moodBuddy}>
+                <CompanionBuddy size={66} />
+              </View>
+            </View>
+            <View style={styles.moodChoices}>
+              {[
+                { key: "great", label: "Great" },
+                { key: "good", label: "Good" },
+                { key: "okay", label: "Okay" },
+                { key: "low", label: "Low" },
+                { key: "rough", label: "Rough" },
+              ].map((mood) => (
+                <TouchableOpacity
+                  key={mood.key}
+                  activeOpacity={0.78}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Feeling ${mood.label}. Continue to body check-in`}
+                  onPress={() =>
+                    navigation.navigate("BodyCheck", { initialMood: mood.key })
+                  }
+                  style={styles.moodChoice}
+                >
+                  <View style={styles.moodEmojiWrap}>
+                    <MoodFace mood={mood.key} size={44} />
+                  </View>
+                  <Text style={styles.moodChoiceLabel}>{mood.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {bodyCheckToday ? (
+              <View style={styles.moodDoneRow}>
+                <Ionicons name="checkmark-circle" size={15} color={T.PRIMARY} />
+                <Text style={styles.moodDoneText}>
+                  You&apos;ve checked in today — you can add another anytime.
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </FadeIn>
+
+        {/* ── Today's Focus ── */}
+        <FadeIn delay={360}>
+          <TodaysFocusCard
+            breakfastLogged={breakfastLogged}
+            latestMeal={latestMeal}
+            waterCount={waterCount}
+            bodyCheckToday={bodyCheckToday}
           />
-          <View style={styles.moodCardHeader}>
-            <View style={styles.moodCardCopy}>
-              <Text style={styles.moodEyebrow}>A MOMENT FOR YOU</Text>
-              <Text style={styles.moodTitle}>How are you feeling today?</Text>
-              <Text style={styles.moodSubtitle}>A quick check-in helps Reversia understand your day.</Text>
-            </View>
-            <View style={styles.moodBuddy}>
-              <CompanionBuddy size={66} />
-            </View>
-          </View>
-          <View style={styles.moodChoices}>
-            {[
-              { key: "great", label: "Great", emoji: "😄", tint: "#E8DFFF" },
-              { key: "good", label: "Good", emoji: "🙂", tint: "#EDE5FF" },
-              { key: "okay", label: "Okay", emoji: "😐", tint: "#F1EDFA" },
-              { key: "low", label: "Low", emoji: "😔", tint: "#E8EAFB" },
-              { key: "rough", label: "Rough", emoji: "😣", tint: "#F9E8F0" },
-            ].map((mood) => (
-              <TouchableOpacity
-                key={mood.key}
-                activeOpacity={0.78}
-                accessibilityRole="button"
-                accessibilityLabel={`Feeling ${mood.label}. Continue to body check-in`}
-                onPress={() => navigation.navigate("BodyCheck", { initialMood: mood.key })}
-                style={styles.moodChoice}
-              >
-                <View style={styles.moodEmojiWrap}><MoodFace mood={mood.key} size={44} /></View>
-                <Text style={styles.moodChoiceLabel}>{mood.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {bodyCheckToday ? (
-            <View style={styles.moodDoneRow}>
-              <Ionicons name="checkmark-circle" size={15} color="#6D55B5" />
-              <Text style={styles.moodDoneText}>You've checked in today — you can add another anytime.</Text>
-            </View>
-          ) : null}
-        </View>
+        </FadeIn>
 
-        {/* ① Story Progress */}
-        <TodaysStoryProgress
-          storySteps={storySteps}
-          storyCompleted={storyCompleted}
-        />
+        {/* ── Recent Wins ── */}
+        <FadeIn delay={420}>
+          <Text style={styles.sectionTitle}>Recent Wins</Text>
+          <RecentWins wins={wins} />
+        </FadeIn>
 
-        {/* ② Glucose Trend Chart */}
-        <GlucoseTrendChart
-          logs={logs}
-          colors={HOME_COLORS}
-          onPress={() => navigation.navigate("GlucoseLog")}
-        />
+        {/* ── Weekly Momentum ── */}
+        <FadeIn delay={480}>
+          <Text style={styles.sectionTitle}>Weekly Momentum</Text>
+          <WeeklyMomentum momentum={momentum} />
+        </FadeIn>
 
-        {/* ③ Next Best Action */}
-        <NextBestAction action={nextAction} navigation={navigation} />
-
-        {/* ③ Clarity Insight */}
-        <ClarityCard clarity={clarity} />
-
-        {/* ④ Today's Focus */}
-        <TodaysFocusCard
-          breakfastLogged={breakfastLogged}
-          latestMeal={latestMeal}
-          waterCount={waterCount}
-          bodyCheckToday={bodyCheckToday}
-        />
-
-        {/* ⑤ Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <QuickActions navigation={navigation} derived={derived} />
-
-        {/* ⑥ Recent Wins */}
-        <Text style={styles.sectionTitle}>Recent Wins</Text>
-        <RecentWins wins={wins} />
-
-        {/* ⑦ Weekly Momentum */}
-        <Text style={styles.sectionTitle}>Weekly Momentum</Text>
-        <WeeklyMomentum momentum={momentum} />
+        {/* ── From the Food Guide ── */}
+        <FadeIn delay={540}>
+          <FoodGuideStrip navigation={navigation} />
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F1FF" },
+  container: { flex: 1, backgroundColor: T.BG },
   scrollContent: { paddingBottom: 120 },
 
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
+    gap: 10,
+    paddingHorizontal: 20,
     paddingTop:
-      Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 20 : 20,
-    paddingBottom: 24,
+      Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 16 : 16,
+    paddingBottom: 20,
   },
-  headerText: { flex: 1 },
-  greetingTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#242033",
-    letterSpacing: -0.5,
-  },
-  greetingSub: {
-    fontSize: 13,
-    color: "#756D84",
-    marginTop: 5,
-    lineHeight: 18,
-  },
-  profileImageWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  avatarWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
+    borderWidth: 2,
+    borderColor: T.PRIMARY,
   },
-  profileImage: { width: "100%", height: "100%" },
-  profileFallback: {
+  avatarImage: { width: "100%", height: "100%" },
+  avatarFallback: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.PRIMARY_LIGHT,
   },
-  profileFallbackText: {
-    color: "#8055E8",
+  avatarFallbackText: {
+    fontFamily: FONTS.display,
+    color: T.SECONDARY,
     fontSize: 18,
     fontWeight: "700",
+  },
+  helloPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: T.SURFACE,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  helloText: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    fontWeight: "600",
+    color: T.TEXT,
+  },
+  headerSpacer: { flex: 1 },
+  headerIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: T.SURFACE,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headline: {
+    fontFamily: FONTS.display,
+    fontSize: 34,
+    fontWeight: "400",
+    color: T.TEXT,
+    lineHeight: 42,
+    letterSpacing: -0.6,
+    paddingHorizontal: 20,
+    marginBottom: 18,
+  },
+  headlineStrong: {
+    fontWeight: "800",
+  },
+
+  askPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: T.SURFACE,
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    borderRadius: 999,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingLeft: 18,
+    paddingRight: 8,
+    paddingVertical: 6,
+    gap: 4,
+  },
+  askTextWrap: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  askText: {
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    color: T.MUTED,
+  },
+  askIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  tasksHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    paddingHorizontal: 22,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  tasksTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 18,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  viewAll: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    fontWeight: "600",
+    color: T.MUTED,
   },
 
   moodCard: {
+    backgroundColor: T.SURFACE,
     marginHorizontal: 20,
-    marginBottom: 22,
+    marginBottom: 16,
     padding: 18,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     overflow: "hidden",
-    shadowColor: "#6E50B5",
-    shadowOffset: { width: 0, height: 7 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
   },
-  moodCardHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  moodCardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
   moodCardCopy: { flex: 1, paddingRight: 12 },
-  moodEyebrow: { color: "#8055E8", fontSize: 10, fontWeight: "800", letterSpacing: 1.25, marginBottom: 7 },
-  moodTitle: { color: "#242033", fontSize: 19, lineHeight: 25, fontWeight: "800", letterSpacing: -0.35 },
-  moodSubtitle: { color: "#756D84", fontSize: 12, lineHeight: 18, marginTop: 5, maxWidth: 280 },
-  moodBuddy: { width: 68, height: 68, alignItems: "center", justifyContent: "center", marginTop: -8, marginRight: -5 },
-  moodChoices: { flexDirection: "row", justifyContent: "space-between", marginTop: 18, gap: 5 },
+  moodEyebrow: {
+    fontFamily: FONTS.body,
+    color: T.SECONDARY,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.25,
+    marginBottom: 7,
+  },
+  moodTitle: {
+    fontFamily: FONTS.display,
+    color: T.TEXT,
+    fontSize: 19,
+    lineHeight: 25,
+    fontWeight: "800",
+    letterSpacing: -0.35,
+  },
+  moodSubtitle: {
+    fontFamily: FONTS.body,
+    color: T.MUTED,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 5,
+    maxWidth: 280,
+  },
+  moodBuddy: {
+    width: 68,
+    height: 68,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -8,
+    marginRight: -5,
+  },
+  moodChoices: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 18,
+    gap: 5,
+  },
   moodChoice: { flex: 1, alignItems: "center", gap: 7 },
-  moodEmojiWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(128,85,232,0.08)" },
-  moodEmoji: { fontSize: 23 },
-  moodChoiceLabel: { color: "#5D566B", fontSize: 10, fontWeight: "600" },
-  moodDoneRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#E8E1F5" },
-  moodDoneText: { color: "#6D55B5", fontSize: 11, flex: 1 },
+  moodEmojiWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
+    backgroundColor: T.PRIMARY_LIGHT,
+  },
+  moodChoiceLabel: {
+    fontFamily: FONTS.body,
+    color: T.MUTED,
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  moodDoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: T.BORDER,
+  },
+  moodDoneText: {
+    fontFamily: FONTS.body,
+    color: T.SECONDARY,
+    fontSize: 11,
+    flex: 1,
+  },
   sectionTitle: {
+    fontFamily: FONTS.display,
     fontSize: 18,
     fontWeight: "700",
-    color: "#242033",
-    paddingHorizontal: 26,
+    color: T.TEXT,
+    paddingHorizontal: 22,
     marginBottom: 14,
     marginTop: 4,
   },

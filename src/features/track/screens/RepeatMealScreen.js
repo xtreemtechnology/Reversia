@@ -13,11 +13,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import { useUserLogs } from "../../../hooks/useUserLogs";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 const MACRO_COLORS = {
-  Protein: "#8B75C8",
-  Carbs: "#8055E8",
-  Fat: "#A78BFA",
+  Protein: T.SECONDARY,
+  Carbs: T.PRIMARY,
+  Fat: T.AMBER,
 };
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Dinner", "Snack"];
@@ -91,7 +93,7 @@ export default function RepeatMealScreen({ navigation, route }) {
   if (!mealPreview) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+        <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
 
         <View style={styles.header}>
           <TouchableOpacity
@@ -99,7 +101,7 @@ export default function RepeatMealScreen({ navigation, route }) {
             style={styles.backBtn}
             activeOpacity={0.8}
           >
-            <Ionicons name="chevron-back" size={24} color="#242033" />
+            <Ionicons name="chevron-back" size={24} color={T.TEXT} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Repeat Meal</Text>
@@ -109,7 +111,12 @@ export default function RepeatMealScreen({ navigation, route }) {
         </View>
 
         <View style={styles.emptyStateWrap}>
-          <Ionicons name="restaurant-outline" size={48} color="#F0E9FF" style={styles.emptyIcon} />
+          <Ionicons
+            name="restaurant-outline"
+            size={48}
+            color={T.MUTED}
+            style={styles.emptyIcon}
+          />
           <Text style={styles.emptyTitle}>No meals logged yet</Text>
           <Text style={styles.emptyBody}>
             No meals logged yet — try logging your first meal
@@ -121,7 +128,7 @@ export default function RepeatMealScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -129,7 +136,7 @@ export default function RepeatMealScreen({ navigation, route }) {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={24} color="#242033" />
+          <Ionicons name="chevron-back" size={24} color={T.TEXT} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Repeat Meal</Text>
@@ -142,122 +149,134 @@ export default function RepeatMealScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryTop}>
-            <View style={styles.mealIconBadge}>
-              <Ionicons name="time" size={22} color="#8055E8" />
+        <FadeIn delay={0}>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryTop}>
+              <View style={styles.mealIconBadge}>
+                <Ionicons name="time" size={22} color={T.PRIMARY} />
+              </View>
+              <View style={styles.summaryTextWrap}>
+                <Text style={styles.mealName}>{mealPreview.name}</Text>
+                <Text style={styles.mealTime}>{mealPreview.time}</Text>
+              </View>
+              {mealPreview.calories != null && (
+                <View style={styles.calBadge}>
+                  <Text style={styles.calBadgeNum}>{mealPreview.calories}</Text>
+                  <Text style={styles.calBadgeLabel}>kcal</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.summaryTextWrap}>
-              <Text style={styles.mealName}>{mealPreview.name}</Text>
-              <Text style={styles.mealTime}>{mealPreview.time}</Text>
-            </View>
-            {mealPreview.calories != null && (
-            <View style={styles.calBadge}>
-              <Text style={styles.calBadgeNum}>{mealPreview.calories}</Text>
-              <Text style={styles.calBadgeLabel}>kcal</Text>
-            </View>
-            )}
-          </View>
 
-          <View style={styles.macroRow}>
-            {[
-              {
-                label: "Protein",
-                value: `${totalProtein}g`,
-                color: MACRO_COLORS.Protein,
-              },
-              {
-                label: "Carbs",
-                value: `${totalCarbs}g`,
-                color: MACRO_COLORS.Carbs,
-              },
-              { label: "Fat", value: `${totalFat}g`, color: MACRO_COLORS.Fat },
-            ].map((macro) => (
-              <View
-                key={macro.label}
-                style={[styles.macroPill, { borderColor: macro.color }]}
-              >
-                <Text style={[styles.macroPillVal, { color: macro.color }]}>
-                  {macro.value}
-                </Text>
-                <Text style={styles.macroPillLabel}>{macro.label}</Text>
+            <View style={styles.macroRow}>
+              {[
+                {
+                  label: "Protein",
+                  value: `${totalProtein}g`,
+                  color: MACRO_COLORS.Protein,
+                },
+                {
+                  label: "Carbs",
+                  value: `${totalCarbs}g`,
+                  color: MACRO_COLORS.Carbs,
+                },
+                {
+                  label: "Fat",
+                  value: `${totalFat}g`,
+                  color: MACRO_COLORS.Fat,
+                },
+              ].map((macro) => (
+                <View
+                  key={macro.label}
+                  style={[styles.macroPill, { borderColor: macro.color }]}
+                >
+                  <Text style={[styles.macroPillVal, { color: macro.color }]}>
+                    {macro.value}
+                  </Text>
+                  <Text style={styles.macroPillLabel}>{macro.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <Text style={styles.sectionTitle}>Included Items</Text>
+          <View style={styles.card}>
+            {mealPreview.items.map((item, index) => (
+              <View key={`${item.name}-${index}`}>
+                <View style={styles.foodRow}>
+                  <View style={styles.foodDot} />
+                  <View style={styles.foodTextWrap}>
+                    <Text style={styles.foodName}>{item.name}</Text>
+                    <Text style={styles.foodAmount}>{item.amount}</Text>
+                  </View>
+                  <Text style={styles.foodCal}>{item.cal} kcal</Text>
+                </View>
+                {index < mealPreview.items.length - 1 ? (
+                  <View style={styles.divider} />
+                ) : null}
               </View>
             ))}
           </View>
-        </View>
+        </FadeIn>
 
-        <Text style={styles.sectionTitle}>Included Items</Text>
-        <View style={styles.card}>
-          {mealPreview.items.map((item, index) => (
-            <View key={`${item.name}-${index}`}>
-              <View style={styles.foodRow}>
-                <View style={styles.foodDot} />
-                <View style={styles.foodTextWrap}>
-                  <Text style={styles.foodName}>{item.name}</Text>
-                  <Text style={styles.foodAmount}>{item.amount}</Text>
-                </View>
-                <Text style={styles.foodCal}>{item.cal} kcal</Text>
-              </View>
-              {index < mealPreview.items.length - 1 ? (
-                <View style={styles.divider} />
-              ) : null}
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Log As</Text>
-        <View style={styles.card}>
-          <View style={styles.mealTimeRow}>
-            {MEAL_TIMES.map((time) => {
-              const active = mealTime === time;
-              return (
-                <TouchableOpacity
-                  key={time}
-                  onPress={() => setMealTime(time)}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.mealTimeBtn,
-                    active && styles.mealTimeBtnActive,
-                  ]}
-                >
-                  <Text
+        <FadeIn delay={120}>
+          <Text style={styles.sectionTitle}>Log As</Text>
+          <View style={styles.card}>
+            <View style={styles.mealTimeRow}>
+              {MEAL_TIMES.map((time) => {
+                const active = mealTime === time;
+                return (
+                  <TouchableOpacity
+                    key={time}
+                    onPress={() => setMealTime(time)}
+                    activeOpacity={0.8}
                     style={[
-                      styles.mealTimeBtnText,
-                      active && styles.mealTimeBtnTextActive,
+                      styles.mealTimeBtn,
+                      active && styles.mealTimeBtnActive,
                     ]}
                   >
-                    {time}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.mealTimeBtnText,
+                        active && styles.mealTimeBtnTextActive,
+                      ]}
+                    >
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        </FadeIn>
 
-        <View style={styles.noteBox}>
-          <Ionicons
-            name="information-circle"
-            size={16}
-            color="#756D84"
-            style={styles.noteIcon}
-          />
-          <Text style={styles.noteText}>
-            This will be logged as today&apos;s {mealTime.toLowerCase()} with
-            the same portions.
-          </Text>
-        </View>
+        <FadeIn delay={180}>
+          <View style={styles.noteBox}>
+            <Ionicons
+              name="information-circle"
+              size={16}
+              color={T.MUTED}
+              style={styles.noteIcon}
+            />
+            <Text style={styles.noteText}>
+              This will be logged as today&apos;s {mealTime.toLowerCase()} with
+              the same portions.
+            </Text>
+          </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.saveBtn, logged && styles.saveBtnLogged]}
-          onPress={saveRepeatMeal}
-        >
-          {logged ? (
-            <Ionicons name="checkmark-circle" size={22} color="#F5F1FF" />
-          ) : (
-            <Text style={styles.saveBtnText}>Log This Meal Again</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.saveBtn, logged && styles.saveBtnLogged]}
+            onPress={saveRepeatMeal}
+          >
+            {logged ? (
+              <Ionicons name="checkmark-circle" size={22} color={T.WHITE} />
+            ) : (
+              <Text style={styles.saveBtnText}>Log This Meal Again</Text>
+            )}
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -266,7 +285,7 @@ export default function RepeatMealScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F1FF",
+    backgroundColor: T.BG,
   },
   scroll: {
     paddingBottom: 48,
@@ -283,7 +302,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -292,23 +311,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
+    fontFamily: FONTS.display,
     fontSize: 17,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
   },
   headerSub: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 2,
   },
   summaryCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   summaryTop: {
     flexDirection: "row",
@@ -319,7 +339,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(128,85,232,0.14)",
+    backgroundColor: "rgba(139,195,74,0.14)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -330,24 +350,25 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
   },
   mealTime: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 2,
   },
   calBadge: {
     alignItems: "center",
   },
   calBadgeNum: {
+    fontFamily: FONTS.display,
     fontSize: 22,
     fontWeight: "700",
-    color: "#8055E8",
+    color: T.PRIMARY,
   },
   calBadgeLabel: {
     fontSize: 10,
-    color: "#756D84",
+    color: T.MUTED,
   },
   macroRow: {
     flexDirection: "row",
@@ -359,7 +380,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     paddingVertical: 10,
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: T.PRIMARY_LIGHT,
   },
   macroPillVal: {
     fontSize: 15,
@@ -367,25 +388,25 @@ const styles = StyleSheet.create({
   },
   macroPillLabel: {
     fontSize: 10,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     paddingHorizontal: 26,
     marginBottom: 10,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 8,
     marginHorizontal: 24,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   foodRow: {
     flexDirection: "row",
@@ -396,7 +417,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     marginRight: 14,
   },
   foodTextWrap: {
@@ -405,21 +426,21 @@ const styles = StyleSheet.create({
   foodName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#242033",
+    color: T.TEXT,
   },
   foodAmount: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     marginTop: 2,
   },
   foodCal: {
     fontSize: 13,
-    color: "#756D84",
+    color: T.MUTED,
     fontWeight: "600",
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: T.BORDER,
   },
   mealTimeRow: {
     flexDirection: "row",
@@ -430,22 +451,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTimeBtnActive: {
-    backgroundColor: "rgba(128,85,232,0.14)",
-    borderColor: "#8055E8",
+    backgroundColor: "rgba(139,195,74,0.14)",
+    borderColor: T.PRIMARY,
   },
   mealTimeBtnText: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     fontWeight: "600",
   },
   mealTimeBtnTextActive: {
-    color: "#8055E8",
+    color: T.PRIMARY,
     fontWeight: "700",
   },
   noteBox: {
@@ -460,12 +481,12 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontSize: 13,
-    color: "#756D84",
+    color: T.MUTED,
     flex: 1,
     lineHeight: 18,
   },
   saveBtn: {
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     borderRadius: 20,
     height: 56,
     alignItems: "center",
@@ -473,11 +494,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
   },
   saveBtnLogged: {
-    backgroundColor: "#8B75C8",
+    backgroundColor: T.SECONDARY,
   },
   saveBtnText: {
+    fontFamily: FONTS.display,
     fontSize: 16,
     fontWeight: "700",
-    color: "#F5F1FF",
+    color: T.WHITE,
   },
 });

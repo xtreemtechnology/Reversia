@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 function countByCategory(logs = [], category) {
   return logs.filter((log) => log?.category === category).length;
@@ -91,12 +92,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     fontWeight: "600",
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     lineHeight: 20,
   },
   weekRow: {
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: 11,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   progressItems: {
     gap: 14,
@@ -139,12 +140,12 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
   },
   progressValue: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
   },
   progressTrack: {
     height: 8,

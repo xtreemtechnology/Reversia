@@ -18,6 +18,7 @@ import EmptyMainInsightCard from "./EmptyMainInsightCard";
 import EmptyRestRecoveryCard from "./EmptyRestRecoveryCard";
 import EmptyRecentPatterns from "./EmptyRecentPatterns";
 import EmptyWeeklyWellness from "./EmptyWeeklyWellness";
+import { FONTS } from "../../../theme/tokens";
 
 export default function EmptyStateHomeScreen({
   navigation,
@@ -188,12 +189,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   userName: {
     fontSize: 15,
     fontWeight: "500",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
   },
   bellBtn: {
     width: 40,
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
   },
   exploreLabel: {
     fontSize: 13,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   exploreLinks: {
     flexDirection: "row",
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   },
   exploreChipText: {
     fontSize: 14,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
   },
 });

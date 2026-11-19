@@ -15,6 +15,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
+import PressScale from "../../home/components/PressScale";
 import { startReversalPlan } from "../services/reversalService";
 import {
   HBA1C_OPTIONS,
@@ -74,11 +77,11 @@ export default function ReversalSetupScreen({ navigation }) {
     options.map((option) => {
       const active = selected === option.value;
       return (
-        <TouchableOpacity
+        <PressScale
           key={option.value}
           style={[styles.option, active && styles.optionActive]}
           onPress={() => onSelect(option.value)}
-          activeOpacity={0.7}
+          accessibilityLabel={option.label}
         >
           <Ionicons
             name={active ? "radio-button-on" : "radio-button-off"}
@@ -88,7 +91,7 @@ export default function ReversalSetupScreen({ navigation }) {
           <Text style={[styles.optionText, active && styles.optionTextActive]}>
             {option.label}
           </Text>
-        </TouchableOpacity>
+        </PressScale>
       );
     });
 
@@ -108,42 +111,54 @@ export default function ReversalSetupScreen({ navigation }) {
           <Text style={styles.backText}>Back to your plan</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Set up your plan</Text>
-        <Text style={styles.subtitle}>
-          Your 12 weeks start today. We use these numbers as your baseline so
-          you can see how far you have come.
-        </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your most recent HbA1c</Text>
-          {renderOptions(HBA1C_OPTIONS, hba1c, setHba1c)}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your fasting blood sugar</Text>
-          {renderOptions(FASTING_OPTIONS, fasting, setFasting)}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your main goal</Text>
-          {renderOptions(PRIMARY_GOAL_OPTIONS, primaryGoal, setPrimaryGoal)}
-        </View>
-
-        <View style={[styles.card, styles.noteCard]}>
-          <Text style={styles.cardTitle}>Before you start</Text>
-          <Text style={styles.body}>{SAFETY_NOTE}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.primaryButton, saving && styles.buttonDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.primaryButtonText}>
-            {saving ? "Saving…" : "Start my 12-week plan"}
+        <FadeIn delay={0}>
+          <Text style={styles.title}>Set up your plan</Text>
+          <Text style={styles.subtitle}>
+            Your 12 weeks start today. We use these numbers as your baseline so
+            you can see how far you have come.
           </Text>
-        </TouchableOpacity>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Your most recent HbA1c</Text>
+            {renderOptions(HBA1C_OPTIONS, hba1c, setHba1c)}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={120}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Your fasting blood sugar</Text>
+            {renderOptions(FASTING_OPTIONS, fasting, setFasting)}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Your main goal</Text>
+            {renderOptions(PRIMARY_GOAL_OPTIONS, primaryGoal, setPrimaryGoal)}
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <View style={[styles.card, styles.noteCard]}>
+            <Text style={styles.cardTitle}>Before you start</Text>
+            <Text style={styles.body}>{SAFETY_NOTE}</Text>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={300}>
+          <TouchableOpacity
+            style={[styles.primaryButton, saving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.primaryButtonText}>
+              {saving ? "Saving…" : "Start my 12-week plan"}
+            </Text>
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -169,37 +184,44 @@ function makeStyles(colors) {
       gap: 2,
     },
     backText: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       fontWeight: "600",
       color: colors.primary,
     },
     title: {
-      fontSize: 26,
-      fontWeight: "700",
+      fontFamily: FONTS.display,
+      fontSize: 30,
+      fontWeight: "800",
       color: colors.text,
+      letterSpacing: -0.5,
     },
     subtitle: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.mutedForeground,
       lineHeight: 21,
+      marginTop: 4,
     },
     card: {
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 24,
+      padding: 20,
       gap: 10,
     },
     noteCard: {
       backgroundColor: colors.muted,
     },
     cardTitle: {
+      fontFamily: FONTS.display,
       fontSize: 17,
       fontWeight: "700",
       color: colors.text,
     },
     body: {
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
       lineHeight: 21,
@@ -210,9 +232,9 @@ function makeStyles(colors) {
       gap: 10,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
+      borderRadius: 20,
+      paddingVertical: 13,
+      paddingHorizontal: 14,
     },
     optionActive: {
       borderColor: colors.primary,
@@ -220,6 +242,7 @@ function makeStyles(colors) {
     },
     optionText: {
       flex: 1,
+      fontFamily: FONTS.body,
       fontSize: 15,
       color: colors.text,
       lineHeight: 21,
@@ -230,8 +253,8 @@ function makeStyles(colors) {
     },
     primaryButton: {
       backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 14,
+      borderRadius: 999,
+      paddingVertical: 15,
       paddingHorizontal: 16,
       alignItems: "center",
     },
@@ -239,6 +262,7 @@ function makeStyles(colors) {
       opacity: 0.6,
     },
     primaryButtonText: {
+      fontFamily: FONTS.display,
       color: colors.primaryForeground,
       fontSize: 16,
       fontWeight: "700",

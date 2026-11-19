@@ -1,9 +1,16 @@
+/* eslint-disable react-native/no-inline-styles */
 // screens/profile/components/ProfilePreferencesCard.jsx
+//
+// Notifications toggle plus the appearance choice. The old binary
+// dark/light switch fought the fresh default (it sent every screen to
+// the old lavender/dark palettes), so it is now an explicit choice:
+// Fresh (the soft-green default) or Bold (the dark Phase 1 look).
 
 import React from "react";
-import { View, Text, Switch, StyleSheet } from "react-native";
+import { View, Text, Switch, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 function ToggleRow({
   iconName,
@@ -31,11 +38,50 @@ function ToggleRow({
   );
 }
 
+function ThemeRow({ iconName, label, hint, selected, onPress, colors }) {
+  return (
+    <TouchableOpacity
+      style={styles.themeRow}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} theme`}
+    >
+      <View
+        style={[styles.iconWrap, { backgroundColor: colors.primary + "22" }]}
+      >
+        <Ionicons name={iconName} size={18} color={colors.primary} />
+      </View>
+      <View style={styles.themeTextCol}>
+        <Text style={[styles.toggleLabel, { color: colors.foreground }]}>
+          {label}
+        </Text>
+        <Text style={[styles.themeHint, { color: colors.mutedForeground }]}>
+          {hint}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.radio,
+          {
+            borderColor: selected ? colors.primary : colors.border,
+            backgroundColor: selected ? colors.primary : "transparent",
+          },
+        ]}
+      >
+        {selected ? (
+          <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+        ) : null}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function ProfilePreferencesCard({
   notificationsEnabled,
   setNotificationsEnabled,
-  isDarkMode,
-  onToggleDarkMode,
+  currentTheme,
+  onSelectTheme,
 }) {
   const { colors } = useTheme();
 
@@ -51,7 +97,6 @@ export default function ProfilePreferencesCard({
       </Text>
 
       <ToggleRow
-        // solar:bell-bing-bold-duotone → notifications
         iconName="notifications"
         iconColor={colors.primary}
         label="Push Notifications"
@@ -59,13 +104,24 @@ export default function ProfilePreferencesCard({
         onValueChange={setNotificationsEnabled}
         colors={colors}
       />
-      <ToggleRow
-        // solar:moon-sleep-bold-duotone → moon
+
+      <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+        APPEARANCE
+      </Text>
+      <ThemeRow
+        iconName="sunny"
+        label="Fresh"
+        hint="Soft green, light — the default look"
+        selected={currentTheme === "fresh"}
+        onPress={() => onSelectTheme("fresh")}
+        colors={colors}
+      />
+      <ThemeRow
         iconName="moon"
-        iconColor={colors.mutedForeground}
-        label="Dark Mode"
-        value={isDarkMode}
-        onValueChange={onToggleDarkMode}
+        label="Bold"
+        hint="Dark green-charcoal, lime accent"
+        selected={currentTheme === "bold"}
+        onPress={() => onSelectTheme("bold")}
         colors={colors}
       />
     </View>
@@ -82,7 +138,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     marginBottom: 12,
   },
   toggleRow: {
@@ -102,5 +158,33 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: "500",
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    marginTop: 12,
+    marginBottom: 2,
+  },
+  themeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 10,
+  },
+  themeTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  themeHint: {
+    fontSize: 12,
+  },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

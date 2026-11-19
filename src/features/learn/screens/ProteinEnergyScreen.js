@@ -12,6 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../../home/components/FadeIn";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 
 function SectionLabel({ text }) {
@@ -20,10 +22,11 @@ function SectionLabel({ text }) {
 
 const sl = StyleSheet.create({
   t: {
+    fontFamily: FONTS.body,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1.4,
-    color: "#756D84",
+    color: T.MUTED,
     marginBottom: 10,
   },
 });
@@ -45,37 +48,37 @@ export default function ProteinEnergyScreen({ navigation }) {
       : "No breakfast logs yet — add one today to start the pattern.";
 
   const foods = [
-    { name: "Boiled Eggs", protein: "13g", per: "2 eggs", color: "#8055E8" },
-    { name: "Greek Yoghurt", protein: "17g", per: "1 cup", color: "#8B75C8" },
+    { name: "Boiled Eggs", protein: "13g", per: "2 eggs", color: T.PRIMARY },
+    { name: "Greek Yoghurt", protein: "17g", per: "1 cup", color: T.SECONDARY },
     { name: "Akara", protein: "10g", per: "3 pieces", color: "#CE6C60" },
-    { name: "Moi Moi", protein: "8g", per: "1 wrap", color: "#A78BFA" },
-    { name: "Groundnuts", protein: "7g", per: "handful", color: "#8055E8" },
-    { name: "Sardines", protein: "20g", per: "1 tin", color: "#8B75C8" },
+    { name: "Moi Moi", protein: "8g", per: "1 wrap", color: T.PRIMARY },
+    { name: "Groundnuts", protein: "7g", per: "handful", color: T.PRIMARY },
+    { name: "Sardines", protein: "20g", per: "1 tin", color: T.SECONDARY },
   ];
 
   const timeline = [
     {
       time: "7:30 AM",
       label: "Breakfast with protein",
-      color: "#8B75C8",
+      color: T.SECONDARY,
       desc: "Energy curve starts flat and stable",
     },
     {
       time: "9:30 AM",
       label: "Steady energy window",
-      color: "#8055E8",
+      color: T.PRIMARY,
       desc: "No early cravings, focus is easier",
     },
     {
       time: "12:00 PM",
       label: "Moderate hunger by noon",
-      color: "#A78BFA",
+      color: T.PRIMARY,
       desc: "Appetite regulated — less likely to overeat",
     },
     {
       time: "3:00 PM",
       label: "Afternoon energy maintained",
-      color: "#8B75C8",
+      color: T.SECONDARY,
       desc: "No crash compared to carb-only breakfast",
     },
   ];
@@ -110,187 +113,202 @@ export default function ProteinEnergyScreen({ navigation }) {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        <View
-          style={[
-            styles.heroCard,
-            {
-              backgroundColor: "rgba(128,85,232,0.10)",
-              borderColor: "rgba(128,85,232,0.18)",
-            },
-          ]}
-        >
+        <FadeIn delay={0}>
           <View
             style={[
-              styles.heroIcon,
-              { backgroundColor: "rgba(128,85,232,0.18)" },
-            ]}
-          >
-            <Ionicons name="barbell-outline" size={28} color="#8B75C8" />
-          </View>
-          <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            Protein & Sustained Energy
-          </Text>
-          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
-            Why a protein anchor at breakfast changes your entire afternoon.
-          </Text>
-          <View
-            style={[
-              styles.statBox,
+              styles.heroCard,
               {
-                backgroundColor: "rgba(128,85,232,0.08)",
-                borderColor: "rgba(128,85,232,0.18)",
+                backgroundColor: "rgba(139,195,74,0.10)",
+                borderColor: "rgba(139,195,74,0.18)",
               },
             ]}
           >
-            <Ionicons
-              name="person-outline"
-              size={13}
-              color="#8B75C8"
-              style={{ marginRight: 7 }}
-            />
-            <Text style={[styles.statText, { color: "#8B75C8" }]}>
-              {bfStat}
+            <View
+              style={[
+                styles.heroIcon,
+                { backgroundColor: "rgba(139,195,74,0.18)" },
+              ]}
+            >
+              <Ionicons name="barbell-outline" size={28} color={T.SECONDARY} />
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.foreground }]}>
+              Protein & Sustained Energy
+            </Text>
+            <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
+              Why a protein anchor at breakfast changes your entire afternoon.
+            </Text>
+            <View
+              style={[
+                styles.statBox,
+                {
+                  backgroundColor: "rgba(139,195,74,0.08)",
+                  borderColor: "rgba(139,195,74,0.18)",
+                },
+              ]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={13}
+                color={T.SECONDARY}
+                style={{ marginRight: 7 }}
+              />
+              <Text style={[styles.statText, { color: T.SECONDARY }]}>
+                {bfStat}
+              </Text>
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.block}>
+            <SectionLabel text="The Science" />
+            <Text style={[styles.bodyText, { color: colors.foreground }]}>
+              Protein digests more slowly than carbohydrates. When you include
+              it in your first meal, it creates what nutritionists call a{" "}
+              <Text style={{ color: T.SECONDARY, fontWeight: "700" }}>
+                "protein anchor"
+              </Text>{" "}
+              — a stable base that prevents the blood sugar spike-and-crash
+              pattern that causes afternoon fatigue.
+            </Text>
+            <Text style={[styles.bodyText, { color: colors.mutedForeground }]}>
+              Without this anchor, a carb-heavy breakfast causes a rapid rise in
+              blood sugar followed by a drop — which often shows up as sugar
+              cravings and low energy by 2–4 PM.
             </Text>
           </View>
-        </View>
+        </FadeIn>
 
-        <View style={styles.block}>
-          <SectionLabel text="The Science" />
-          <Text style={[styles.bodyText, { color: colors.foreground }]}>
-            Protein digests more slowly than carbohydrates. When you include it
-            in your first meal, it creates what nutritionists call a{" "}
-            <Text style={{ color: "#8B75C8", fontWeight: "700" }}>
-              "protein anchor"
-            </Text>{" "}
-            — a stable base that prevents the blood sugar spike-and-crash
-            pattern that causes afternoon fatigue.
-          </Text>
-          <Text style={[styles.bodyText, { color: colors.mutedForeground }]}>
-            Without this anchor, a carb-heavy breakfast causes a rapid rise in
-            blood sugar followed by a drop — which often shows up as sugar
-            cravings and low energy by 2–4 PM.
-          </Text>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="Your Day With a Protein Breakfast" />
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            {timeline.map((item, i) => (
-              <View key={i} style={styles.tlRow}>
-                <View style={styles.tlSpine}>
-                  <View
-                    style={[styles.tlDot, { backgroundColor: item.color }]}
-                  />
-                  {i < timeline.length - 1 && (
+        <FadeIn delay={120}>
+          <View style={styles.block}>
+            <SectionLabel text="Your Day With a Protein Breakfast" />
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              {timeline.map((item, i) => (
+                <View key={i} style={styles.tlRow}>
+                  <View style={styles.tlSpine}>
                     <View
-                      style={[
-                        styles.tlLine,
-                        { backgroundColor: colors.border },
-                      ]}
+                      style={[styles.tlDot, { backgroundColor: item.color }]}
                     />
-                  )}
-                </View>
-                <View style={styles.tlContent}>
-                  <View style={styles.tlHeader}>
-                    <Text style={[styles.tlTime, { color: item.color }]}>
-                      {item.time}
-                    </Text>
+                    {i < timeline.length - 1 && (
+                      <View
+                        style={[
+                          styles.tlLine,
+                          { backgroundColor: colors.border },
+                        ]}
+                      />
+                    )}
+                  </View>
+                  <View style={styles.tlContent}>
+                    <View style={styles.tlHeader}>
+                      <Text style={[styles.tlTime, { color: item.color }]}>
+                        {item.time}
+                      </Text>
+                      <Text
+                        style={[styles.tlLabel, { color: colors.foreground }]}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
                     <Text
-                      style={[styles.tlLabel, { color: colors.foreground }]}
+                      style={[styles.tlDesc, { color: colors.mutedForeground }]}
                     >
-                      {item.label}
+                      {item.desc}
                     </Text>
                   </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <View style={styles.block}>
+            <SectionLabel text="Easy Protein Sources" />
+            <View style={styles.foodsGrid}>
+              {foods.map((f, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.foodCard,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[styles.foodDot, { backgroundColor: f.color }]}
+                  />
+                  <Text style={[styles.foodName, { color: colors.foreground }]}>
+                    {f.name}
+                  </Text>
+                  <Text style={[styles.foodProtein, { color: f.color }]}>
+                    {f.protein}
+                  </Text>
                   <Text
-                    style={[styles.tlDesc, { color: colors.mutedForeground }]}
+                    style={[styles.foodPer, { color: colors.mutedForeground }]}
                   >
-                    {item.desc}
+                    {f.per}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <View style={styles.block}>
+            <View style={[styles.whyBox, { backgroundColor: T.PRIMARY_LIGHT }]}>
+              <View style={styles.whyRow}>
+                <Ionicons
+                  name="information-circle"
+                  size={16}
+                  color={colors.primary}
+                  style={{ marginRight: 9, marginTop: 1 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.whyTitle, { color: colors.foreground }]}>
+                    Why this matters for you
+                  </Text>
+                  <Text
+                    style={[styles.whyBody, { color: colors.mutedForeground }]}
+                  >
+                    Reversia tracks your body check-in moods after meals. Once
+                    you have enough breakfast logs, it can compare protein vs
+                    no-protein days and show you the actual difference in how
+                    you felt.
                   </Text>
                 </View>
               </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.block}>
-          <SectionLabel text="Easy Protein Sources" />
-          <View style={styles.foodsGrid}>
-            {foods.map((f, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.foodCard,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                ]}
-              >
-                <View style={[styles.foodDot, { backgroundColor: f.color }]} />
-                <Text style={[styles.foodName, { color: colors.foreground }]}>
-                  {f.name}
-                </Text>
-                <Text style={[styles.foodProtein, { color: f.color }]}>
-                  {f.protein}
-                </Text>
-                <Text
-                  style={[styles.foodPer, { color: colors.mutedForeground }]}
-                >
-                  {f.per}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.block}>
-          <View
-            style={[styles.whyBox, { backgroundColor: "rgba(33,22,19,0.42)" }]}
-          >
-            <View style={styles.whyRow}>
-              <Ionicons
-                name="information-circle"
-                size={16}
-                color={colors.primary}
-                style={{ marginRight: 9, marginTop: 1 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.whyTitle, { color: colors.foreground }]}>
-                  Why this matters for you
-                </Text>
-                <Text
-                  style={[styles.whyBody, { color: colors.mutedForeground }]}
-                >
-                  Reversia tracks your body check-in moods after meals. Once you
-                  have enough breakfast logs, it can compare protein vs
-                  no-protein days and show you the actual difference in how you
-                  felt.
-                </Text>
-              </View>
             </View>
           </View>
-        </View>
+        </FadeIn>
 
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => {
-            setApplied(true);
-            navigation?.navigate("LogMeal");
-          }}
-          style={[styles.ctaBtn, applied && styles.ctaBtnDone]}
-        >
-          <Ionicons
-            name={applied ? "checkmark-circle" : "restaurant-outline"}
-            size={18}
-            color="#F5F1FF"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.ctaBtnText}>
-            {applied ? "Meal logged!" : "Log today's breakfast"}
-          </Text>
-        </TouchableOpacity>
+        <FadeIn delay={300}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => {
+              setApplied(true);
+              navigation?.navigate("LogMeal");
+            }}
+            style={[styles.ctaBtn, applied && styles.ctaBtnDone]}
+          >
+            <Ionicons
+              name={applied ? "checkmark-circle" : "restaurant-outline"}
+              size={18}
+              color={T.WHITE}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.ctaBtnText}>
+              {applied ? "Meal logged!" : "Log today's breakfast"}
+            </Text>
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
@@ -313,9 +331,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: T.BORDER,
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
+  headerTitle: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   headerSub: { fontSize: 12, marginTop: 2 },
   heroCard: {
     borderRadius: 24,
@@ -332,7 +352,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heroTitle: { fontSize: 22, fontWeight: "700", lineHeight: 28 },
+  heroTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 22,
+    fontWeight: "700",
+    lineHeight: 28,
+  },
   heroSub: { fontSize: 14, lineHeight: 20 },
   statBox: {
     flexDirection: "row",
@@ -344,7 +369,12 @@ const styles = StyleSheet.create({
   },
   statText: { fontSize: 12, fontWeight: "600", flex: 1 },
   block: { paddingHorizontal: 24, marginBottom: 22 },
-  bodyText: { fontSize: 14, lineHeight: 22, marginBottom: 10 },
+  bodyText: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 10,
+  },
   card: {
     borderRadius: 20,
     borderWidth: 1,
@@ -375,21 +405,21 @@ const styles = StyleSheet.create({
   },
   foodDot: { width: 6, height: 6, borderRadius: 3 },
   foodName: { fontSize: 13, fontWeight: "700" },
-  foodProtein: { fontSize: 17, fontWeight: "700" },
+  foodProtein: { fontFamily: FONTS.display, fontSize: 17, fontWeight: "700" },
   foodPer: { fontSize: 11 },
   whyBox: { borderRadius: 16, padding: 14 },
   whyRow: { flexDirection: "row" },
   whyTitle: { fontSize: 13, fontWeight: "600", marginBottom: 5 },
   whyBody: { fontSize: 13, lineHeight: 19 },
   ctaBtn: {
-    backgroundColor: "#8B75C8",
-    borderRadius: 20,
+    backgroundColor: T.PRIMARY,
+    borderRadius: 999,
     height: 56,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 24,
   },
-  ctaBtnDone: { backgroundColor: "#8055E8" },
-  ctaBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
+  ctaBtnDone: { backgroundColor: T.SECONDARY },
+  ctaBtnText: { fontSize: 16, fontWeight: "700", color: T.WHITE },
 });

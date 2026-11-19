@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 
 function formatSleep(logs, userData) {
   const latestSleep = (logs || []).find((log) => log?.category === "sleep");
@@ -105,13 +106,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     marginBottom: 2,
   },
   body: {
     fontSize: 14,
     lineHeight: 21,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
   },
   placeholder: {
     marginTop: 10,
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 12,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     fontWeight: "500",
   },
 });

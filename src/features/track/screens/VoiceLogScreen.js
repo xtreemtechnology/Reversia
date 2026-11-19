@@ -19,6 +19,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import { transcribeAudio } from "../services/aiService";
+import { T, FONTS } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
@@ -77,8 +79,8 @@ const wave = StyleSheet.create({
     borderRadius: 2,
     marginHorizontal: 3,
   },
-  active: { backgroundColor: "#8055E8" },
-  inactive: { backgroundColor: "#F0E9FF" },
+  active: { backgroundColor: T.PRIMARY },
+  inactive: { backgroundColor: T.PRIMARY_LIGHT },
 });
 
 export default function VoiceLogScreen({ navigation, route }) {
@@ -189,14 +191,14 @@ export default function VoiceLogScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F1FF" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
 
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
           style={styles.backBtn}
         >
-          <Ionicons name="chevron-back" size={24} color="#242033" />
+          <Ionicons name="chevron-back" size={24} color={T.TEXT} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Voice Log</Text>
@@ -209,194 +211,207 @@ export default function VoiceLogScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <View style={styles.iconBadge}>
-              <Ionicons name="restaurant-outline" size={15} color="#756D84" />
-            </View>
-            <Text style={styles.cardLabel}>Meal Type</Text>
-          </View>
-          <View style={styles.mealTypeRow}>
-            {MEAL_TYPES.map((t) => {
-              const active = mealType === t;
-              return (
-                <TouchableOpacity
-                  key={t}
-                  onPress={() => setMealType(t)}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.mealTypeBtn,
-                    active && styles.mealTypeBtnActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.mealTypeBtnText,
-                      active && styles.mealTypeBtnTextActive,
-                    ]}
-                  >
-                    {t}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.recordCard}>
-          <Text style={styles.recordStateLabel}>
-            {transcribing
-              ? "Analysing speech..."
-              : isRecording
-              ? "Listening..."
-              : hasRecorded
-              ? "Recording complete"
-              : "Tap the mic to start"}
-          </Text>
-
-          {transcribing ? (
-            <ActivityIndicator
-              size="large"
-              color="#8055E8"
-              style={{ marginVertical: 22 }}
-            />
-          ) : (
-            <View style={styles.waveRow}>
-              {BARS.map((d, i) => (
-                <WaveBar key={i} delay={d} isRecording={isRecording} />
-              ))}
-            </View>
-          )}
-
-          <Text
-            style={[styles.timerText, isRecording && styles.timerTextActive]}
-          >
-            {formatTime(seconds)}
-          </Text>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={isRecording ? stopRecording : startRecording}
-            disabled={transcribing}
-            style={[
-              styles.micBtn,
-              isRecording && styles.micBtnActive,
-              transcribing && { backgroundColor: "#F0E9FF" },
-            ]}
-          >
-            {transcribing ? (
-              <ActivityIndicator size="small" color="#8055E8" />
-            ) : isRecording ? (
-              <Ionicons name="stop" size={28} color="#F5F1FF" />
-            ) : (
-              <Ionicons
-                name="mic"
-                size={28}
-                color={hasRecorded ? "#242033" : "#F5F1FF"}
-              />
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.micHint}>
-            {transcribing
-              ? "Processing audio..."
-              : isRecording
-              ? "Tap to stop"
-              : hasRecorded
-              ? "Tap to re-record"
-              : "Hold to speak, release to stop"}
-          </Text>
-        </View>
-
-        {hasRecorded && (
-          <View style={styles.transcriptCard}>
-            <View style={styles.cardLabelRow}>
-              <View style={[styles.iconBadge, styles.iconBadgeMuted]}>
-                <Ionicons name="text-outline" size={15} color="#8B75C8" />
-              </View>
-              <Text style={styles.cardLabel}>What I heard</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setTranscript("");
-                  setHasRecorded(false);
-                }}
-              >
-                <Text style={styles.clearText}>Clear</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.transcriptText}>{transcript}</Text>
-
-            <View style={styles.transcriptHint}>
-              <Ionicons
-                name="information-circle"
-                size={14}
-                color="#756D84"
-                style={styles.iconMR7}
-              />
-              <Text style={styles.transcriptHintText}>
-                Reversia will analyse this and link it to your health story.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {!hasRecorded && !isRecording && (
+        <FadeIn delay={0}>
           <View style={styles.card}>
             <View style={styles.cardLabelRow}>
               <View style={styles.iconBadge}>
-                <Ionicons name="bulb-outline" size={15} color="#756D84" />
+                <Ionicons name="restaurant-outline" size={15} color={T.MUTED} />
               </View>
-              <Text style={styles.cardLabel}>Try saying...</Text>
+              <Text style={styles.cardLabel}>Meal Type</Text>
             </View>
-            {EXAMPLE_PROMPTS.map((p, i) => (
-              <TouchableOpacity
-                key={i}
-                activeOpacity={0.7}
-                onPress={() => {
-                  setTranscript(p);
-                  setHasRecorded(true);
-                }}
-                style={styles.promptRow}
-              >
-                <View style={styles.promptDot} />
-                <Text style={styles.promptText}>{p}</Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.mealTypeRow}>
+              {MEAL_TYPES.map((t) => {
+                const active = mealType === t;
+                return (
+                  <TouchableOpacity
+                    key={t}
+                    onPress={() => setMealType(t)}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.mealTypeBtn,
+                      active && styles.mealTypeBtnActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.mealTypeBtnText,
+                        active && styles.mealTypeBtnTextActive,
+                      ]}
+                    >
+                      {t}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
+        </FadeIn>
+
+        <FadeIn delay={60}>
+          <View style={styles.recordCard}>
+            <Text style={styles.recordStateLabel}>
+              {transcribing
+                ? "Analysing speech..."
+                : isRecording
+                ? "Listening..."
+                : hasRecorded
+                ? "Recording complete"
+                : "Tap the mic to start"}
+            </Text>
+
+            {transcribing ? (
+              <ActivityIndicator
+                size="large"
+                color={T.PRIMARY}
+                style={{ marginVertical: 22 }}
+              />
+            ) : (
+              <View style={styles.waveRow}>
+                {BARS.map((d, i) => (
+                  <WaveBar key={i} delay={d} isRecording={isRecording} />
+                ))}
+              </View>
+            )}
+
+            <Text
+              style={[styles.timerText, isRecording && styles.timerTextActive]}
+            >
+              {formatTime(seconds)}
+            </Text>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={isRecording ? stopRecording : startRecording}
+              disabled={transcribing}
+              style={[
+                styles.micBtn,
+                isRecording && styles.micBtnActive,
+                transcribing && { backgroundColor: T.PRIMARY_LIGHT },
+              ]}
+            >
+              {transcribing ? (
+                <ActivityIndicator size="small" color={T.PRIMARY} />
+              ) : isRecording ? (
+                <Ionicons name="stop" size={28} color={T.WHITE} />
+              ) : (
+                <Ionicons
+                  name="mic"
+                  size={28}
+                  color={hasRecorded ? T.TEXT : T.WHITE}
+                />
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.micHint}>
+              {transcribing
+                ? "Processing audio..."
+                : isRecording
+                ? "Tap to stop"
+                : hasRecorded
+                ? "Tap to re-record"
+                : "Hold to speak, release to stop"}
+            </Text>
+          </View>
+        </FadeIn>
+
+        {hasRecorded && (
+          <FadeIn delay={120}>
+            <View style={styles.transcriptCard}>
+              <View style={styles.cardLabelRow}>
+                <View style={[styles.iconBadge, styles.iconBadgeMuted]}>
+                  <Ionicons name="text-outline" size={15} color={T.SECONDARY} />
+                </View>
+                <Text style={styles.cardLabel}>What I heard</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setTranscript("");
+                    setHasRecorded(false);
+                  }}
+                >
+                  <Text style={styles.clearText}>Clear</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.transcriptText}>{transcript}</Text>
+
+              <View style={styles.transcriptHint}>
+                <Ionicons
+                  name="information-circle"
+                  size={14}
+                  color={T.MUTED}
+                  style={styles.iconMR7}
+                />
+                <Text style={styles.transcriptHintText}>
+                  Reversia will analyse this and link it to your health story.
+                </Text>
+              </View>
+            </View>
+          </FadeIn>
         )}
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
-          disabled={!canSave}
-          onPress={() =>
-            navigation?.navigate("MealEntry", {
-              mealType,
-              mealName: transcript,
-              notes: transcript,
-              source: "voice_log",
-            })
-          }
-        >
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={18}
-            color={canSave ? "#F5F1FF" : "#756D84"}
-            style={styles.iconMR8}
-          />
-          <Text
-            style={[styles.saveBtnText, !canSave && styles.saveBtnTextDisabled]}
+        {!hasRecorded && !isRecording && (
+          <FadeIn delay={120}>
+            <View style={styles.card}>
+              <View style={styles.cardLabelRow}>
+                <View style={styles.iconBadge}>
+                  <Ionicons name="bulb-outline" size={15} color={T.MUTED} />
+                </View>
+                <Text style={styles.cardLabel}>Try saying...</Text>
+              </View>
+              {EXAMPLE_PROMPTS.map((p, i) => (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setTranscript(p);
+                    setHasRecorded(true);
+                  }}
+                  style={styles.promptRow}
+                >
+                  <View style={styles.promptDot} />
+                  <Text style={styles.promptText}>{p}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </FadeIn>
+        )}
+
+        <FadeIn delay={180}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
+            disabled={!canSave}
+            onPress={() =>
+              navigation?.navigate("MealEntry", {
+                mealType,
+                mealName: transcript,
+                notes: transcript,
+                source: "voice_log",
+              })
+            }
           >
-            {canSave ? `Save ${mealType}` : "Record your meal first"}
-          </Text>
-        </TouchableOpacity>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={18}
+              color={canSave ? T.WHITE : T.MUTED}
+              style={styles.iconMR8}
+            />
+            <Text
+              style={[
+                styles.saveBtnText,
+                !canSave && styles.saveBtnTextDisabled,
+              ]}
+            >
+              {canSave ? `Save ${mealType}` : "Record your meal first"}
+            </Text>
+          </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F1FF" },
+  container: { flex: 1, backgroundColor: T.BG },
   scroll: { paddingBottom: 48 },
 
   header: {
@@ -411,23 +426,28 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     alignItems: "center",
     justifyContent: "center",
   },
   headerCenter: { flex: 1, alignItems: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#242033" },
-  headerSub: { fontSize: 12, color: "#756D84", marginTop: 2 },
+  headerTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 17,
+    fontWeight: "700",
+    color: T.TEXT,
+  },
+  headerSub: { fontSize: 12, color: T.MUTED, marginTop: 2 },
 
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 16,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
   },
   cardLabelRow: {
     flexDirection: "row",
@@ -438,45 +458,46 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "rgba(154,132,120,0.15)",
+    backgroundColor: "rgba(139,195,74,0.14)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
-  cardLabel: { fontSize: 14, fontWeight: "700", color: "#242033", flex: 1 },
-  clearText: { fontSize: 12, color: "#CE6C60", fontWeight: "600" },
+  cardLabel: { fontSize: 14, fontWeight: "700", color: T.TEXT, flex: 1 },
+  iconBadgeMuted: { backgroundColor: T.PRIMARY_LIGHT },
+  clearText: { fontSize: 12, color: T.DANGER, fontWeight: "600" },
 
   mealTypeRow: { flexDirection: "row", gap: 8 },
   mealTypeBtn: {
     flex: 1,
     paddingVertical: 9,
     borderRadius: 14,
-    backgroundColor: "#F0E9FF",
+    backgroundColor: T.PRIMARY_LIGHT,
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   mealTypeBtnActive: {
-    backgroundColor: "rgba(128,85,232,0.14)",
-    borderColor: "#8055E8",
+    backgroundColor: "rgba(139,195,74,0.14)",
+    borderColor: T.PRIMARY,
   },
-  mealTypeBtnText: { fontSize: 12, color: "#756D84", fontWeight: "600" },
-  mealTypeBtnTextActive: { color: "#8055E8", fontWeight: "700" },
+  mealTypeBtnText: { fontSize: 12, color: T.MUTED, fontWeight: "600" },
+  mealTypeBtnTextActive: { color: T.PRIMARY, fontWeight: "700" },
 
   recordCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 28,
     padding: 28,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#E8E1F5",
+    borderColor: T.BORDER,
     alignItems: "center",
   },
   recordStateLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#756D84",
+    color: T.MUTED,
     marginBottom: 24,
     letterSpacing: 0.3,
   },
@@ -487,56 +508,56 @@ const styles = StyleSheet.create({
     height: 44,
   },
   timerText: {
+    fontFamily: FONTS.display,
     fontSize: 28,
     fontWeight: "700",
-    color: "#242033",
+    color: T.TEXT,
     marginBottom: 28,
     letterSpacing: 1,
   },
-  timerTextActive: { color: "#8055E8" },
+  timerTextActive: { color: T.PRIMARY },
   micBtn: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
-    shadowColor: "#8055E8",
-    iconBadgeMuted: { backgroundColor: "rgba(128,85,232,0.12)" },
+    shadowColor: T.PRIMARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
-  micBtnActive: { backgroundColor: "#CE6C60" },
-  micHint: { fontSize: 12, color: "#756D84" },
+  micBtnActive: { backgroundColor: T.DANGER },
+  micHint: { fontSize: 12, color: T.MUTED },
 
   transcriptCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: T.SURFACE,
     borderRadius: 24,
     padding: 20,
     marginHorizontal: 24,
     marginBottom: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(128,85,232,0.22)",
+    borderColor: "rgba(139,195,74,0.22)",
   },
   transcriptText: {
     fontSize: 15,
-    color: "#242033",
+    color: T.TEXT,
     lineHeight: 22,
     marginBottom: 14,
   },
   transcriptHint: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: T.PRIMARY_LIGHT,
     borderRadius: 12,
     padding: 10,
   },
   transcriptHintText: {
     fontSize: 12,
-    color: "#756D84",
+    color: T.MUTED,
     flex: 1,
     lineHeight: 17,
   },
@@ -546,20 +567,20 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.04)",
+    borderTopColor: T.BORDER,
   },
   promptDot: {
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     marginTop: 7,
     marginRight: 12,
   },
-  promptText: { fontSize: 13, color: "#756D84", flex: 1, lineHeight: 19 },
+  promptText: { fontSize: 13, color: T.MUTED, flex: 1, lineHeight: 19 },
 
   saveBtn: {
-    backgroundColor: "#8055E8",
+    backgroundColor: T.PRIMARY,
     borderRadius: 20,
     height: 56,
     flexDirection: "row",
@@ -568,9 +589,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginTop: 4,
   },
-  saveBtnDisabled: { backgroundColor: "#F0E9FF" },
-  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#F5F1FF" },
-  saveBtnTextDisabled: { color: "#756D84" },
+  saveBtnDisabled: { backgroundColor: T.PRIMARY_LIGHT },
+  saveBtnText: {
+    fontFamily: FONTS.display,
+    fontSize: 16,
+    fontWeight: "700",
+    color: T.WHITE,
+  },
+  saveBtnTextDisabled: { color: T.MUTED },
   iconMR7: { marginRight: 7 },
   iconMR8: { marginRight: 8 },
 });

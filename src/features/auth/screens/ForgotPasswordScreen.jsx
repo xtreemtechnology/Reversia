@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { FONTS } from "../../../theme/tokens";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import { validateEmail, firebaseErrorMessage } from "../authHelpers";
@@ -156,13 +157,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontFamily: undefined,
+    fontFamily: FONTS.display,
     letterSpacing: -1.2,
     lineHeight: 52,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: undefined,
+    fontFamily: FONTS.body,
     lineHeight: 23,
   },
   ctaGroup: {
