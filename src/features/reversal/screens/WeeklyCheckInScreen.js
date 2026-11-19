@@ -24,6 +24,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
+import LottieMoment from "../../../components/LottieMoment";
 import {
   getReversalPlan,
   listWeeklyCheckIns,
@@ -58,6 +59,7 @@ export default function WeeklyCheckInScreen({ navigation }) {
   const [walksAfterMeals, setWalksAfterMeals] = useState("");
   const [energy, setEnergy] = useState(null);
   const [notes, setNotes] = useState("");
+  const [justSaved, setJustSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -148,16 +150,7 @@ export default function WeeklyCheckInScreen({ navigation }) {
         notes: notes.trim(),
       });
       trackEvent("reversal_weekly_checkin", { week }).catch(() => {});
-      Alert.alert(
-        "Check-in saved",
-        `Week ${week} is saved. Well done — keep going.`,
-        [
-          {
-            text: "Done",
-            onPress: () => navigation?.goBack(),
-          },
-        ]
-      );
+      setJustSaved(true);
     } catch (error) {
       Alert.alert(
         "Could not save your check-in",
@@ -167,6 +160,29 @@ export default function WeeklyCheckInScreen({ navigation }) {
       setSaving(false);
     }
   };
+
+  const showSavedAlert = useCallback(() => {
+    Alert.alert(
+      "Check-in saved",
+      `Week ${week} is saved. Well done — keep going.`,
+      [
+        {
+          text: "Done",
+          onPress: () => navigation?.goBack(),
+        },
+      ]
+    );
+  }, [week, navigation]);
+
+  // Celebrate briefly, then show the usual confirmation.
+  useEffect(() => {
+    if (!justSaved) return;
+    const timer = setTimeout(() => {
+      setJustSaved(false);
+      showSavedAlert();
+    }, 2300);
+    return () => clearTimeout(timer);
+  }, [justSaved, showSavedAlert]);
 
   if (loading) {
     return (
@@ -390,6 +406,16 @@ export default function WeeklyCheckInScreen({ navigation }) {
           </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
+      {justSaved ? (
+        <View
+          style={[
+            styles.celebrationOverlay,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <LottieMoment animation="confetti" size={260} speed={1.5} />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -399,6 +425,15 @@ function makeStyles(colors) {
     safe: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    celebrationOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
     },
     scroll: {
       flex: 1,

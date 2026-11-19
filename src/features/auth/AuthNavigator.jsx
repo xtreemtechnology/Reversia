@@ -7,13 +7,14 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import CheckEmailScreen from "./screens/CheckEmailScreen";
 import EmailVerificationScreen from "./screens/EmailVerificationScreen";
 import PostOnboardingFlow from "../onboarding/post-onboarding";
+import { authTransition, modalTransition } from "../../navigation/transitions";
 
 const Stack = createNativeStackNavigator();
 
 export default function AuthNavigator() {
   return (
     <Stack.Navigator
-      screenOptions={{ headerShown: false, animation: "fade_from_bottom" }}
+      screenOptions={{ headerShown: false, ...authTransition }}
       initialRouteName="AuthLanding"
     >
       <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />
@@ -28,7 +29,11 @@ export default function AuthNavigator() {
       <Stack.Screen
         name="PostOnboarding"
         component={PostOnboardingFlow}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{
+          presentation: "modal",
+          headerShown: false,
+          ...modalTransition,
+        }}
       />
     </Stack.Navigator>
   );

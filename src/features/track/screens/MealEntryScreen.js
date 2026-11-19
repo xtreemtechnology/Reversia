@@ -46,6 +46,7 @@ import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
+import LottieMoment from "../../../components/LottieMoment";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -522,6 +523,7 @@ export default function MealEntryScreen({ navigation, route }) {
   const [photo, setPhoto] = useState(null);
   const [cameraOpen, setCameraOpen] = useState(startWithCamera);
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState("");
 
@@ -660,7 +662,7 @@ export default function MealEntryScreen({ navigation, route }) {
         hasPhoto: Boolean(photoDownloadUrl),
       });
 
-      navigation.goBack();
+      setJustSaved(true);
     } catch (err) {
       try {
         const mealLabel = mealName.trim() || `${mealType} meal`;
@@ -689,6 +691,13 @@ export default function MealEntryScreen({ navigation, route }) {
       setSaving(false);
     }
   };
+
+  // After a successful save, show the celebration briefly, then go back.
+  useEffect(() => {
+    if (!justSaved) return;
+    const timer = setTimeout(() => navigation.goBack(), 1500);
+    return () => clearTimeout(timer);
+  }, [justSaved, navigation]);
 
   // ── Permission gate ─────────────────────────────────────────────────────────
 
@@ -972,6 +981,16 @@ export default function MealEntryScreen({ navigation, route }) {
           </FadeIn>
         </ScrollView>
       </KeyboardAvoidingView>
+      {justSaved ? (
+        <View
+          style={[
+            styles.celebrationOverlay,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <LottieMoment animation="success-check" size={200} endFrame={40} />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -980,6 +999,15 @@ export default function MealEntryScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  celebrationOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   scroll: {
     paddingHorizontal: 24,
     paddingTop: 16,

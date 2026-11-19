@@ -26,6 +26,7 @@ import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
+import LottieMoment from "../../../components/LottieMoment";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
@@ -452,6 +453,7 @@ export default function LogMealScreen({ navigation }) {
   const [search, setSearch] = useState("");
   const [addedFoods, setAddedFoods] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [searchResults, setSearchResults] = useState(NIGERIAN_FOODS);
   const [searching, setSearching] = useState(false);
 
@@ -589,7 +591,7 @@ export default function LogMealScreen({ navigation }) {
       } catch (_storageErr) {
         // Offline mirroring failure must not block the user
       }
-      navigation?.goBack();
+      setJustSaved(true);
     } catch (error) {
       try {
         const mealData = normalizeMealForFirestore({
@@ -623,6 +625,13 @@ export default function LogMealScreen({ navigation }) {
       setSaving(false);
     }
   };
+
+  // After a successful save, show the celebration briefly, then go back.
+  useEffect(() => {
+    if (!justSaved) return;
+    const timer = setTimeout(() => navigation?.goBack(), 1500);
+    return () => clearTimeout(timer);
+  }, [justSaved, navigation]);
 
   const displayedFoods = searchResults;
   const sectionLabel = search.length > 0 ? "Results" : "Recent Foods";
@@ -849,6 +858,11 @@ export default function LogMealScreen({ navigation }) {
           </TouchableOpacity>
         </FadeIn>
       </ScrollView>
+      {justSaved ? (
+        <View style={[styles.celebrationOverlay, { backgroundColor: T.BG }]}>
+          <LottieMoment animation="success-check" size={200} endFrame={40} />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -857,6 +871,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: T.BG,
+  },
+  celebrationOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
   scroll: {
     paddingBottom: 48,
