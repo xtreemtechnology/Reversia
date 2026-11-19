@@ -6,11 +6,13 @@ import React, { useMemo } from "react";
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ILLUSTRATIONS from "../../illustrations/illustrations";
 import Svg, {
   Polyline,
   Circle,
@@ -340,9 +342,11 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           style={gc.emptyState}
           onPress={onPress}
         >
-          <View style={gc.emptyIconBadge}>
-            <Ionicons name="pulse-outline" size={24} color="#689F38" />
-          </View>
+          <Image
+            source={ILLUSTRATIONS["empty-readings"]}
+            style={gc.emptyImage}
+            resizeMode="contain"
+          />
           <Text style={gc.emptyTitle}>Log your first glucose reading</Text>
           <Text style={gc.emptyBody}>
             Tap to record your blood sugar. The chart will fill in as you log
@@ -467,16 +471,10 @@ const gc = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
   },
-  emptyIconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(163,230,53,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(163,230,53,0.20)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+  emptyImage: {
+    width: "100%",
+    height: 200,
+    marginBottom: 4,
   },
   emptyTitle: {
     fontSize: 15,

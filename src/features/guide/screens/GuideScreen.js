@@ -14,6 +14,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
+  Image,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -44,6 +45,7 @@ import { askGuide, GUIDE_CHIPS } from "../services/guideService";
 import { trackEvent } from "../../../utils/analytics";
 import PressScale from "../../home/components/PressScale";
 import FadeIn from "../../home/components/FadeIn";
+import ILLUSTRATIONS from "../../illustrations/illustrations";
 
 const QUICK_ACTIONS = [
   { label: "Today's meals", question: "What should I eat today?" },
@@ -378,6 +380,18 @@ export default function GuideScreen({ navigation }) {
               </Text>
             </FadeIn>
           )}
+
+          {/* Sprout companion — small, under the headline area. The
+              breathing orb stays the main element. */}
+          {!chatting && !thinking && (
+            <FadeIn delay={200}>
+              <Image
+                source={ILLUSTRATIONS["guide-sprout"]}
+                style={styles.sproutImage}
+                resizeMode="contain"
+              />
+            </FadeIn>
+          )}
         </ScrollView>
 
         {/* Quick chips */}
@@ -537,6 +551,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 19,
     paddingHorizontal: 24,
+  },
+  sproutImage: {
+    width: "100%",
+    height: 170,
+    marginTop: 4,
   },
   bubble: {
     borderRadius: 22,

@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ import { auth, db } from "../../../config/firebase";
 import { useUserLogs } from "../../../hooks/useUserLogs";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
+import ILLUSTRATIONS from "../../illustrations/illustrations";
 
 const MACRO_COLORS = {
   Protein: T.SECONDARY,
@@ -111,11 +113,10 @@ export default function RepeatMealScreen({ navigation, route }) {
         </View>
 
         <View style={styles.emptyStateWrap}>
-          <Ionicons
-            name="restaurant-outline"
-            size={48}
-            color={T.MUTED}
-            style={styles.emptyIcon}
+          <Image
+            source={ILLUSTRATIONS["empty-meals"]}
+            style={styles.emptyImage}
+            resizeMode="contain"
           />
           <Text style={styles.emptyTitle}>No meals logged yet</Text>
           <Text style={styles.emptyBody}>
@@ -501,5 +502,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: T.WHITE,
+  },
+  // The empty state previously referenced these styles without defining
+  // them, so it rendered unstyled. They now lay out the illustration,
+  // title and body as a centred column.
+  emptyStateWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  emptyImage: {
+    width: "100%",
+    height: 260,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontFamily: FONTS.display,
+    fontSize: 20,
+    fontWeight: "700",
+    color: T.TEXT,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptyBody: {
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    color: T.MUTED,
+    textAlign: "center",
+    lineHeight: 22,
   },
 });
