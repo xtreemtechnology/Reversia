@@ -302,6 +302,23 @@ export default function ReversalPlanScreen({ navigation }) {
           </>
         )}
 
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>7-day meal plan</Text>
+          <Text style={styles.body}>
+            A week of natural-food meals from the Food Guide — breakfast,
+            lunch and dinner, with recipes and a shopping list.
+          </Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => navigation?.navigate("MealPlan")}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.primaryButtonText}>
+              See the 7-day meal plan
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={[styles.card, styles.disclaimerCard]}>
           <Text style={styles.cardTitle}>A note on safety</Text>
           <Text style={styles.body}>{REVERSAL_DISCLAIMER}</Text>
