@@ -18,8 +18,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { MEAL_PLAN_DISCLAIMER, SLOT_LABELS } from "../data/mealPlanData";
 import { getMealById } from "../services/mealPlanService";
-import { getFoodById, getSwapFor } from "../../food-guide/services/foodGuideService";
-import { RATING_MEANINGS, ratingColor } from "../../food-guide/screens/FoodGuideScreen";
+import {
+  getFoodById,
+  getSwapFor,
+} from "../../food-guide/services/foodGuideService";
+import {
+  RATING_MEANINGS,
+  ratingColor,
+} from "../../food-guide/screens/FoodGuideScreen";
 
 function ratingLabel(rating) {
   return rating.charAt(0).toUpperCase() + rating.slice(1);

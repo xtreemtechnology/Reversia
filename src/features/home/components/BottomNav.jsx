@@ -82,7 +82,11 @@ export default function BottomNav({ navigation, currentRouteName }) {
   return (
     <View style={wrapperStyle}>
       {/* Blur layer — mirrors backdrop-blur-xl */}
-      <BlurView intensity={70} tint={theme === "dark" ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+      <BlurView
+        intensity={70}
+        tint={theme === "dark" ? "dark" : "light"}
+        style={StyleSheet.absoluteFill}
+      />
       {/* Tint overlay on top of blur */}
       <View style={blurOverlayStyle} />
 

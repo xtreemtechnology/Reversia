@@ -16,7 +16,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
-import { MEAL_PLAN, MEAL_PLAN_DISCLAIMER, SLOT_LABELS } from "../data/mealPlanData";
+import {
+  MEAL_PLAN,
+  MEAL_PLAN_DISCLAIMER,
+  SLOT_LABELS,
+} from "../data/mealPlanData";
 import { getWeekShoppingList } from "../services/mealPlanService";
 
 function carbLabel(carbNote) {
@@ -47,8 +51,8 @@ export default function MealPlanScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={styles.title}>7-Day Meal Plan</Text>
           <Text style={styles.subtitle}>
-            A week of natural-food meals from the Food Guide — breakfast,
-            lunch and dinner, with a snack on some days.
+            A week of natural-food meals from the Food Guide — breakfast, lunch
+            and dinner, with a snack on some days.
           </Text>
         </View>
 

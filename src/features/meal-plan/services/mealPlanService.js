@@ -34,9 +34,7 @@ export function getDayPlan(day) {
   }, {});
   return {
     ...dayPlan,
-    meals: [...dayPlan.meals].sort(
-      (a, b) => order[a.slot] - order[b.slot]
-    ),
+    meals: [...dayPlan.meals].sort((a, b) => order[a.slot] - order[b.slot]),
   };
 }
 
@@ -60,7 +58,9 @@ export function getWeekShoppingList() {
   });
   return Array.from(counts.entries())
     .map(([ingredient, count]) => ({ ingredient, count }))
-    .sort((a, b) => b.count - a.count || a.ingredient.localeCompare(b.ingredient));
+    .sort(
+      (a, b) => b.count - a.count || a.ingredient.localeCompare(b.ingredient)
+    );
 }
 
 export default {

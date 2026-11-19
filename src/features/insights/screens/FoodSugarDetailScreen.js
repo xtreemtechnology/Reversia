@@ -73,10 +73,10 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
     kind === "food"
       ? summary.byFood.find((item) => item.id === foodId)
       : kind === "meal"
-        ? summary.byMeal.find(
-            (item) => item.id === String(mealName || "").toLowerCase()
-          )
-        : null;
+      ? summary.byMeal.find(
+          (item) => item.id === String(mealName || "").toLowerCase()
+        )
+      : null;
   const swap = food ? getSwapFor(food) : null;
 
   const pairs = useMemo(() => {
@@ -115,8 +115,8 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Nothing to show yet</Text>
             <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
-              No paired readings for this yet. Log the meal, then log a
-              glucose reading within 2 hours after it.
+              No paired readings for this yet. Log the meal, then log a glucose
+              reading within 2 hours after it.
             </Text>
           </View>
         ) : (
@@ -129,7 +129,9 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
                     style={[
                       styles.ratingPill,
                       {
-                        backgroundColor: `${RATING_COLORS[food.rating] || T.MUTED}20`,
+                        backgroundColor: `${
+                          RATING_COLORS[food.rating] || T.MUTED
+                        }20`,
                       },
                     ]}
                   >
@@ -144,7 +146,9 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
                   </View>
                 </View>
                 {food.tip ? (
-                  <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+                  <Text
+                    style={[styles.cardBody, { color: colors.mutedForeground }]}
+                  >
                     {food.tip}
                   </Text>
                 ) : null}
@@ -179,7 +183,9 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
 
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Pattern so far</Text>
-              <Text style={[styles.cardBody, { color: colors.mutedForeground }]}>
+              <Text
+                style={[styles.cardBody, { color: colors.mutedForeground }]}
+              >
                 {entry.counts.steady} steady · {entry.counts.moderate} moderate
                 · {entry.counts.sharp} sharp
                 {entry.counts.noBaseline > 0
@@ -205,7 +211,9 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
                     style={[
                       styles.chip,
                       {
-                        backgroundColor: `${RISE_COLORS[pair.riseClass] || T.MUTED}20`,
+                        backgroundColor: `${
+                          RISE_COLORS[pair.riseClass] || T.MUTED
+                        }20`,
                       },
                     ]}
                   >
@@ -229,17 +237,23 @@ export default function FoodSugarDetailScreen({ navigation, route }) {
                   </View>
                 </View>
                 {kind === "food" ? (
-                  <Text style={[styles.rowMeta, { color: colors.mutedForeground }]}>
+                  <Text
+                    style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                  >
                     {pair.mealName}
                     {pair.mealType ? ` · ${pair.mealType}` : ""}
                   </Text>
                 ) : null}
-                <Text style={[styles.rowMeta, { color: colors.mutedForeground }]}>
+                <Text
+                  style={[styles.rowMeta, { color: colors.mutedForeground }]}
+                >
                   {pair.baselineMgdl === null
                     ? `After-meal reading ${pair.afterMgdl} mg/dL — no earlier reading to compare.`
                     : `${pair.baselineMgdl} → ${pair.afterMgdl} mg/dL` +
                       (pair.riseMgdl !== null
-                        ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${pair.riseMgdl} mg/dL)`
+                        ? ` (${pair.riseMgdl >= 0 ? "+" : ""}${
+                            pair.riseMgdl
+                          } mg/dL)`
                         : "") +
                       (pair.baselineSource === "fasting"
                         ? " · compared with your fasting readings"
@@ -273,7 +287,12 @@ function makeStyles(colors) {
     backText: { fontSize: 15, fontWeight: "600", color: colors.primary },
     header: { marginBottom: 4 },
     title: { fontSize: 24, fontWeight: "800", color: colors.foreground },
-    subtitle: { fontSize: 14, color: colors.mutedForeground, marginTop: 6, lineHeight: 20 },
+    subtitle: {
+      fontSize: 14,
+      color: colors.mutedForeground,
+      marginTop: 6,
+      lineHeight: 20,
+    },
     card: {
       backgroundColor: colors.card,
       borderRadius: 22,
@@ -297,11 +316,24 @@ function makeStyles(colors) {
       justifyContent: "space-between",
       gap: 10,
     },
-    rowTitle: { fontSize: 14, fontWeight: "700", color: colors.foreground, flex: 1 },
+    rowTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.foreground,
+      flex: 1,
+    },
     rowMeta: { fontSize: 12, marginTop: 6, lineHeight: 17 },
     verdictText: { fontSize: 13, fontWeight: "600", marginTop: 8 },
-    ratingPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
-    ratingText: { fontSize: 11, fontWeight: "700", textTransform: "capitalize" },
+    ratingPill: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    ratingText: {
+      fontSize: 11,
+      fontWeight: "700",
+      textTransform: "capitalize",
+    },
     chip: {
       flexDirection: "row",
       alignItems: "center",

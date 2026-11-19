@@ -237,10 +237,11 @@ export function pairReadingsWithMeals(logs) {
       }
     }
 
-    const riseMgdl =
-      baselineMgdl === null ? null : reading.mgdl - baselineMgdl;
+    const riseMgdl = baselineMgdl === null ? null : reading.mgdl - baselineMgdl;
     pairs.push({
-      id: `${meal.log.id || meal.log.name}__${reading.log.id || reading.time.getTime()}`,
+      id: `${meal.log.id || meal.log.name}__${
+        reading.log.id || reading.time.getTime()
+      }`,
       mealId: meal.log.id || null,
       mealName: meal.log.name || "Meal",
       mealType: meal.log.mealType || meal.log.type || "",

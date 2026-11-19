@@ -1,9 +1,6 @@
 import { FOOD_GUIDE } from "../features/food-guide/data/foodGuideData";
 import { getFoodById } from "../features/food-guide/services/foodGuideService";
-import {
-  MEAL_PLAN,
-  MEAL_SLOTS,
-} from "../features/meal-plan/data/mealPlanData";
+import { MEAL_PLAN, MEAL_SLOTS } from "../features/meal-plan/data/mealPlanData";
 import {
   getAllMeals,
   getMealById,
@@ -34,9 +31,7 @@ describe("mealPlan data", () => {
   });
 
   it("has snacks only on Days 1, 3 and 5", () => {
-    expect(getMealsForSlot("snack").map((meal) => meal.day)).toEqual([
-      1, 3, 5,
-    ]);
+    expect(getMealsForSlot("snack").map((meal) => meal.day)).toEqual([1, 3, 5]);
     expect(getAllMeals().length).toBe(24);
   });
 

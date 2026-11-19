@@ -524,11 +524,7 @@ export const MEAL_PLAN = [
         foodIds: ["oatmeal", "banana"],
         description:
           "Plain oats with one medium banana — a natural breakfast, with the banana counted, not doubled.",
-        ingredients: [
-          "Oats (1 cup)",
-          "Banana (1 medium)",
-          "Water (1 glass)",
-        ],
+        ingredients: ["Oats (1 cup)", "Banana (1 medium)", "Water (1 glass)"],
         steps: [
           "Cook the oats in water until soft — no sugar, no honey.",
           "Slice one medium banana over the oats.",

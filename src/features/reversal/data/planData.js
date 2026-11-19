@@ -28,7 +28,8 @@ export const PHASES = [
     title: "Rebuild",
     description:
       "Rebuild your meals around natural staples — beans, fish, eggs, vegetables and whole grains.",
-    focus: "Natural staples first, fried food less often, protein at every meal.",
+    focus:
+      "Natural staples first, fried food less often, protein at every meal.",
     habits: [
       "Swap white rice for beans, ofada rice or oats most days",
       "Eat a natural protein at every meal — beans, fish, eggs or moi moi",
@@ -92,7 +93,8 @@ export const WEEKLY_GOALS = [
       "Compare it with your starting number",
       "Note which meals kept you steady",
     ],
-    naturalFoodFocus: "Keep the week 1 and 2 habits going — nothing new to buy.",
+    naturalFoodFocus:
+      "Keep the week 1 and 2 habits going — nothing new to buy.",
   },
   {
     week: 4,
@@ -102,7 +104,8 @@ export const WEEKLY_GOALS = [
       "Swap white rice for beans or ofada rice twice",
       "Drink water before each meal",
     ],
-    naturalFoodFocus: "Beans, moi moi, akara (grilled or lightly fried), lentils.",
+    naturalFoodFocus:
+      "Beans, moi moi, akara (grilled or lightly fried), lentils.",
   },
   {
     week: 5,
@@ -172,7 +175,8 @@ export const WEEKLY_GOALS = [
       "No heavy meal within 3 hours of bed",
       "Take 10 quiet minutes for yourself each day",
     ],
-    naturalFoodFocus: "Light evening meals — soup, salad, boiled yam with fish.",
+    naturalFoodFocus:
+      "Light evening meals — soup, salad, boiled yam with fish.",
   },
   {
     week: 12,
