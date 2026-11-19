@@ -14,12 +14,13 @@ import PhotoLogScreen from "../features/track/screens/PhotoLogScreen";
 import GlucoseLogScreen from "../features/track/screens/GlucoseLogScreen";
 import ExportReportScreen from "../features/profile/screens/ExportReportScreen";
 import { GuideScreen } from "../features/guide";
+import { pushTransition, modalTransition } from "./transitions";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false, ...pushTransition }}>
       <Stack.Screen
         name="Main"
         component={MainTabNavigator}
@@ -28,67 +29,67 @@ export default function AppNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="MealEntry"
         component={MealEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="LogMeal"
         component={LogMealScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="RepeatMeal"
         component={RepeatMealScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="LogWater"
         component={LogWaterScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="HydrationEntry"
         component={HydrationEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="SleepEntry"
         component={SleepEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="BodyCheck"
         component={BodyCheckScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="VoiceLog"
         component={VoiceLogScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="PhotoLog"
         component={PhotoLogScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="GlucoseLog"
         component={GlucoseLogScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="ExportReport"
         component={ExportReportScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
       <Stack.Screen
         name="Guide"
         component={GuideScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...modalTransition }}
       />
     </Stack.Navigator>
   );

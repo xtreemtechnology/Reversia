@@ -2,7 +2,7 @@
 // Home screen of the 12-week Reversal Plan: baseline, progress, this week's
 // goals, milestones and the safety disclaimer.
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +20,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
+import LottieMoment from "../../../components/LottieMoment";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
 import PlanHeroCard from "../components/PlanHeroCard";
 import { getUserProfile } from "../../profile/services/profileService";
@@ -129,6 +130,17 @@ export default function ReversalPlanScreen({ navigation }) {
   );
   const latestMilestone =
     reachedMilestones[reachedMilestones.length - 1] || null;
+  const [showGoal, setShowGoal] = useState(false);
+  const celebratedWeekRef = useRef(null);
+
+  // Play the goal animation once when a new milestone is reached — not
+  // on every render, and never on a loop.
+  useEffect(() => {
+    if (latestMilestone && celebratedWeekRef.current !== latestMilestone.week) {
+      celebratedWeekRef.current = latestMilestone.week;
+      setShowGoal(true);
+    }
+  }, [latestMilestone]);
   const lastCheckIn = checkIns[0] || null;
 
   const styles = makeStyles(colors);
@@ -291,6 +303,14 @@ export default function ReversalPlanScreen({ navigation }) {
                 <Text style={styles.cardTitle}>Milestones</Text>
                 {latestMilestone ? (
                   <View style={styles.milestoneArt}>
+                    {showGoal ? (
+                      <LottieMoment
+                        animation="goal-achieved"
+                        size={180}
+                        onAnimationFinish={() => setShowGoal(false)}
+                        style={styles.goalLottie}
+                      />
+                    ) : null}
                     <Image
                       source={ILLUSTRATIONS["milestone-plant"]}
                       style={styles.milestoneImage}
@@ -558,6 +578,9 @@ function makeStyles(colors) {
     milestoneImage: {
       width: "100%",
       height: 210,
+    },
+    goalLottie: {
+      marginBottom: 4,
     },
     milestoneCaption: {
       fontFamily: FONTS.body,
