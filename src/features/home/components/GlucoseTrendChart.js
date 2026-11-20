@@ -37,6 +37,18 @@ const REF_LINES = [
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** Convert a Firestore Timestamp / Date / ISO string to a JS Date.
+ * Glucose logs arrive with `createdAt` as a Firestore Timestamp
+ * (writers use serverTimestamp()), and `new Date(timestamp)` is
+ * Invalid Date — the chart grouped every reading under a bad key
+ * and showed nothing. Same helper as the insights screens. */
+function toDate(ts) {
+  if (!ts) return null;
+  if (ts?.toDate) return ts.toDate();
+  if (ts instanceof Date) return ts;
+  return new Date(ts);
+}
+
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
@@ -88,8 +100,8 @@ function useGlucoseChartData(logs) {
     // Group glucose readings by day key
     const byDay = {};
     glucoseLogs.forEach((log) => {
-      const date = log.createdAt ? new Date(log.createdAt) : null;
-      if (!date) return;
+      const date = toDate(log?.createdAt);
+      if (!date || Number.isNaN(date.getTime())) return;
       const key = getDayKey(date);
       if (!byDay[key]) byDay[key] = [];
       const mgdl = toMgDl(log.value, log.unit);
