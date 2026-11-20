@@ -14,6 +14,10 @@ import AuthNavigator from "./src/features/auth/AuthNavigator";
 import OnboardingNavigator from "./src/screens/onboarding/OnboardingNavigator";
 import { auth } from "./src/config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import {
+  getUserProfile,
+  updateUserProfileField,
+} from "./src/features/profile/services/profileService";
 import WelcomeTransitionScreen from "./src/screens/welcome/WelcomeTransitionScreen";
 import PostOnboardingFlow from "./src/features/onboarding/post-onboarding";
 import { trackEvent } from "./src/utils/analytics";
@@ -78,7 +82,30 @@ export default function App() {
         const value = await AsyncStorage.getItem(
           `${POST_ONBOARDING_KEY_PREFIX}${uid}`
         );
-        if (mounted) setHasCompletedPostOnboarding(value === "true");
+        if (value === "true") {
+          if (mounted) setHasCompletedPostOnboarding(true);
+          return;
+        }
+        // No flag on this device: the account may have completed setup
+        // on another device. The durable record is the profile in
+        // Firestore (questionnaireCompletedAt, written when the flow
+        // saves), not this device's storage — check it before forcing
+        // the user through setup again. A failed read falls back to
+        // the local flag, so an offline login behaves as before.
+        let completedRemotely = false;
+        try {
+          const profile = await getUserProfile(uid);
+          completedRemotely = Boolean(profile?.questionnaireCompletedAt);
+        } catch (_) {
+          // ignore — fall back to the local flag below
+        }
+        if (completedRemotely) {
+          AsyncStorage.setItem(
+            `${POST_ONBOARDING_KEY_PREFIX}${uid}`,
+            "true"
+          ).catch(() => {});
+        }
+        if (mounted) setHasCompletedPostOnboarding(completedRemotely);
       } catch (_) {
         if (mounted) setHasCompletedPostOnboarding(false);
       }
@@ -94,7 +121,26 @@ export default function App() {
         const value = await AsyncStorage.getItem(
           `${POST_ONBOARDING_DISMISSED_PREFIX}${uid}`
         );
-        if (mounted) setHasDismissedPostOnboarding(value === "true");
+        if (value === "true") {
+          if (mounted) setHasDismissedPostOnboarding(true);
+          return;
+        }
+        // Same cross-device problem as completion: a skip on another
+        // device is recorded in the profile (questionnaireSkippedAt).
+        let skippedRemotely = false;
+        try {
+          const profile = await getUserProfile(uid);
+          skippedRemotely = Boolean(profile?.questionnaireSkippedAt);
+        } catch (_) {
+          // ignore — fall back to the local flag below
+        }
+        if (skippedRemotely) {
+          AsyncStorage.setItem(
+            `${POST_ONBOARDING_DISMISSED_PREFIX}${uid}`,
+            "true"
+          ).catch(() => {});
+        }
+        if (mounted) setHasDismissedPostOnboarding(skippedRemotely);
       } catch (_) {
         if (mounted) setHasDismissedPostOnboarding(false);
       }
@@ -299,6 +345,13 @@ function AppContent({
           AsyncStorage.setItem(
             `${POST_ONBOARDING_DISMISSED_PREFIX}${uid}`,
             "true"
+          ).catch(() => {});
+          // Record the skip in the profile too, so a later login on
+          // another device does not ask again either.
+          updateUserProfileField(
+            uid,
+            "questionnaireSkippedAt",
+            new Date().toISOString()
           ).catch(() => {});
           setHasDismissedPostOnboarding(true);
         }
