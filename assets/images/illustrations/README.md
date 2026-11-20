@@ -53,11 +53,24 @@ onboarding slide (slides 1–3), all in white cards like the hero:
 
 | File | Slide | Size |
 | --- | --- | --- |
-| `onboard-understand.png` | 01 — "Your body has a pattern." (person, glowing heart, pulse line, food/sleep/steps icons) | 1920 × 1280 landscape |
-| `onboard-local.png` | 02 — "Built for how you eat." (overhead spread of Nigerian foods) | 1824 × 1376 landscape |
-| `onboard-reverse.png` | 03 — "Small shifts. Real change." (person climbing steps toward the sun, curve down from a red zone to a green zone) | 1824 × 1376 landscape |
+| `onboard-understand.png` | 01 — "Your body has a pattern." (person, glowing heart, pulse line, food/sleep/steps icons) | 1920 × 1200 landscape — regenerated 2026-11-20 (v2): both arms now complete, hands in frame |
+| `onboard-local.png` | 02 — "Built for how you eat." (overhead spread of Nigerian foods) | 1920 × 1200 landscape, 1.15 MB — regenerated 2026-11-20 (v2): four large dishes with white space, nothing cut at the edges (was 1824 × 1376, 3.08 MB) |
+| `onboard-reverse.png` | 03 — "Small shifts. Real change." (person climbing steps toward the sun, curve down from a red zone to a green zone) | 1920 × 1280 landscape — regenerated 2026-11-20 (v2): wide composition, woman large and central. Note: the red-to-green ribbon touches the top-left and bottom-right corners by design |
 
 All three have solid white backgrounds (they sit in the same white
-`heroCard` as `welcome-hero.png`). Note: `onboard-local.png` is 3.08 MB
-— the largest asset in the set, dense detail; a downscale candidate
-later if app size matters.
+`heroCard` as `welcome-hero.png`).
+
+## Setup flow art
+
+Two more flat-vector figures for the stepped account-setup flow's
+gender step (Figma kit screen 15), generated 2026-11-20 in the same
+style and palette:
+
+| File | Card | Size |
+| --- | --- | --- |
+| `gender-male.png` | Male — full-body man, leaf-green t-shirt with a leaf mark, deep green trousers | 1120 × 2240 portrait |
+| `gender-female.png` | Female — full-body woman, ponytail, leaf-green top, deep green trousers | 1120 × 2240 portrait |
+
+Both have solid white backgrounds and fill their 160 × 214 cards with
+`resizeMode="contain"`. Unlike the landscape set, these two are
+portraits — the figures are tall, so portrait fits the card shape.

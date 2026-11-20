@@ -131,7 +131,7 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, [currentUser?.uid, authChecked]);
+  }, [currentUser, currentUser?.uid, authChecked]);
 
   useEffect(() => {
     if (!currentUser?.uid) return;
@@ -146,7 +146,7 @@ export default function App() {
     return () => {
       sub?.remove?.();
     };
-  }, [currentUser?.uid]);
+  }, [currentUser, currentUser?.uid]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -267,7 +267,7 @@ function AppContent({
                 setShowWelcomeTransition(false);
               }}
             />
-          ) : showPostQuestionnaire ? (
+          ) : showPostQuestionnaire && currentUser ? (
             <PostOnboardingFlow
               onComplete={async () => {
                 const uid = currentUser?.uid;
