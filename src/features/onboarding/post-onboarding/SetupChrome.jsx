@@ -10,6 +10,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { FONTS, T } from "../../../theme/tokens";
+import FadeIn from "../../home/components/FadeIn";
 
 // Deep green used for headlines, the primary button and selected states.
 // Same value as HOME_CURVE_GREEN in the Home curve header.
@@ -42,10 +43,13 @@ export function SetupHeader({ onBack, onSkip, canGoBack }) {
 export function QuestionHeader({ stepNumber, totalSteps, headline, subtext }) {
   return (
     <View style={styles.questionBlock}>
-      <Text style={styles.counter}>
-        <Text style={styles.counterCurrent}>{stepNumber}</Text>
-        <Text style={styles.counterRest}> / {totalSteps}</Text>
-      </Text>
+      {/* Keyed by step so the number fades/slides in again on every change. */}
+      <FadeIn key={stepNumber}>
+        <Text style={styles.counter}>
+          <Text style={styles.counterCurrent}>{stepNumber}</Text>
+          <Text style={styles.counterRest}> / {totalSteps}</Text>
+        </Text>
+      </FadeIn>
       <Text style={styles.headline}>{headline}</Text>
       {subtext ? <Text style={styles.subtext}>{subtext}</Text> : null}
     </View>

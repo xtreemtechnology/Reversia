@@ -14,6 +14,11 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { FONTS, T } from "../../../theme/tokens";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
@@ -21,6 +26,33 @@ import { PRIMARY_GOAL_OPTIONS } from "../../reversal/data/planData";
 import { DEEP_GREEN } from "./SetupChrome";
 import { SetupRuler, UnitToggle, ValueBox } from "./SetupRuler";
 import { formatWeight, formatHeight, kgToLbs } from "./setupFormat";
+
+// Subtle scale press (0.97) on selectable cards and rows, on the UI
+// thread via reanimated — it sits alongside the existing activeOpacity
+// feedback and springs back on release. Only used where a whole card
+// or row is the tap target (gender, goal, journey).
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+function ScalePress({ style, children, ...props }) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+  return (
+    <AnimatedTouchable
+      {...props}
+      style={[style, animatedStyle]}
+      onPressIn={() => {
+        scale.value = withTiming(0.97, { duration: 120 });
+      }}
+      onPressOut={() => {
+        scale.value = withTiming(1, { duration: 160 });
+      }}
+    >
+      {children}
+    </AnimatedTouchable>
+  );
+}
 
 // ── Step 1 · Name ────────────────────────────────────────────────────────────
 
@@ -56,7 +88,7 @@ export function GenderStep({ value, onChange }) {
         {GENDER_CARDS.map((card) => {
           const selected = value === card.value;
           return (
-            <TouchableOpacity
+            <ScalePress
               key={card.value}
               onPress={() => onChange(card.value)}
               activeOpacity={0.85}
@@ -76,7 +108,7 @@ export function GenderStep({ value, onChange }) {
                   style={styles.genderCheck}
                 />
               ) : null}
-            </TouchableOpacity>
+            </ScalePress>
           );
         })}
       </View>
@@ -214,7 +246,7 @@ export function GoalStep({ value, onChange }) {
       {PRIMARY_GOAL_OPTIONS.map((option) => {
         const selected = value === option.value;
         return (
-          <TouchableOpacity
+          <ScalePress
             key={option.value}
             onPress={() => onChange(option.value)}
             activeOpacity={0.85}
@@ -232,7 +264,7 @@ export function GoalStep({ value, onChange }) {
             {selected ? (
               <Ionicons name="checkbox" size={24} color={DEEP_GREEN} />
             ) : null}
-          </TouchableOpacity>
+          </ScalePress>
         );
       })}
     </View>
@@ -315,7 +347,7 @@ export function JourneyStep({ value, onChange }) {
       {JOURNEY_OPTIONS.map((option) => {
         const selected = value === option.value;
         return (
-          <TouchableOpacity
+          <ScalePress
             key={option.value}
             onPress={() => onChange(option.value)}
             activeOpacity={0.85}
@@ -335,7 +367,7 @@ export function JourneyStep({ value, onChange }) {
             {selected ? (
               <Ionicons name="checkbox" size={24} color={DEEP_GREEN} />
             ) : null}
-          </TouchableOpacity>
+          </ScalePress>
         );
       })}
     </View>

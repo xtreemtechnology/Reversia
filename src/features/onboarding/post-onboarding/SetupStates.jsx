@@ -7,7 +7,7 @@
 // only the answers the user actually gave: no chart, no invented
 // plan, no timeline, no medical claims.
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -17,24 +17,54 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { FONTS, T } from "../../../theme/tokens";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
+import LottieMoment from "../../../components/LottieMoment";
+import FadeIn from "../../home/components/FadeIn";
 import { DEEP_GREEN, PrimaryButton } from "./SetupChrome";
+
+// Gentle scale pulse on the waiting spinner so the generating screen
+// feels alive while the save runs. Only the spinner pulses — the
+// headline and subtext stay still, and the error state is untouched.
+function SpinnerPulse({ children }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withTiming(1.12, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, [scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+}
 
 // ── Intro · "Prepare your personal information" ─────────────────────────────
 
 export function IntroStep({ onContinue }) {
   return (
     <View style={styles.introRoot}>
-      <View style={styles.introArtArea}>
+      <FadeIn style={styles.introArtArea} delay={0}>
         <Image
           source={ILLUSTRATIONS["onboard-understand"]}
           style={styles.introArt}
           resizeMode="contain"
         />
-      </View>
-      <View style={styles.introPanel}>
+      </FadeIn>
+      <FadeIn style={styles.introPanel} delay={120}>
         <Text style={styles.introHeadline}>
           Prepare your personal information
         </Text>
@@ -45,7 +75,7 @@ export function IntroStep({ onContinue }) {
         <View style={styles.introButton}>
           <PrimaryButton label="Continue" onPress={onContinue} tone="light" />
         </View>
-      </View>
+      </FadeIn>
     </View>
   );
 }
@@ -77,7 +107,9 @@ export function GeneratingStep({ error, onRetry, onSkip }) {
         </>
       ) : (
         <>
-          <ActivityIndicator size="large" color={T.PRIMARY} />
+          <SpinnerPulse>
+            <ActivityIndicator size="large" color={T.PRIMARY} />
+          </SpinnerPulse>
           <Text style={styles.generatingHeadline}>Preparing your plan</Text>
           <Text style={styles.generatingSubtext}>
             Setting up your plan and saving your answers…
@@ -97,11 +129,16 @@ export function CompleteStep({ summaryRows, onEnter }) {
         contentContainerStyle={styles.completeScroll}
         showsVerticalScrollIndicator={false}
       >
+        <LottieMoment
+          animation="success-check"
+          size={120}
+          style={styles.completeLottie}
+        />
         <Text style={styles.completeHeadline}>Everything is ready!</Text>
         <Text style={styles.completeSubtext}>
           Here&apos;s what you set up — Reversia will shape things around you.
         </Text>
-        <View style={styles.summaryCard}>
+        <FadeIn style={styles.summaryCard} delay={150}>
           {summaryRows.map((row, index) => (
             <View
               key={row.label}
@@ -114,7 +151,7 @@ export function CompleteStep({ summaryRows, onEnter }) {
               <Text style={styles.summaryValue}>{row.value}</Text>
             </View>
           ))}
-        </View>
+        </FadeIn>
       </ScrollView>
       <View style={styles.completeButton}>
         <PrimaryButton label="Enter Reversia" onPress={onEnter} />
@@ -207,6 +244,9 @@ const styles = StyleSheet.create({
   completeRoot: {
     flex: 1,
     backgroundColor: T.BG,
+  },
+  completeLottie: {
+    alignSelf: "center",
   },
   completeScroll: {
     paddingHorizontal: 16,
