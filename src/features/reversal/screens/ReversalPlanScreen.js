@@ -21,6 +21,9 @@ import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
 import LottieMoment from "../../../components/LottieMoment";
+import CountUp from "../../../components/CountUp";
+import AnimatedBar from "../../../components/AnimatedBar";
+import PopOnActive from "../../../components/PopOnActive";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
 import PlanHeroCard from "../components/PlanHeroCard";
 import { getUserProfile } from "../../profile/services/profileService";
@@ -229,16 +232,17 @@ export default function ReversalPlanScreen({ navigation }) {
                 <Text style={styles.heroOverline}>
                   Week {week} of {PLAN_LENGTH_WEEKS}
                 </Text>
-                <Text style={styles.heroBig}>{progress.percent}%</Text>
+                <CountUp
+                  value={progress.percent}
+                  suffix="%"
+                  style={styles.heroBig}
+                />
                 <Text style={styles.heroSub}>through the plan</Text>
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${progress.percent}%` },
-                    ]}
-                  />
-                </View>
+                <AnimatedBar
+                  percent={progress.percent}
+                  trackStyle={styles.progressTrack}
+                  fillStyle={styles.progressFill}
+                />
                 {phase ? (
                   <Text style={styles.heroPhase}>
                     {phase.title} phase · Weeks {phase.weeks[0]}–
@@ -357,13 +361,17 @@ export default function ReversalPlanScreen({ navigation }) {
                   const reached = week >= milestone.week;
                   return (
                     <View key={milestone.week} style={styles.milestoneRow}>
-                      <Ionicons
-                        name={reached ? "checkmark-circle" : "ellipse-outline"}
-                        size={22}
-                        color={
-                          reached ? colors.primary : colors.mutedForeground
-                        }
-                      />
+                      <PopOnActive active={reached}>
+                        <Ionicons
+                          name={
+                            reached ? "checkmark-circle" : "ellipse-outline"
+                          }
+                          size={22}
+                          color={
+                            reached ? colors.primary : colors.mutedForeground
+                          }
+                        />
+                      </PopOnActive>
                       <View style={styles.milestoneText}>
                         <Text style={styles.bodyBold}>
                           Week {milestone.week} — {milestone.title}
@@ -384,7 +392,7 @@ export default function ReversalPlanScreen({ navigation }) {
                 {lastCheckIn?.fastingSugar ? (
                   <>
                     <Text style={styles.bigNumber}>
-                      {lastCheckIn.fastingSugar}
+                      <CountUp value={lastCheckIn.fastingSugar} />
                       <Text style={styles.bigNumberUnit}> mg/dL</Text>
                     </Text>
                     <Text style={styles.muted}>

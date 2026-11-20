@@ -19,6 +19,8 @@ import SolarIcon from "../../../components/SolarIcon";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
+import CountUp from "../../../components/CountUp";
+import AnimatedBar from "../../../components/AnimatedBar";
 
 const FAVORITES_KEY = "@reversia_local_favorites";
 
@@ -402,25 +404,31 @@ export default function TrackScreen({ navigation, route }) {
             <Text style={styles.heroBig}>
               {todayProgress.moments} of 4 moments captured
             </Text>
-            <View style={styles.heroBarTrack}>
-              <View
-                style={[
-                  styles.heroBarFill,
-                  { width: `${(todayProgress.moments / 4) * 100}%` },
-                ]}
-              />
-            </View>
+            <AnimatedBar
+              percent={(todayProgress.moments / 4) * 100}
+              trackStyle={styles.heroBarTrack}
+              fillStyle={styles.heroBarFill}
+            />
             <View style={styles.heroStats}>
               <View style={styles.heroStat}>
-                <Text style={styles.heroStatNum}>{todayProgress.meals}</Text>
+                <CountUp
+                  value={todayProgress.meals}
+                  style={styles.heroStatNum}
+                />
                 <Text style={styles.heroStatLabel}>Meals</Text>
               </View>
               <View style={styles.heroStat}>
-                <Text style={styles.heroStatNum}>{todayProgress.water}</Text>
+                <CountUp
+                  value={todayProgress.water}
+                  style={styles.heroStatNum}
+                />
                 <Text style={styles.heroStatLabel}>Glasses</Text>
               </View>
               <View style={styles.heroStat}>
-                <Text style={styles.heroStatNum}>{todayProgress.glucose}</Text>
+                <CountUp
+                  value={todayProgress.glucose}
+                  style={styles.heroStatNum}
+                />
                 <Text style={styles.heroStatLabel}>Sugar checks</Text>
               </View>
               <View style={styles.heroStat}>
