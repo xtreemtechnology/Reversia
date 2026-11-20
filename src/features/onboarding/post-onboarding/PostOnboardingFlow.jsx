@@ -21,12 +21,18 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, SafeAreaView, StyleSheet } from "react-native";
+import Animated, {
+  FadeOut,
+  SlideInLeft,
+  SlideInRight,
+} from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { updateUserProfile } from "../../profile/services/profileService";
 import { trackEvent } from "../../../utils/analytics";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { TRANSITION_DURATION_MS } from "../../../navigation/transitions";
 import { PRIMARY_GOAL_OPTIONS } from "../../reversal/data/planData";
 import { SetupHeader, QuestionHeader, PrimaryButton } from "./SetupChrome";
 import {
@@ -156,6 +162,10 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
   );
 
   const [step, setStep] = useState(0);
+  // Step-transition direction: 1 = forward (slides in from the right),
+  // -1 = back (slides in from the left). Set before the step changes so
+  // the entering/exiting animations read the right direction.
+  const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState({
     // Prefilled from signup: the account already has a displayName.
     fullName: auth.currentUser?.displayName || "",
@@ -206,6 +216,7 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
       : true;
 
   const handleContinue = async () => {
+    setDirection(1);
     const [event, getValue] = STEP_EVENTS[current] || [];
     if (event) {
       await trackEvent(event, {
@@ -220,6 +231,7 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
   const handleBack = () => {
     if (step > 0) {
+      setDirection(-1);
       setStep((s) => s - 1);
     }
   };
@@ -453,18 +465,34 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
             onSkip={handleSkip}
             canGoBack={step > 0}
           />
-          <ScrollView
-            contentContainerStyle={styles.questionScroll}
-            showsVerticalScrollIndicator={false}
-          >
-            <QuestionHeader
-              stepNumber={meta.number}
-              totalSteps={8}
-              headline={meta.headline}
-              subtext={meta.subtext}
-            />
-            {renderQuestionInput()}
-          </ScrollView>
+          <View style={styles.questionContentWrap}>
+            <Animated.View
+              key={current}
+              entering={(direction >= 0 ? SlideInRight : SlideInLeft).duration(
+                TRANSITION_DURATION_MS
+              )}
+              // The outgoing step always fades: its exiting animation is
+              // captured from its last render, so it cannot depend on the
+              // new direction — a slide-out would go the wrong way when
+              // going back. The incoming step carries the direction.
+              exiting={FadeOut.duration(TRANSITION_DURATION_MS)}
+              style={styles.questionContent}
+            >
+              <ScrollView
+                style={styles.questionScrollView}
+                contentContainerStyle={styles.questionScroll}
+                showsVerticalScrollIndicator={false}
+              >
+                <QuestionHeader
+                  stepNumber={meta.number}
+                  totalSteps={8}
+                  headline={meta.headline}
+                  subtext={meta.subtext}
+                />
+                {renderQuestionInput()}
+              </ScrollView>
+            </Animated.View>
+          </View>
           <View style={styles.bottomBar}>
             <PrimaryButton
               label="Continue"
@@ -480,6 +508,19 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
 
 const styles = StyleSheet.create({
   questionRoot: { flex: 1 },
+  // Reserves the space between header and button. The step content is
+  // absolutely positioned inside it so the exiting step and the entering
+  // step overlap exactly while they slide past each other (a flex child
+  // would split the space instead).
+  questionContentWrap: { flex: 1 },
+  questionContent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  questionScrollView: { flex: 1 },
   questionScroll: { paddingBottom: 24 },
   bottomBar: {
     paddingHorizontal: 16,
