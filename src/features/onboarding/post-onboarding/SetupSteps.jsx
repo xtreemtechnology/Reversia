@@ -24,7 +24,7 @@ import { FONTS, T } from "../../../theme/tokens";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
 import { PRIMARY_GOAL_OPTIONS } from "../../reversal/data/planData";
 import { DEEP_GREEN } from "./SetupChrome";
-import { SetupRuler, UnitToggle, ValueBox } from "./SetupRuler";
+import SetupRuler, { UnitToggle, ValueBox } from "./SetupRuler";
 import { formatWeight, formatHeight, kgToLbs } from "./setupFormat";
 
 // Subtle scale press (0.97) on selectable cards and rows, on the UI
