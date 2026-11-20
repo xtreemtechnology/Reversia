@@ -19,7 +19,7 @@ import { FONTS, T } from "../../../theme/tokens";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
 import { PRIMARY_GOAL_OPTIONS } from "../../reversal/data/planData";
 import { DEEP_GREEN } from "./SetupChrome";
-import SetupSlider, { UnitToggle, ValueBox } from "./SetupSlider";
+import { SetupRuler, UnitToggle, ValueBox } from "./SetupRuler";
 import { formatWeight, formatHeight, kgToLbs } from "./setupFormat";
 
 // ── Step 1 · Name ────────────────────────────────────────────────────────────
@@ -113,7 +113,6 @@ export function GenderStep({ value, onChange }) {
 
 const AGE_MIN = 18;
 const AGE_MAX = 100;
-const AGE_OFFSETS = [-2, -1, 0, 1, 2];
 
 export function AgeStep({ value, onChange }) {
   const step = (delta) => {
@@ -135,52 +134,15 @@ export function AgeStep({ value, onChange }) {
         >
           <Ionicons name="chevron-back" size={28} color={T.TEXT} />
         </TouchableOpacity>
-        <View style={styles.ageStrip}>
-          {AGE_OFFSETS.map((offset) => {
-            const candidate = value + offset;
-            const isCentre = offset === 0;
-            const widthStyle = isCentre
-              ? styles.ageW58
-              : Math.abs(offset) === 1
-              ? styles.ageW51
-              : styles.ageW44;
-            if (candidate < AGE_MIN || candidate > AGE_MAX) {
-              return (
-                <View key={offset} style={[styles.ageSlotEmpty, widthStyle]} />
-              );
-            }
-            const sizeStyle = isCentre
-              ? styles.ageNum28
-              : Math.abs(offset) === 1
-              ? styles.ageNum22
-              : styles.ageNum16;
-            return (
-              <TouchableOpacity
-                key={offset}
-                onPress={() => onChange(candidate)}
-                activeOpacity={0.7}
-                style={[
-                  styles.ageSlot,
-                  widthStyle,
-                  isCentre ? styles.ageSlotCentre : styles.ageSlotSide,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.ageNumber,
-                    sizeStyle,
-                    isCentre
-                      ? styles.ageNumberCentre
-                      : Math.abs(offset) === 1
-                      ? styles.ageNumberNear
-                      : styles.ageNumberFar,
-                  ]}
-                >
-                  {candidate}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.ageRulerWrap}>
+          <SetupRuler
+            min={AGE_MIN}
+            max={AGE_MAX}
+            value={value}
+            onChange={onChange}
+            variant="numbers"
+            itemWidth={56}
+          />
         </View>
         <TouchableOpacity
           onPress={() => step(1)}
@@ -217,15 +179,21 @@ export function MeasureStep({
   return (
     <View style={styles.stepBody}>
       <UnitToggle units={units} value={unit} onChange={onUnitChange} />
+      <View style={styles.pointerWrap}>
+        <Ionicons name="caret-down" size={18} color={DEEP_GREEN} />
+      </View>
       <View style={styles.measureValue}>
         <ValueBox displayValue={displayValue} unitLabel={unitLabel} />
       </View>
-      <SetupSlider
+      <SetupRuler
         min={min}
         max={max}
         value={value}
         onChange={onChange}
-        formatValue={formatValue}
+        variant="ticks"
+        labelEvery={5}
+        itemWidth={12}
+        formatLabel={formatValue}
       />
     </View>
   );
@@ -307,12 +275,15 @@ export function TargetWeightStep({
           <Text style={styles.targetCaption}>Target</Text>
         </View>
       </View>
-      <SetupSlider
+      <SetupRuler
         min={30}
         max={200}
         value={targetKg}
         onChange={onTargetChange}
-        formatValue={(v) => displayNumber(v)}
+        variant="ticks"
+        labelEvery={5}
+        itemWidth={12}
+        formatLabel={(v) => displayNumber(v)}
       />
     </View>
   );
@@ -473,36 +444,8 @@ const styles = StyleSheet.create({
   ageChevronDisabled: {
     opacity: 0.3,
   },
-  ageStrip: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  ageW44: { width: 44 },
-  ageW51: { width: 51 },
-  ageW58: { width: 58 },
-  ageSlotEmpty: { height: 64 },
-  ageSlot: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ageSlotCentre: { height: 64 },
-  ageSlotSide: { height: 60 },
-  ageNum16: { fontSize: 16 },
-  ageNum22: { fontSize: 22 },
-  ageNum28: { fontSize: 28 },
-  ageNumber: {
-    fontFamily: FONTS.display,
-    color: T.TEXT,
-  },
-  ageNumberCentre: {
-    color: DEEP_GREEN,
-    fontWeight: "700",
-  },
-  ageNumberNear: {
-    color: T.TEXT,
-  },
-  ageNumberFar: {
-    color: T.MUTED,
+  ageRulerWrap: {
+    flex: 1,
   },
   ageUnit: {
     fontFamily: FONTS.body,
@@ -511,9 +454,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
+  pointerWrap: {
+    alignItems: "center",
+    marginTop: 14,
+  },
   measureValue: {
     alignItems: "center",
-    marginVertical: 20,
+    marginTop: 6,
+    marginBottom: 16,
   },
   optionRow: {
     flexDirection: "row",
