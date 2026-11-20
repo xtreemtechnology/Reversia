@@ -6,13 +6,11 @@ import React, { useMemo } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ILLUSTRATIONS from "../../illustrations/illustrations";
 import Svg, {
   Polyline,
   Circle,
@@ -254,6 +252,11 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
   const { width: screenWidth } = useWindowDimensions();
   const { points, latestToday, hasAnyData } = useGlucoseChartData(logs);
 
+  // Hidden until there is a reading to chart — with no data the card
+  // would only be an empty-state poster, and the "Check Sugar" quick
+  // tile plus Today's Tasks already point at logging.
+  if (!hasAnyData) return null;
+
   // Card width matches the other HomeScreen cards (marginHorizontal 24 on each side)
   const cardPadding = 22;
   const cardMarginH = 24;
@@ -314,55 +317,26 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
         </TouchableOpacity>
       </View>
 
-      {/* Chart or empty state */}
-      {hasAnyData ? (
-        <>
-          <View style={gc.chartWrapper}>
-            <GlucoseLineChart
-              points={points}
-              chartWidth={chartWidth}
-              chartHeight={chartHeight}
-              colors={colors || {}}
-            />
-          </View>
+      {/* Chart — only renders with real readings (see the early
+          return above when there is no data). */}
+      <View style={gc.chartWrapper}>
+        <GlucoseLineChart
+          points={points}
+          chartWidth={chartWidth}
+          chartHeight={chartHeight}
+          colors={colors || {}}
+        />
+      </View>
 
-          {/* Legend */}
-          <View style={gc.legendRow}>
-            {legend.map((l) => (
-              <View key={l.label} style={gc.legendItem}>
-                <View style={[gc.legendDot, { backgroundColor: l.color }]} />
-                <Text style={gc.legendLabel}>{l.label}</Text>
-              </View>
-            ))}
+      {/* Legend */}
+      <View style={gc.legendRow}>
+        {legend.map((l) => (
+          <View key={l.label} style={gc.legendItem}>
+            <View style={[gc.legendDot, { backgroundColor: l.color }]} />
+            <Text style={gc.legendLabel}>{l.label}</Text>
           </View>
-        </>
-      ) : (
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={gc.emptyState}
-          onPress={onPress}
-        >
-          <Image
-            source={ILLUSTRATIONS["empty-readings"]}
-            style={gc.emptyImage}
-            resizeMode="contain"
-          />
-          <Text style={gc.emptyTitle}>Log your first glucose reading</Text>
-          <Text style={gc.emptyBody}>
-            Tap to record your blood sugar. The chart will fill in as you log
-            throughout the week.
-          </Text>
-          <View style={gc.emptyArrow}>
-            <Text style={gc.emptyArrowText}>Log reading</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={13}
-              color="#689F38"
-              style={gc.emptyArrowIcon}
-            />
-          </View>
-        </TouchableOpacity>
-      )}
+        ))}
+      </View>
     </View>
   );
 }
@@ -465,46 +439,4 @@ const gc = StyleSheet.create({
     color: "#7A8A72",
     fontWeight: "500",
   },
-
-  // Empty state
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  emptyImage: {
-    width: "100%",
-    height: 200,
-    marginBottom: 4,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#F3EFE3",
-    marginBottom: 6,
-    textAlign: "center",
-  },
-  emptyBody: {
-    fontSize: 13,
-    color: "#7A8A72",
-    lineHeight: 19,
-    textAlign: "center",
-    paddingHorizontal: 8,
-    marginBottom: 14,
-  },
-  emptyArrow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(163,230,53,0.10)",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(163,230,53,0.20)",
-  },
-  emptyArrowText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#689F38",
-  },
-  emptyArrowIcon: { marginLeft: 5 },
 });
