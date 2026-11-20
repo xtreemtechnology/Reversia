@@ -34,7 +34,8 @@ import {
   getFoodPhoto,
   FOOD_PHOTO_STRIP_IDS,
 } from "../../food-guide/foodPhotos";
-import { T, FONTS } from "../../../theme/tokens";
+import { FONTS } from "../../../theme/tokens";
+import { useTheme } from "../../../theme/ThemeProvider";
 import CompanionBuddy from "../../../components/CompanionBuddy";
 import MoodFace from "../../../components/MoodFace";
 
@@ -338,6 +339,8 @@ const TASK_ROUTES = {
 };
 
 function TasksList({ storySteps, navigation }) {
+  const { colors } = useTheme();
+  const tl = makeTl(colors);
   return (
     <View style={tl.card}>
       {storySteps.map((step, i) => {
@@ -348,14 +351,20 @@ function TasksList({ storySteps, navigation }) {
               <Ionicons
                 name={step.done ? "checkmark" : "ellipse-outline"}
                 size={16}
-                color={step.done ? "#FFFFFF" : T.MUTED}
+                color={
+                  step.done ? colors.primaryForeground : colors.mutedForeground
+                }
               />
             </View>
             <Text style={[tl.label, step.done && tl.labelDone]}>
               {step.label}
             </Text>
             {route && !step.done ? (
-              <Ionicons name="chevron-forward" size={16} color={T.MUTED} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.mutedForeground}
+              />
             ) : null}
           </View>
         );
@@ -376,56 +385,60 @@ function TasksList({ storySteps, navigation }) {
   );
 }
 
-const tl = StyleSheet.create({
-  card: {
-    backgroundColor: T.SURFACE,
-    borderRadius: 24,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 11,
-  },
-  iconBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: T.PRIMARY_LIGHT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconBadgeDone: {
-    backgroundColor: T.SECONDARY,
-  },
-  label: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    fontWeight: "600",
-    color: T.TEXT,
-    flex: 1,
-  },
-  labelDone: {
-    color: T.MUTED,
-  },
-});
+function makeTl(colors) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 11,
+    },
+    iconBadge: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.muted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    iconBadgeDone: {
+      backgroundColor: colors.secondary,
+    },
+    label: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+      flex: 1,
+    },
+    labelDone: {
+      color: colors.mutedForeground,
+    },
+  });
+}
 // ─────────────────────────────────────────────
 // ③ Clarity Insight Card
 // ─────────────────────────────────────────────
 function ClarityCard({ clarity }) {
+  const { colors } = useTheme();
+  const cc = makeCc(colors);
   return (
     <View style={cc.card}>
       <View style={cc.glowTopRight} />
       <View style={cc.glowBottomLeft} />
       <View style={cc.headerRow}>
         <View style={cc.iconBadge}>
-          <SolarIcon name="focus-star-bold" size={20} color={T.PRIMARY} />
+          <SolarIcon name="focus-star-bold" size={20} color={colors.primary} />
         </View>
         <View style={cc.headerTextCol}>
           <Text style={cc.title}>{clarity.title}</Text>
@@ -448,7 +461,7 @@ function ClarityCard({ clarity }) {
         <Ionicons
           name="git-branch-outline"
           size={12}
-          color={T.PRIMARY}
+          color={colors.primary}
           style={cc.patternIcon}
         />
         <Text style={cc.patternText}>{clarity.patternText}</Text>
@@ -457,102 +470,108 @@ function ClarityCard({ clarity }) {
   );
 }
 
-const cc = StyleSheet.create({
-  card: {
-    backgroundColor: T.SURFACE,
-    borderRadius: 28,
-    padding: 22,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    overflow: "hidden",
-  },
-  glowTopRight: {
-    position: "absolute",
-    top: -20,
-    right: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(139,195,74,0.07)",
-  },
-  glowBottomLeft: {
-    position: "absolute",
-    bottom: -20,
-    left: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(139,195,74,0.05)",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  headerTextCol: { flex: 1 },
-  iconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(139,195,74,0.14)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 14,
-    marginTop: 2,
-  },
-  title: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    fontWeight: "700",
-    color: T.TEXT,
-    marginBottom: 6,
-  },
-  confidenceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  confidenceLabel: { fontFamily: FONTS.body, fontSize: 11, color: T.MUTED },
-  dotRow: { flexDirection: "row", gap: 3 },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: T.PRIMARY_LIGHT,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-  },
-  dotFilled: { backgroundColor: T.PRIMARY, borderColor: T.PRIMARY },
-  confidenceVal: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    color: T.PRIMARY,
-    fontWeight: "600",
-  },
-  body: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    color: T.MUTED,
-    lineHeight: 21,
-    marginBottom: 14,
-  },
-  patternChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(139,195,74,0.10)",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "rgba(139,195,74,0.25)",
-  },
-  patternIcon: { marginRight: 5 },
-  patternText: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    color: T.PRIMARY,
-    fontWeight: "600",
-  },
-});
+function makeCc(colors) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 22,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+    glowTopRight: {
+      position: "absolute",
+      top: -20,
+      right: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: "rgba(139,195,74,0.07)",
+    },
+    glowBottomLeft: {
+      position: "absolute",
+      bottom: -20,
+      left: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: "rgba(139,195,74,0.05)",
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: 12,
+    },
+    headerTextCol: { flex: 1 },
+    iconBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(139,195,74,0.14)",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 14,
+      marginTop: 2,
+    },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 6,
+    },
+    confidenceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+    confidenceLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      color: colors.mutedForeground,
+    },
+    dotRow: { flexDirection: "row", gap: 3 },
+    dot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.muted,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    dotFilled: { backgroundColor: colors.primary, borderColor: colors.primary },
+    confidenceVal: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      color: colors.primary,
+      fontWeight: "600",
+    },
+    body: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.mutedForeground,
+      lineHeight: 21,
+      marginBottom: 14,
+    },
+    patternChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      backgroundColor: "rgba(139,195,74,0.10)",
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderWidth: 1,
+      borderColor: "rgba(139,195,74,0.25)",
+    },
+    patternIcon: { marginRight: 5 },
+    patternText: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      color: colors.primary,
+      fontWeight: "600",
+    },
+  });
+}
 
 // ─────────────────────────────────────────────
 // ④ Today's Focus Card
@@ -563,6 +582,8 @@ function TodaysFocusCard({
   waterCount,
   bodyCheckToday,
 }) {
+  const { colors } = useTheme();
+  const tf = makeTf(colors);
   const latestMealLabel = latestMeal?.type || latestMeal?.name || "recent meal";
   const latestMealType = latestMeal?.type?.toLowerCase();
   const latestMealTime = latestMeal?.createdAt
@@ -637,7 +658,7 @@ function TodaysFocusCard({
   return (
     <View style={tf.outer}>
       <View style={tf.headerRow}>
-        <SolarIcon name="sun-fog-bold" size={18} color={T.PRIMARY} />
+        <SolarIcon name="sun-fog-bold" size={18} color={colors.primary} />
         <Text style={tf.overline}>TODAY'S FOCUS</Text>
       </View>
       <Text style={tf.headline}>{headline}</Text>
@@ -646,7 +667,7 @@ function TodaysFocusCard({
           <Ionicons
             name="arrow-forward-circle"
             size={15}
-            color={T.PRIMARY}
+            color={colors.primary}
             style={tf.actionIcon}
           />
           <Text style={tf.actionLabel}>RECOMMENDED ACTION</Text>
@@ -658,7 +679,7 @@ function TodaysFocusCard({
           <Ionicons
             name="information-circle"
             size={17}
-            color={T.MUTED}
+            color={colors.mutedForeground}
             style={tf.whyIcon}
           />
           <View style={tf.whyTextCol}>
@@ -671,85 +692,87 @@ function TodaysFocusCard({
   );
 }
 
-const tf = StyleSheet.create({
-  outer: {
-    backgroundColor: T.SURFACE,
-    borderRadius: 28,
-    padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-  },
-  headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  overline: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    fontWeight: "700",
-    color: T.PRIMARY,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    marginLeft: 8,
-  },
-  headline: {
-    fontFamily: FONTS.display,
-    fontSize: 22,
-    fontWeight: "700",
-    color: T.TEXT,
-    lineHeight: 30,
-    letterSpacing: -0.3,
-    marginBottom: 14,
-  },
-  actionBox: {
-    backgroundColor: "rgba(139,195,74,0.08)",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(139,195,74,0.20)",
-  },
-  actionLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  actionIcon: { marginRight: 7 },
-  actionLabel: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    fontWeight: "700",
-    color: T.PRIMARY,
-    letterSpacing: 0.6,
-  },
-  actionBody: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: T.TEXT,
-    lineHeight: 19,
-    opacity: 0.85,
-  },
-  whyBox: {
-    backgroundColor: T.PRIMARY_LIGHT,
-    borderRadius: 14,
-    padding: 13,
-  },
-  whyRow: { flexDirection: "row", alignItems: "flex-start" },
-  whyIcon: { marginRight: 9, marginTop: 1 },
-  whyTextCol: { flex: 1 },
-  whyTitle: {
-    fontFamily: FONTS.display,
-    fontSize: 13,
-    fontWeight: "700",
-    color: T.TEXT,
-    marginBottom: 4,
-  },
-  whyBody: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: T.MUTED,
-    lineHeight: 19,
-  },
-});
+function makeTf(colors) {
+  return StyleSheet.create({
+    outer: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 20,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+    overline: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.primary,
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+      marginLeft: 8,
+    },
+    headline: {
+      fontFamily: FONTS.display,
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+      lineHeight: 30,
+      letterSpacing: -0.3,
+      marginBottom: 14,
+    },
+    actionBox: {
+      backgroundColor: "rgba(139,195,74,0.08)",
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: "rgba(139,195,74,0.20)",
+    },
+    actionLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 6,
+    },
+    actionIcon: { marginRight: 7 },
+    actionLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.primary,
+      letterSpacing: 0.6,
+    },
+    actionBody: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      color: colors.text,
+      lineHeight: 19,
+      opacity: 0.85,
+    },
+    whyBox: {
+      backgroundColor: colors.muted,
+      borderRadius: 14,
+      padding: 13,
+    },
+    whyRow: { flexDirection: "row", alignItems: "flex-start" },
+    whyIcon: { marginRight: 9, marginTop: 1 },
+    whyTextCol: { flex: 1 },
+    whyTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
+    whyBody: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      color: colors.mutedForeground,
+      lineHeight: 19,
+    },
+  });
+}
 
 // ─────────────────────────────────────────────
 // Quick tiles — three in a row, like the reference's Math Solver /
@@ -757,6 +780,8 @@ const tf = StyleSheet.create({
 // Food Guide, or a glucose check.
 // ─────────────────────────────────────────────
 function QuickActions({ navigation }) {
+  const { colors } = useTheme();
+  const qa = makeQa(colors);
   const tiles = [
     {
       icon: "restaurant-outline",
@@ -785,7 +810,7 @@ function QuickActions({ navigation }) {
           accessibilityLabel={tile.label}
         >
           <View style={qa.iconBadge}>
-            <Ionicons name={tile.icon} size={24} color={T.SECONDARY} />
+            <Ionicons name={tile.icon} size={24} color={colors.secondary} />
           </View>
           <Text style={qa.label}>{tile.label}</Text>
         </PressScale>
@@ -794,39 +819,41 @@ function QuickActions({ navigation }) {
   );
 }
 
-const qa = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: T.SURFACE,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    paddingVertical: 18,
-    alignItems: "center",
-    gap: 10,
-  },
-  iconBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: T.PRIMARY_LIGHT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  label: {
-    fontFamily: FONTS.display,
-    fontSize: 13,
-    fontWeight: "700",
-    color: T.TEXT,
-    textAlign: "center",
-  },
-});
+function makeQa(colors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      gap: 12,
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    card: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 18,
+      alignItems: "center",
+      gap: 10,
+    },
+    iconBadge: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.muted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    label: {
+      fontFamily: FONTS.display,
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.text,
+      textAlign: "center",
+    },
+  });
+}
 // ─────────────────────────────────────────────
 // ⑥ Recent Wins — data-driven
 // ─────────────────────────────────────────────
@@ -834,6 +861,8 @@ const qa = StyleSheet.create({
 // there is no empty state here by design: the section appears
 // when the first real win arrives.
 function RecentWins({ wins }) {
+  const { colors } = useTheme();
+  const rw = makeRw(colors);
   const subtitle =
     wins.length === 1
       ? "1 real win pulled from your logs"
@@ -843,7 +872,7 @@ function RecentWins({ wins }) {
     <View style={rw.card}>
       <View style={rw.headerRow}>
         <View style={rw.iconBadge}>
-          <Ionicons name="ribbon-outline" size={18} color={T.PRIMARY} />
+          <Ionicons name="ribbon-outline" size={18} color={colors.primary} />
         </View>
         <View>
           <Text style={rw.title}>Recent Wins</Text>
@@ -866,73 +895,75 @@ function RecentWins({ wins }) {
   );
 }
 
-const rw = StyleSheet.create({
-  card: {
-    backgroundColor: T.SURFACE,
-    borderRadius: 28,
-    padding: 22,
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    gap: 12,
-  },
-  iconBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(139,195,74,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: FONTS.display,
-    fontSize: 16,
-    fontWeight: "700",
-    color: T.TEXT,
-  },
-  subtitle: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: T.MUTED,
-    marginTop: 2,
-  },
-  winRow: { flexDirection: "row", alignItems: "flex-start" },
-  timelineCol: { width: 20, alignItems: "center", marginRight: 14 },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: T.PRIMARY,
-    marginTop: 5,
-  },
-  line: {
-    width: 1.5,
-    flex: 1,
-    backgroundColor: "rgba(139,195,74,0.25)",
-    marginTop: 4,
-    minHeight: 22,
-  },
-  winTextCol: { flex: 1, paddingBottom: 18 },
-  winText: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    color: T.TEXT,
-    fontWeight: "500",
-    lineHeight: 20,
-  },
-  winWhen: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    color: T.MUTED,
-    marginTop: 3,
-  },
-});
+function makeRw(colors) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 22,
+      marginHorizontal: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 20,
+      gap: 12,
+    },
+    iconBadge: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "rgba(139,195,74,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    subtitle: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      color: colors.mutedForeground,
+      marginTop: 2,
+    },
+    winRow: { flexDirection: "row", alignItems: "flex-start" },
+    timelineCol: { width: 20, alignItems: "center", marginRight: 14 },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
+      marginTop: 5,
+    },
+    line: {
+      width: 1.5,
+      flex: 1,
+      backgroundColor: "rgba(139,195,74,0.25)",
+      marginTop: 4,
+      minHeight: 22,
+    },
+    winTextCol: { flex: 1, paddingBottom: 18 },
+    winText: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: "500",
+      lineHeight: 20,
+    },
+    winWhen: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      color: colors.mutedForeground,
+      marginTop: 3,
+    },
+  });
+}
 
 // ─────────────────────────────────────────────
 // ⑦ Weekly Momentum
@@ -941,11 +972,17 @@ const rw = StyleSheet.create({
 // there is no empty state here by design: the section appears
 // when this week or last week has logged activity.
 function WeeklyMomentum({ momentum }) {
+  const { colors } = useTheme();
+  const wm = makeWm(colors);
   return (
     <View style={wm.card}>
       <View style={wm.headerRow}>
         <View style={wm.iconBadge}>
-          <Ionicons name="trending-up-outline" size={18} color={T.PRIMARY} />
+          <Ionicons
+            name="trending-up-outline"
+            size={18}
+            color={colors.primary}
+          />
         </View>
         <View>
           <Text style={wm.title}>Weekly Momentum</Text>
@@ -954,7 +991,7 @@ function WeeklyMomentum({ momentum }) {
       </View>
       {momentum.map((item, index) => {
         const delta = item.current - item.previous;
-        const deltaColor = delta >= 0 ? T.PRIMARY : T.DANGER;
+        const deltaColor = delta >= 0 ? colors.primary : colors.destructive;
         const deltaLabel =
           item.previous === 0
             ? item.current > 0
@@ -992,79 +1029,83 @@ function WeeklyMomentum({ momentum }) {
   );
 }
 
-const wm = StyleSheet.create({
-  card: {
-    backgroundColor: T.SURFACE,
-    borderRadius: 28,
-    padding: 22,
-    marginHorizontal: 20,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-    gap: 12,
-  },
-  iconBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(139,195,74,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: FONTS.display,
-    fontSize: 16,
-    fontWeight: "700",
-    color: T.TEXT,
-  },
-  subtitle: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: T.MUTED,
-    marginTop: 2,
-  },
-  trendRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 13,
-  },
-  trendRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: T.BORDER,
-  },
-  trendLabel: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    color: T.TEXT,
-    fontWeight: "500",
-  },
-  trendRight: { flexDirection: "row", alignItems: "center" },
-  trendCurrent: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: T.TEXT,
-    fontWeight: "600",
-    marginRight: 6,
-  },
-  trendArrow: { marginRight: 3 },
-  trendDelta: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});
+function makeWm(colors) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 22,
+      marginHorizontal: 20,
+      marginBottom: 32,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 18,
+      gap: 12,
+    },
+    iconBadge: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "rgba(139,195,74,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    subtitle: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      color: colors.mutedForeground,
+      marginTop: 2,
+    },
+    trendRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 13,
+    },
+    trendRowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    trendLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: "500",
+    },
+    trendRight: { flexDirection: "row", alignItems: "center" },
+    trendCurrent: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      color: colors.text,
+      fontWeight: "600",
+      marginRight: 6,
+    },
+    trendArrow: { marginRight: 3 },
+    trendDelta: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+  });
+}
 
 // ─────────────────────────────────────────────
 // From the Food Guide — horizontal photo strip of guide foods that have
 // a real photo. Tapping a card opens that food in the Food Guide.
 // ─────────────────────────────────────────────
 function FoodGuideStrip({ navigation }) {
+  const { colors } = useTheme();
+  const fg = makeFg(colors);
   const foods = FOOD_PHOTO_STRIP_IDS.map((id) => getFoodById(id)).filter(
     Boolean
   );
@@ -1089,10 +1130,10 @@ function FoodGuideStrip({ navigation }) {
           const photo = getFoodPhoto(food.id);
           const badgeColor =
             food.rating === "safe"
-              ? T.SUCCESS
+              ? colors.success
               : food.rating === "caution"
-              ? T.WARNING
-              : T.DANGER;
+              ? colors.warning
+              : colors.destructive;
           return (
             <PressScale
               key={food.id}
@@ -1133,81 +1174,85 @@ function FoodGuideStrip({ navigation }) {
   );
 }
 
-const fg = StyleSheet.create({
-  section: { marginBottom: 32 },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    paddingHorizontal: 22,
-    marginBottom: 14,
-    marginTop: 4,
-  },
-  title: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    fontWeight: "700",
-    color: T.TEXT,
-  },
-  viewAll: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    fontWeight: "600",
-    color: T.MUTED,
-  },
-  strip: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  card: {
-    width: 160,
-    backgroundColor: T.SURFACE,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    overflow: "hidden",
-  },
-  photo: {
-    width: "100%",
-    height: 110,
-  },
-  body: {
-    padding: 12,
-    gap: 8,
-  },
-  name: {
-    fontFamily: FONTS.display,
-    fontSize: 14,
-    fontWeight: "700",
-    color: T.TEXT,
-  },
-  badge: {
-    borderRadius: 999,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    alignSelf: "flex-start",
-  },
-  badgeText: {
-    fontFamily: FONTS.body,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-});
+function makeFg(colors) {
+  return StyleSheet.create({
+    section: { marginBottom: 32 },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      paddingHorizontal: 22,
+      marginBottom: 14,
+      marginTop: 4,
+    },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    viewAll: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.mutedForeground,
+    },
+    strip: {
+      paddingHorizontal: 20,
+      gap: 12,
+    },
+    card: {
+      width: 160,
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+    photo: {
+      width: "100%",
+      height: 110,
+    },
+    body: {
+      padding: 12,
+      gap: 8,
+    },
+    name: {
+      fontFamily: FONTS.display,
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    badge: {
+      borderRadius: 999,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      alignSelf: "flex-start",
+    },
+    badgeText: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+  });
+}
 
 // ─────────────────────────────────────────────
 // Theme colors passed to chart components
 // ─────────────────────────────────────────────
-const HOME_COLORS = {
-  card: T.SURFACE,
-  border: T.BORDER,
-  text: T.TEXT,
-  textMuted: T.MUTED,
-  accent: T.PRIMARY,
-  green: T.PRIMARY,
-  amber: T.AMBER,
-  red: T.DANGER,
-  background: T.BG,
-};
+function makeHomeColors(colors) {
+  return {
+    card: colors.card,
+    border: colors.border,
+    text: colors.text,
+    textMuted: colors.mutedForeground,
+    accent: colors.primary,
+    green: colors.primary,
+    amber: colors.warning,
+    red: colors.destructive,
+    background: colors.background,
+  };
+}
 
 // ─────────────────────────────────────────────
 // Root HomeScreen — fresh reference layout:
@@ -1215,6 +1260,9 @@ const HOME_COLORS = {
 // today's tasks → glucose → clarity → mood → focus → wins → momentum.
 // ─────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const homeColors = makeHomeColors(colors);
   const { logs } = useUserLogs(20);
   const { userData, displayName } = useUserProfile();
   const derived = useDerivedState(logs);
@@ -1310,7 +1358,7 @@ export default function HomeScreen({ navigation }) {
             accessibilityLabel="Log a meal by photo"
             activeOpacity={0.7}
           >
-            <Ionicons name="camera-outline" size={20} color={T.TEXT} />
+            <Ionicons name="camera-outline" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.askIcon}
@@ -1318,7 +1366,7 @@ export default function HomeScreen({ navigation }) {
             accessibilityLabel="Log a meal by voice"
             activeOpacity={0.7}
           >
-            <Ionicons name="mic-outline" size={20} color={T.TEXT} />
+            <Ionicons name="mic-outline" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -1353,7 +1401,7 @@ export default function HomeScreen({ navigation }) {
         <FadeIn delay={180}>
           <GlucoseTrendChart
             logs={logs}
-            colors={HOME_COLORS}
+            colors={homeColors}
             onPress={() => navigation.navigate("GlucoseLog")}
           />
         </FadeIn>
@@ -1409,7 +1457,11 @@ export default function HomeScreen({ navigation }) {
             </View>
             {bodyCheckToday ? (
               <View style={styles.moodDoneRow}>
-                <Ionicons name="checkmark-circle" size={15} color={T.PRIMARY} />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={15}
+                  color={colors.primary}
+                />
                 <Text style={styles.moodDoneText}>
                   You&apos;ve checked in today — you can add another anytime.
                 </Text>
@@ -1454,229 +1506,232 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // Deep green behind the safe-area strip so the curve runs to the very
-  // top edge (the ScrollView itself paints the sage screen background).
-  container: { flex: 1, backgroundColor: HOME_CURVE_GREEN },
-  scrollView: { backgroundColor: T.BG },
-  scrollContent: { paddingBottom: 120 },
+function makeStyles(colors) {
+  return StyleSheet.create({
+    // Deep green behind the safe-area strip so the curve runs to the very
+    // top edge (the ScrollView itself paints the sage screen background).
+    container: { flex: 1, backgroundColor: HOME_CURVE_GREEN },
+    scrollView: { backgroundColor: colors.background },
+    scrollContent: { paddingBottom: 120 },
 
-  // Curved header zone: the SVG wave paints the background; the header
-  // row and headline sit inside it.
-  curveHeader: {
-    height: HOME_CURVE_HEIGHT,
-  },
+    // Curved header zone: the SVG wave paints the background; the header
+    // row and headline sit inside it.
+    curveHeader: {
+      height: HOME_CURVE_HEIGHT,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingTop:
-      Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 16 : 16,
-    paddingBottom: 20,
-  },
-  avatarWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: T.PRIMARY,
-  },
-  avatarImage: { width: "100%", height: "100%" },
-  avatarFallback: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: T.PRIMARY_LIGHT,
-  },
-  avatarFallbackText: {
-    fontFamily: FONTS.display,
-    color: T.SECONDARY,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  helloPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: T.SURFACE,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  helloText: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    fontWeight: "600",
-    color: T.TEXT,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingHorizontal: 20,
+      paddingTop:
+        Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) + 16 : 16,
+      paddingBottom: 20,
+    },
+    avatarWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      overflow: "hidden",
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    avatarImage: { width: "100%", height: "100%" },
+    avatarFallback: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.muted,
+    },
+    avatarFallbackText: {
+      fontFamily: FONTS.display,
+      color: colors.secondary,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    helloPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    helloText: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+    },
 
-  headline: {
-    fontFamily: FONTS.display,
-    fontSize: 34,
-    fontWeight: "400",
-    color: T.WHITE,
-    lineHeight: 42,
-    letterSpacing: -0.6,
-    paddingHorizontal: 20,
-    marginBottom: 18,
-  },
-  headlineStrong: {
-    fontWeight: "800",
-  },
+    headline: {
+      fontFamily: FONTS.display,
+      fontSize: 34,
+      fontWeight: "400",
+      // White by design — the headline sits on the fixed deep-green curve.
+      color: "#FFFFFF",
+      lineHeight: 42,
+      letterSpacing: -0.6,
+      paddingHorizontal: 20,
+      marginBottom: 18,
+    },
+    headlineStrong: {
+      fontWeight: "800",
+    },
 
-  askPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: T.SURFACE,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    borderRadius: 999,
-    marginHorizontal: 20,
-    // Overlaps the curve's bottom edge, like the reference's search pill
-    // straddling the blue wave.
-    marginTop: -14,
-    marginBottom: 16,
-    paddingLeft: 18,
-    paddingRight: 8,
-    paddingVertical: 6,
-    gap: 4,
-  },
-  askTextWrap: {
-    flex: 1,
-    paddingVertical: 10,
-  },
-  askText: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    color: T.MUTED,
-  },
-  askIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    askPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      marginHorizontal: 20,
+      // Overlaps the curve's bottom edge, like the reference's search pill
+      // straddling the blue wave.
+      marginTop: -14,
+      marginBottom: 16,
+      paddingLeft: 18,
+      paddingRight: 8,
+      paddingVertical: 6,
+      gap: 4,
+    },
+    askTextWrap: {
+      flex: 1,
+      paddingVertical: 10,
+    },
+    askText: {
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      color: colors.mutedForeground,
+    },
+    askIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  tasksHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    paddingHorizontal: 22,
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  tasksTitle: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    fontWeight: "700",
-    color: T.TEXT,
-  },
-  viewAll: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    fontWeight: "600",
-    color: T.MUTED,
-  },
+    tasksHeader: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      paddingHorizontal: 22,
+      marginBottom: 12,
+      marginTop: 4,
+    },
+    tasksTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    viewAll: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.mutedForeground,
+    },
 
-  moodCard: {
-    backgroundColor: T.SURFACE,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 18,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    overflow: "hidden",
-  },
-  moodCardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-  },
-  moodCardCopy: { flex: 1, paddingRight: 12 },
-  moodEyebrow: {
-    fontFamily: FONTS.body,
-    color: T.SECONDARY,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.25,
-    marginBottom: 7,
-  },
-  moodTitle: {
-    fontFamily: FONTS.display,
-    color: T.TEXT,
-    fontSize: 19,
-    lineHeight: 25,
-    fontWeight: "800",
-    letterSpacing: -0.35,
-  },
-  moodSubtitle: {
-    fontFamily: FONTS.body,
-    color: T.MUTED,
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 5,
-    maxWidth: 280,
-  },
-  moodBuddy: {
-    width: 68,
-    height: 68,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -8,
-    marginRight: -5,
-  },
-  moodChoices: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 18,
-    gap: 5,
-  },
-  moodChoice: { flex: 1, alignItems: "center", gap: 7 },
-  moodEmojiWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    backgroundColor: T.PRIMARY_LIGHT,
-  },
-  moodChoiceLabel: {
-    fontFamily: FONTS.body,
-    color: T.MUTED,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  moodDoneRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: T.BORDER,
-  },
-  moodDoneText: {
-    fontFamily: FONTS.body,
-    color: T.SECONDARY,
-    fontSize: 11,
-    flex: 1,
-  },
-  sectionTitle: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    fontWeight: "700",
-    color: T.TEXT,
-    paddingHorizontal: 22,
-    marginBottom: 14,
-    marginTop: 4,
-  },
-});
+    moodCard: {
+      backgroundColor: colors.card,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      padding: 18,
+      borderRadius: 28,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+    moodCardHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+    },
+    moodCardCopy: { flex: 1, paddingRight: 12 },
+    moodEyebrow: {
+      fontFamily: FONTS.body,
+      color: colors.secondary,
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 1.25,
+      marginBottom: 7,
+    },
+    moodTitle: {
+      fontFamily: FONTS.display,
+      color: colors.text,
+      fontSize: 19,
+      lineHeight: 25,
+      fontWeight: "800",
+      letterSpacing: -0.35,
+    },
+    moodSubtitle: {
+      fontFamily: FONTS.body,
+      color: colors.mutedForeground,
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 5,
+      maxWidth: 280,
+    },
+    moodBuddy: {
+      width: 68,
+      height: 68,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: -8,
+      marginRight: -5,
+    },
+    moodChoices: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 18,
+      gap: 5,
+    },
+    moodChoice: { flex: 1, alignItems: "center", gap: 7 },
+    moodEmojiWrap: {
+      width: 46,
+      height: 46,
+      borderRadius: 23,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.muted,
+    },
+    moodChoiceLabel: {
+      fontFamily: FONTS.body,
+      color: colors.mutedForeground,
+      fontSize: 10,
+      fontWeight: "600",
+    },
+    moodDoneRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 14,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    moodDoneText: {
+      fontFamily: FONTS.body,
+      color: colors.secondary,
+      fontSize: 11,
+      flex: 1,
+    },
+    sectionTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      paddingHorizontal: 22,
+      marginBottom: 14,
+      marginTop: 4,
+    },
+  });
+}

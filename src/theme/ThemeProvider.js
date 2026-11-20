@@ -27,6 +27,8 @@ const light = {
   cardBackground: "#FFFFFF",
   mutedTextColor: "#756D84",
   destructive: "#D96C83",
+  success: "#689F38",
+  warning: "#E8A33D",
   cardForeground: "#242033",
   secondaryForeground: "#242033",
 };
@@ -48,6 +50,8 @@ const dark = {
   cardBackground: "#241D35",
   mutedTextColor: "#B8ACC9",
   destructive: "#F08BA0",
+  success: "#A3E635",
+  warning: "#F2A93B",
   cardForeground: "#F7F3FF",
   secondaryForeground: "#F7F3FF",
 };
@@ -72,6 +76,8 @@ const fresh = {
   cardBackground: "#FFFFFF",
   mutedTextColor: "#7A8A72",
   destructive: "#D96C83",
+  success: "#689F38",
+  warning: "#E8A33D",
   cardForeground: "#1E2B1A",
   secondaryForeground: "#1E2B1A",
 };
@@ -96,6 +102,8 @@ const bold = {
   cardBackground: "#1B221D",
   mutedTextColor: "#9AA79B",
   destructive: "#E86A6A",
+  success: "#A3E635",
+  warning: "#F2A93B",
   cardForeground: "#F3EFE3",
   secondaryForeground: "#F3EFE3",
 };
