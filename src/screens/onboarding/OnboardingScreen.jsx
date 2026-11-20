@@ -42,7 +42,7 @@ const SLIDES = [
     body: "Reversia reads the signals your daily habits create — food, sleep, movement — and surfaces what your body is actually telling you.",
     accentColor: "#FFFFFF",
     iconName: "pulse",
-    visual: "waveform",
+    art: "onboard-understand",
   },
   {
     id: "local",
@@ -51,7 +51,7 @@ const SLIDES = [
     body: "From garri to ogbono, jollof to egusi — Reversia recognises the foods you grew up with and gives you insights grounded in your reality.",
     accentColor: "#DCEED2",
     iconName: "restaurant",
-    visual: "grid",
+    art: "onboard-local",
   },
   {
     id: "reverse",
@@ -60,7 +60,7 @@ const SLIDES = [
     body: "Prediabetes and Type 2 diabetes can be reversed. Reversia shows you exactly which habits are moving the needle — and which ones aren't.",
     accentColor: "#F2CC8F",
     iconName: "trending-up",
-    visual: "bars",
+    art: "onboard-reverse",
   },
   {
     id: "ready",
@@ -69,140 +69,10 @@ const SLIDES = [
     body: "No complicated setup. No jargon. Just log your day, and let Reversia do the rest. Your first insight is waiting.",
     accentColor: "#FFFFFF",
     iconName: "sparkles",
-    visual: "none",
-    hero: true,
+    art: "welcome-hero",
     isFinal: true,
   },
 ];
-
-function SlideVisual({ type, color }) {
-  if (type === "waveform") {
-    const bars = [
-      0.3, 0.5, 0.7, 0.9, 0.75, 0.55, 0.85, 0.65, 0.45, 0.6, 0.8, 0.5,
-    ];
-    return (
-      <View style={visualStyles.waveContainer}>
-        {bars.map((h, i) => (
-          <View
-            key={i}
-            style={[
-              visualStyles.waveBar,
-              {
-                height: 80 * h,
-                backgroundColor: i === 8 ? color : color + "40",
-                marginHorizontal: 3,
-              },
-            ]}
-          />
-        ))}
-        <View
-          style={[visualStyles.waveLine, { backgroundColor: color + "30" }]}
-        />
-      </View>
-    );
-  }
-
-  if (type === "grid") {
-    const tiles = [
-      { label: "Garri", color: "#F2CC8F" },
-      { label: "Rice", color: C.primary },
-      { label: "Ogbono", color: C.secondary },
-      { label: "Amala", color: "#7A8A72" },
-      { label: "Ewedu", color: "#81B29A" },
-      { label: "Beans", color: "#E28A82" },
-    ];
-    return (
-      <View style={visualStyles.gridWrap}>
-        {tiles.map((t, i) => (
-          <View
-            key={i}
-            style={[
-              visualStyles.gridTile,
-              { backgroundColor: t.color + "22", borderColor: t.color + "40" },
-            ]}
-          >
-            <Text style={[visualStyles.gridTileText, { color: t.color }]}>
-              {t.label}
-            </Text>
-          </View>
-        ))}
-      </View>
-    );
-  }
-
-  if (type === "bars") {
-    const days = ["M", "T", "W", "T", "F", "S", "S"];
-    const heights = [0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 0.65];
-    return (
-      <View style={visualStyles.barsWrap}>
-        {days.map((d, i) => (
-          <View key={i} style={visualStyles.barCol}>
-            <View style={visualStyles.barTrack}>
-              <View
-                style={[
-                  visualStyles.barFill,
-                  {
-                    height: `${heights[i] * 100}%`,
-                    backgroundColor: i === 5 ? color : color + "55",
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[visualStyles.barDay, { color: C.mutedFg }]}>{d}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  }
-
-  return null;
-}
-
-const visualStyles = StyleSheet.create({
-  waveContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    height: 90,
-    position: "relative",
-    paddingBottom: 2,
-  },
-  waveBar: { width: 14, borderRadius: 7 },
-  waveLine: { position: "absolute", bottom: 0, left: 0, right: 0, height: 1 },
-  gridWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "center",
-  },
-  gridTile: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  gridTileText: {
-    fontSize: 13,
-    fontFamily: FONTS.body,
-    fontWeight: "600",
-  },
-  barsWrap: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    height: 90,
-  },
-  barCol: { alignItems: "center", gap: 6, flex: 1 },
-  barTrack: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: C.muted,
-    borderRadius: 8,
-    justifyContent: "flex-end",
-    overflow: "hidden",
-  },
-  barFill: { width: "100%", borderRadius: 8 },
-  barDay: { fontSize: 11, fontFamily: FONTS.body },
-});
 
 function Dots({ total, active, activeColor }) {
   return (
@@ -261,21 +131,16 @@ function Slide({ slide, index, isActive }) {
       <Text style={[slideStyles.tag, { color: slide.accentColor }]}>
         {slide.tag}
       </Text>
-      {slide.hero && (
+      {slide.art && (
         <View style={slideStyles.heroCard}>
           <Image
-            source={ILLUSTRATIONS["welcome-hero"]}
+            source={ILLUSTRATIONS[slide.art]}
             style={slideStyles.heroImage}
             resizeMode="contain"
           />
         </View>
       )}
       <Text style={slideStyles.headline}>{slide.headline}</Text>
-      {slide.visual !== "none" && (
-        <View style={slideStyles.visualWrap}>
-          <SlideVisual type={slide.visual} color={slide.accentColor} />
-        </View>
-      )}
       <Text style={slideStyles.body}>{slide.body}</Text>
     </Animated.View>
   );
@@ -307,10 +172,10 @@ const slideStyles = StyleSheet.create({
     letterSpacing: -1,
     marginBottom: 28,
   },
-  visualWrap: { marginBottom: 32, paddingLeft: 2 },
-  // The welcome illustration sits in a white card because the slides
-  // live on a green gradient — the drawing's own pale background would
-  // not blend with it the way it does on the sage screens.
+  // Every slide's illustration sits in the same white card, because
+  // the slides live on a green gradient — the drawings' own white
+  // backgrounds would not blend with it the way they do on the sage
+  // screens. Same card, same 200pt height on all four slides.
   heroCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,

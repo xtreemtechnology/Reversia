@@ -22,6 +22,10 @@ import { useUserProfile } from "../../../hooks/useUserProfile";
 import GlucoseTrendChart from "../components/GlucoseTrendChart";
 import FadeIn from "../components/FadeIn";
 import PressScale from "../components/PressScale";
+import HomeCurveHeader, {
+  HOME_CURVE_HEIGHT,
+  HOME_CURVE_GREEN,
+} from "../components/HomeCurveHeader";
 import PlanHeroCard from "../../reversal/components/PlanHeroCard";
 import { auth } from "../../../config/firebase";
 import { getReversalPlan } from "../../reversal/services/reversalService";
@@ -1355,59 +1359,63 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={T.BG} />
+      <StatusBar barStyle="light-content" backgroundColor={HOME_CURVE_GREEN} />
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* ── Header: avatar + hello, Guide sparkle + menu ── */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.avatarWrap}
-            onPress={() => navigation.navigate("Profile")}
-            accessibilityLabel="Open your profile"
-          >
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarFallbackText}>{avatarInitial}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.helloPill}
-            onPress={() => navigation.navigate("Profile")}
-          >
-            <Text style={styles.helloText}>Hello, {firstName}!</Text>
-            <Ionicons name="chevron-down" size={14} color={T.TEXT} />
-          </TouchableOpacity>
-          <View style={styles.headerSpacer} />
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.headerIconBtn}
-            onPress={() => navigation.navigate("Guide")}
-            accessibilityLabel="Ask the Reversia Guide"
-          >
-            <Ionicons name="sparkles" size={20} color={T.SECONDARY} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.headerIconBtn}
-            onPress={() => navigation.navigate("Profile")}
-            accessibilityLabel="Menu"
-          >
-            <Ionicons name="menu" size={20} color={T.TEXT} />
-          </TouchableOpacity>
-        </View>
+        {/* ── Curved header: greeting + headline inside the green wave ── */}
+        <View style={styles.curveHeader}>
+          <HomeCurveHeader />
+          <View style={styles.header}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.avatarWrap}
+              onPress={() => navigation.navigate("Profile")}
+              accessibilityLabel="Open your profile"
+            >
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarFallback}>
+                  <Text style={styles.avatarFallbackText}>{avatarInitial}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.helloPill}
+              onPress={() => navigation.navigate("Profile")}
+            >
+              <Text style={styles.helloText}>Hello, {firstName}!</Text>
+              <Ionicons name="chevron-down" size={14} color={T.TEXT} />
+            </TouchableOpacity>
+            <View style={styles.headerSpacer} />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.headerIconBtn}
+              onPress={() => navigation.navigate("Guide")}
+              accessibilityLabel="Ask the Reversia Guide"
+            >
+              <Ionicons name="sparkles" size={20} color={T.SECONDARY} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.headerIconBtn}
+              onPress={() => navigation.navigate("Profile")}
+              accessibilityLabel="Menu"
+            >
+              <Ionicons name="menu" size={20} color={T.TEXT} />
+            </TouchableOpacity>
+          </View>
 
-        {/* ── Headline ── */}
-        <Text style={styles.headline}>
-          <Text style={styles.headlineStrong}>Need help{"\n"}</Text>
-          eating well <Text style={styles.headlineStrong}>today?</Text>
-        </Text>
+          {/* ── Headline ── */}
+          <Text style={styles.headline}>
+            <Text style={styles.headlineStrong}>Need help{"\n"}</Text>
+            eating well <Text style={styles.headlineStrong}>today?</Text>
+          </Text>
+        </View>
 
         {/* ── Ask pill: tap to ask the Guide; camera/mic log a meal ── */}
         <View style={styles.askPill}>
@@ -1561,8 +1569,17 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.BG },
+  // Deep green behind the safe-area strip so the curve runs to the very
+  // top edge (the ScrollView itself paints the sage screen background).
+  container: { flex: 1, backgroundColor: HOME_CURVE_GREEN },
+  scrollView: { backgroundColor: T.BG },
   scrollContent: { paddingBottom: 120 },
+
+  // Curved header zone: the SVG wave paints the background; the header
+  // row and headline sit inside it.
+  curveHeader: {
+    height: HOME_CURVE_HEIGHT,
+  },
 
   header: {
     flexDirection: "row",
@@ -1627,7 +1644,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.display,
     fontSize: 34,
     fontWeight: "400",
-    color: T.TEXT,
+    color: T.WHITE,
     lineHeight: 42,
     letterSpacing: -0.6,
     paddingHorizontal: 20,
@@ -1645,6 +1662,9 @@ const styles = StyleSheet.create({
     borderColor: T.BORDER,
     borderRadius: 999,
     marginHorizontal: 20,
+    // Overlaps the curve's bottom edge, like the reference's search pill
+    // straddling the blue wave.
+    marginTop: -14,
     marginBottom: 16,
     paddingLeft: 18,
     paddingRight: 8,
