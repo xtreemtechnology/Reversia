@@ -17,7 +17,6 @@ import {
 } from "firebase/auth";
 import { auth, db } from "../../../config/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { DeviceEventEmitter } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
 import AuthInput from "../components/AuthInput";
@@ -98,10 +97,10 @@ export default function SignUpScreen({ navigation }) {
 
         console.warn("create user profile failed", profileErr);
       }
-      // Request post-onboarding flow (welcome/questionnaire) for new users
-      try {
-        DeviceEventEmitter.emit("postOnboardingRequested");
-      } catch (_) {}
+      // The new account takes the user straight into the setup flow:
+      // App.js routes from the persisted post-onboarding flags, so no
+      // event is needed (and the old event arrived after the slow writes
+      // above, which is what used to flash Home first).
       navigation.navigate("EmailVerification", {
         email: email.trim(),
         displayName: firstName.trim(),

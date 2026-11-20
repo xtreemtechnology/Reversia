@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StatusBar, DeviceEventEmitter, AppState } from "react-native";
+import { StatusBar, AppState } from "react-native";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ThemeProvider, { useTheme } from "./src/theme/ThemeProvider";
@@ -24,6 +24,7 @@ import {
 import { syncOfflineQueue } from "./src/utils/offlineQueue";
 const ONBOARDING_KEY = "@reversia_onboarding_complete";
 const POST_ONBOARDING_KEY_PREFIX = "@reversia_post_onboarding_complete_";
+const POST_ONBOARDING_DISMISSED_PREFIX = "@reversia_post_onboarding_dismissed_";
 
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -34,33 +35,8 @@ export default function App() {
   const [hasSeenWelcome, setHasSeenWelcome] = useState(null);
   const [hasCompletedPostOnboarding, setHasCompletedPostOnboarding] =
     useState(null);
-
-  useEffect(() => {
-    // Listen for post-onboarding requests (triggered after signup)
-    const postHandler = async () => {
-      if (hasCompletedPostOnboarding) {
-        return;
-      }
-      if (hasSeenWelcome) {
-        setShowPostQuestionnaire(true);
-      } else {
-        setShowWelcomeTransition(true);
-      }
-    };
-    const sub = DeviceEventEmitter.addListener(
-      "postOnboardingRequested",
-      postHandler
-    );
-    return () => {
-      sub?.remove?.();
-    };
-  }, [
-    currentUser,
-    hasSeenWelcome,
-    hasCompletedPostOnboarding,
-    setShowPostQuestionnaire,
-    setShowWelcomeTransition,
-  ]);
+  const [hasDismissedPostOnboarding, setHasDismissedPostOnboarding] =
+    useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -70,6 +46,7 @@ export default function App() {
       if (!uid) {
         if (mounted) setHasSeenWelcome(false);
         if (mounted) setHasCompletedPostOnboarding(false);
+        if (mounted) setHasDismissedPostOnboarding(false);
         return;
       }
 
@@ -77,7 +54,15 @@ export default function App() {
         const value = await AsyncStorage.getItem(
           `@reversia_welcome_seen_${uid}`
         );
-        if (mounted) setHasSeenWelcome(value === "true");
+        if (mounted) {
+          // Never clobber a welcome already seen this session (e.g. the
+          // transition shown right after the marketing onboarding, before
+          // the account existed, so nothing was written for this uid yet).
+          // Only a stored "true" or a first read may set the value.
+          setHasSeenWelcome((prev) =>
+            value === "true" ? true : prev === null ? false : prev
+          );
+        }
       } catch (_) {
         if (mounted) setHasSeenWelcome(false);
       }
@@ -99,8 +84,25 @@ export default function App() {
       }
     };
 
+    const readPostOnboardingDismissed = async () => {
+      const uid = currentUser?.uid;
+      if (!uid) {
+        return;
+      }
+
+      try {
+        const value = await AsyncStorage.getItem(
+          `${POST_ONBOARDING_DISMISSED_PREFIX}${uid}`
+        );
+        if (mounted) setHasDismissedPostOnboarding(value === "true");
+      } catch (_) {
+        if (mounted) setHasDismissedPostOnboarding(false);
+      }
+    };
+
     readWelcomeSeen();
     readPostOnboardingComplete();
+    readPostOnboardingDismissed();
 
     // Attempt to migrate sensitive keys to secure store when app starts
     secureStorage
@@ -196,7 +198,10 @@ export default function App() {
           setShowPostQuestionnaire={setShowPostQuestionnaire}
           hasSeenWelcome={hasSeenWelcome}
           setHasSeenWelcome={setHasSeenWelcome}
+          hasCompletedPostOnboarding={hasCompletedPostOnboarding}
           setHasCompletedPostOnboarding={setHasCompletedPostOnboarding}
+          hasDismissedPostOnboarding={hasDismissedPostOnboarding}
+          setHasDismissedPostOnboarding={setHasDismissedPostOnboarding}
         />
       </ThemeProvider>
     </SafeAreaProvider>
@@ -214,7 +219,10 @@ function AppContent({
   setShowPostQuestionnaire,
   hasSeenWelcome,
   setHasSeenWelcome,
+  hasCompletedPostOnboarding,
   setHasCompletedPostOnboarding,
+  hasDismissedPostOnboarding,
+  setHasDismissedPostOnboarding,
 }) {
   const { colors } = useTheme();
 
@@ -234,6 +242,71 @@ function AppContent({
     [colors]
   );
 
+  // Post-onboarding routing is decided from the persisted flags, not
+  // from an event: after signup the auth state flips first, and the old
+  // event-driven handoff arrived after the slow profile/verification
+  // writes — so the router sent the new user to Home, then "reloaded
+  // back" to the setup flow once the event landed. The flags are the
+  // single source of truth, so Home can never win that race again.
+  // While the flags are still being read, show the splash — never Home.
+  const setupKnown =
+    hasCompletedPostOnboarding !== null &&
+    hasSeenWelcome !== null &&
+    hasDismissedPostOnboarding !== null;
+  const setupIncomplete =
+    Boolean(currentUser) &&
+    hasCompletedPostOnboarding === false &&
+    !hasDismissedPostOnboarding;
+
+  const welcomeTransition = (
+    <WelcomeTransitionScreen
+      userName={currentUser?.displayName || "there"}
+      onFinish={() => {
+        const uid = currentUser?.uid;
+        if (uid) {
+          AsyncStorage.setItem(`@reversia_welcome_seen_${uid}`, "true").catch(
+            () => {}
+          );
+          setShowPostQuestionnaire(true);
+        }
+        setHasSeenWelcome(true);
+        setShowWelcomeTransition(false);
+      }}
+    />
+  );
+
+  const postOnboardingFlow = (
+    <PostOnboardingFlow
+      onComplete={async () => {
+        const uid = currentUser?.uid;
+        if (uid) {
+          await AsyncStorage.setItem(
+            `${POST_ONBOARDING_KEY_PREFIX}${uid}`,
+            "true"
+          ).catch(() => {});
+          setHasCompletedPostOnboarding(true);
+        }
+        try {
+          // AsyncStorage.setItem("@reversia_user_goal", answers?.primaryGoal || "");
+        } catch (_) {}
+        setShowPostQuestionnaire(false);
+      }}
+      onSkip={() => {
+        // Skipping resolves the gate for this account, exactly as before:
+        // the user goes to Home and is not asked again on later launches.
+        const uid = currentUser?.uid;
+        if (uid) {
+          AsyncStorage.setItem(
+            `${POST_ONBOARDING_DISMISSED_PREFIX}${uid}`,
+            "true"
+          ).catch(() => {});
+          setHasDismissedPostOnboarding(true);
+        }
+        setShowPostQuestionnaire(false);
+      }}
+    />
+  );
+
   return (
     <>
       <ThemeAwareStatusBar />
@@ -251,40 +324,14 @@ function AppContent({
                 setShowWelcomeTransition(true);
               }}
             />
-          ) : showWelcomeTransition ? (
-            <WelcomeTransitionScreen
-              userName={currentUser?.displayName || "there"}
-              onFinish={() => {
-                const uid = currentUser?.uid;
-                if (uid) {
-                  AsyncStorage.setItem(
-                    `@reversia_welcome_seen_${uid}`,
-                    "true"
-                  ).catch(() => {});
-                  setShowPostQuestionnaire(true);
-                }
-                setHasSeenWelcome(true);
-                setShowWelcomeTransition(false);
-              }}
-            />
-          ) : showPostQuestionnaire && currentUser ? (
-            <PostOnboardingFlow
-              onComplete={async () => {
-                const uid = currentUser?.uid;
-                if (uid) {
-                  await AsyncStorage.setItem(
-                    `${POST_ONBOARDING_KEY_PREFIX}${uid}`,
-                    "true"
-                  ).catch(() => {});
-                  setHasCompletedPostOnboarding(true);
-                }
-                try {
-                  // AsyncStorage.setItem("@reversia_user_goal", answers?.primaryGoal || "");
-                } catch (_) {}
-                setShowPostQuestionnaire(false);
-              }}
-              onSkip={() => setShowPostQuestionnaire(false)}
-            />
+          ) : showWelcomeTransition ||
+            (setupIncomplete && setupKnown && !hasSeenWelcome) ? (
+            welcomeTransition
+          ) : (showPostQuestionnaire && currentUser) ||
+            (setupIncomplete && setupKnown && hasSeenWelcome) ? (
+            postOnboardingFlow
+          ) : currentUser && !setupKnown ? (
+            <InlineSplash />
           ) : currentUser ||
             (typeof __DEV__ !== "undefined" &&
               __DEV__ &&
