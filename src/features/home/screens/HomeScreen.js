@@ -38,6 +38,9 @@ import { FONTS } from "../../../theme/tokens";
 import { useTheme } from "../../../theme/ThemeProvider";
 import CompanionBuddy from "../../../components/CompanionBuddy";
 import CompanionSpeech from "../../../components/CompanionSpeech";
+import CountUp from "../../../components/CountUp";
+import PopOnActive from "../../../components/PopOnActive";
+import ProgressRing from "../../../components/ProgressRing";
 import MoodFace from "../../../components/MoodFace";
 
 // ─────────────────────────────────────────────
@@ -393,15 +396,19 @@ function TasksList({ storySteps, navigation }) {
         const route = TASK_ROUTES[step.label];
         const row = (
           <View style={tl.row}>
-            <View style={[tl.iconBadge, step.done && tl.iconBadgeDone]}>
-              <Ionicons
-                name={step.done ? "checkmark" : "ellipse-outline"}
-                size={16}
-                color={
-                  step.done ? colors.primaryForeground : colors.mutedForeground
-                }
-              />
-            </View>
+            <PopOnActive active={step.done}>
+              <View style={[tl.iconBadge, step.done && tl.iconBadgeDone]}>
+                <Ionicons
+                  name={step.done ? "checkmark" : "ellipse-outline"}
+                  size={16}
+                  color={
+                    step.done
+                      ? colors.primaryForeground
+                      : colors.mutedForeground
+                  }
+                />
+              </View>
+            </PopOnActive>
             <Text style={[tl.label, step.done && tl.labelDone]}>
               {step.label}
             </Text>
@@ -1053,9 +1060,11 @@ function WeeklyMomentum({ momentum }) {
           >
             <Text style={wm.trendLabel}>{item.label}</Text>
             <View style={wm.trendRight}>
-              <Text style={wm.trendCurrent}>
-                {item.current} {item.unit}
-              </Text>
+              <CountUp
+                value={item.current}
+                suffix={` ${item.unit}`}
+                style={wm.trendCurrent}
+              />
               <Ionicons
                 name={delta >= 0 ? "arrow-up" : "arrow-down"}
                 size={12}
@@ -1472,6 +1481,20 @@ export default function HomeScreen({ navigation }) {
         <FadeIn delay={120}>
           <View style={styles.tasksHeader}>
             <Text style={styles.tasksTitle}>Today&apos;s Tasks</Text>
+            <ProgressRing
+              progress={
+                storySteps.length ? storyCompleted / storySteps.length : 0
+              }
+              size={44}
+              color={colors.primary}
+              trackColor={colors.border}
+              style={styles.tasksRing}
+            >
+              <Text style={styles.tasksRingLabel}>
+                <CountUp value={storyCompleted} />
+                {`/${storySteps.length}`}
+              </Text>
+            </ProgressRing>
             <TouchableOpacity
               onPress={() => navigation.navigate("Track")}
               activeOpacity={0.7}
@@ -1720,6 +1743,15 @@ function makeStyles(colors) {
       fontSize: 18,
       fontWeight: "700",
       color: colors.text,
+    },
+    tasksRingLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    tasksRing: {
+      alignSelf: "center",
     },
     viewAll: {
       fontFamily: FONTS.body,
