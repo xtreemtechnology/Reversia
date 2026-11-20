@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
+  withSequence,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import Svg, {
@@ -23,15 +25,43 @@ import Svg, {
  * Both are gentle by design — the companion should feel alive, not
  * distracting — and neither changes layout: breathing is a transform,
  * the blink only swaps the eyes' height.
+ *
+ * Reactions: `expression` ("neutral" | "happy" | "celebrating") swaps
+ * the face — happy eyes and a bigger smile, or an open joyful mouth
+ * when the day is fully done. `bounceKey` is a counter the parent
+ * bumps when something good just happened (a fresh check-in): the
+ * buddy pops once, a spring up and back. The bounce multiplies with
+ * the breath scale, so idle life keeps running underneath it.
  */
-export default function CompanionBuddy({ size = 116 }) {
+export default function CompanionBuddy({
+  size = 116,
+  expression = "neutral",
+  bounceKey = 0,
+}) {
+  const face =
+    expression === "happy" || expression === "celebrating"
+      ? expression
+      : "neutral";
   const breath = useSharedValue(1);
+  const bounce = useSharedValue(1);
   const [blinking, setBlinking] = useState(false);
+  const prevBounceKey = useRef(0);
 
   // Slow breathing loop: 1 -> 1.035 and back, ~2.8s per breath.
   useEffect(() => {
     breath.value = withRepeat(withTiming(1.035, { duration: 1400 }), -1, true);
   }, [breath]);
+
+  // One happy pop each time the parent bumps bounceKey.
+  useEffect(() => {
+    if (bounceKey > 0 && bounceKey !== prevBounceKey.current) {
+      prevBounceKey.current = bounceKey;
+      bounce.value = withSequence(
+        withTiming(1.2, { duration: 160 }),
+        withSpring(1, { damping: 7, stiffness: 200 })
+      );
+    }
+  }, [bounceKey, bounce]);
 
   // A blink every ~3-5s: eyes shut for 140ms, then open again.
   useEffect(() => {
@@ -58,7 +88,7 @@ export default function CompanionBuddy({ size = 116 }) {
   }, []);
 
   const breathStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: breath.value }],
+    transform: [{ scale: breath.value * bounce.value }],
   }));
 
   return (
@@ -108,15 +138,62 @@ export default function CompanionBuddy({ size = 116 }) {
           strokeLinecap="round"
           opacity="0.72"
         />
-        <Ellipse cx="64" cy="82" rx="5" ry={blinking ? 1 : 7} fill="#1E2B1A" />
-        <Ellipse cx="96" cy="82" rx="5" ry={blinking ? 1 : 7} fill="#1E2B1A" />
-        <Path
-          d="M72 99 Q80 106 88 99"
-          fill="none"
-          stroke="#689F38"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
+        {face === "neutral" ? (
+          <>
+            <Ellipse
+              cx="64"
+              cy="82"
+              rx="5"
+              ry={blinking ? 1 : 7}
+              fill="#1E2B1A"
+            />
+            <Ellipse
+              cx="96"
+              cy="82"
+              rx="5"
+              ry={blinking ? 1 : 7}
+              fill="#1E2B1A"
+            />
+          </>
+        ) : (
+          <>
+            {/* Happy eyes: closed upward arcs. Blinking is a no-op here —
+                the eyes are already shut with joy. */}
+            <Path
+              d="M59 82 Q64 75 69 82"
+              fill="none"
+              stroke="#1E2B1A"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <Path
+              d="M91 82 Q96 75 101 82"
+              fill="none"
+              stroke="#1E2B1A"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        {face === "celebrating" ? (
+          <Path d="M70 97 Q80 113 90 97 Z" fill="#1E2B1A" />
+        ) : face === "happy" ? (
+          <Path
+            d="M70 98 Q80 109 90 98"
+            fill="none"
+            stroke="#689F38"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        ) : (
+          <Path
+            d="M72 99 Q80 106 88 99"
+            fill="none"
+            stroke="#689F38"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+        )}
         <Ellipse
           cx="49"
           cy="96"

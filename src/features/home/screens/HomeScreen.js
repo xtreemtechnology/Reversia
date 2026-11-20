@@ -3,7 +3,7 @@
 // header → headline → ask pill → plan hero → quick tiles →
 // today's tasks → glucose → clarity → mood → focus → wins → momentum.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -37,11 +37,24 @@ import {
 import { FONTS } from "../../../theme/tokens";
 import { useTheme } from "../../../theme/ThemeProvider";
 import CompanionBuddy from "../../../components/CompanionBuddy";
+import CompanionSpeech from "../../../components/CompanionSpeech";
 import MoodFace from "../../../components/MoodFace";
 
 // ─────────────────────────────────────────────
 // Data helpers — derive everything from logs
 // ─────────────────────────────────────────────
+/** Convert a Firestore Timestamp / Date / ISO string to a JS Date.
+ * Log `createdAt` values arrive as Firestore Timestamps (writers use
+ * serverTimestamp()), and `new Date(timestamp)` is Invalid Date — so
+ * every date parse below goes through this helper. Same helper as the
+ * insights screens. */
+function toDate(ts) {
+  if (!ts) return null;
+  if (ts?.toDate) return ts.toDate();
+  if (ts instanceof Date) return ts;
+  return new Date(ts);
+}
+
 function useDerivedState(logs = []) {
   return useMemo(() => {
     const today = new Date();
@@ -61,10 +74,7 @@ function useDerivedState(logs = []) {
     const previousWeekEnd = new Date(currentWeekStart);
     previousWeekEnd.setMilliseconds(-1);
 
-    const getLogDate = (log) => {
-      if (!log?.createdAt) return null;
-      return new Date(log.createdAt);
-    };
+    const getLogDate = (log) => toDate(log?.createdAt);
 
     const getWaterGlasses = (log) => {
       if (typeof log?.glasses === "number") return log.glasses;
@@ -86,7 +96,7 @@ function useDerivedState(logs = []) {
     };
 
     const formatTime = (value) => {
-      const date = value ? new Date(value) : null;
+      const date = toDate(value);
       if (!date || Number.isNaN(date.getTime())) return null;
       return date.toLocaleTimeString([], {
         hour: "numeric",
@@ -95,7 +105,7 @@ function useDerivedState(logs = []) {
     };
 
     const todayLogs = logs.filter((l) => {
-      const d = l?.createdAt ? new Date(l.createdAt) : null;
+      const d = toDate(l?.createdAt);
       return d && d.toDateString() === todayStr;
     });
 
@@ -107,8 +117,7 @@ function useDerivedState(logs = []) {
     // completable in the evening.
     const eveningReflectionDone = todayLogs.some(
       (l) =>
-        l?.category === "body_check" &&
-        new Date(l?.createdAt || 0).getHours() >= 18
+        l?.category === "body_check" && toDate(l?.createdAt)?.getHours() >= 18
     );
 
     const weekBuckets = {
@@ -224,15 +233,21 @@ function useDerivedState(logs = []) {
     const latestBodyCheck = [...todayLogs]
       .filter((log) => log?.category === "body_check")
       .sort(
-        (a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)
+        (a, b) =>
+          (toDate(b?.createdAt)?.getTime() || 0) -
+          (toDate(a?.createdAt)?.getTime() || 0)
       )[0];
     const latestHydration = [...waterLogs].sort(
-      (a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)
+      (a, b) =>
+        (toDate(b?.createdAt)?.getTime() || 0) -
+        (toDate(a?.createdAt)?.getTime() || 0)
     )[0];
     const latestBreakfast = [...mealLogs]
       .filter((log) => log?.type?.toLowerCase() === "breakfast")
       .sort(
-        (a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)
+        (a, b) =>
+          (toDate(b?.createdAt)?.getTime() || 0) -
+          (toDate(a?.createdAt)?.getTime() || 0)
       )[0];
 
     if (latestBreakfast) {
@@ -302,6 +317,13 @@ function useDerivedState(logs = []) {
 
     return {
       bodyCheckToday,
+      // Today's mood and latest check-in identity, for the companion:
+      // the buddy reacts when a new check-in lands and mirrors the
+      // mood of the day. The id is the stable identity (a fresh fetch
+      // returns new Timestamp objects); the ms value bounds recency.
+      todayMood: latestBodyCheck?.mood || null,
+      latestBodyCheckId: latestBodyCheck?.id || null,
+      latestBodyCheckAtMs: toDate(latestBodyCheck?.createdAt)?.getTime() || 0,
       waterCount,
       waterGoal,
       breakfastLogged,
@@ -322,6 +344,30 @@ function useDerivedState(logs = []) {
       ),
     };
   }, [logs]);
+}
+
+// ─────────────────────────────────────────────
+// Companion speech — what the buddy says, from real data only.
+// Priority: a fully done day > today's mood > progress so far >
+// time of day. Never an invented pattern, never a medical claim.
+// ─────────────────────────────────────────────
+function companionMessage({ todayMood, storyCompleted, storyTotal }) {
+  if (storyTotal > 0 && storyCompleted >= storyTotal) {
+    return "Everything's done today. Well done.";
+  }
+  if (todayMood === "great") return "Feeling great — love that energy.";
+  if (todayMood === "good") return "Feeling good today. Keep it going.";
+  if (todayMood === "rough" || todayMood === "low") {
+    return "Rough days happen. One gentle step is enough.";
+  }
+  if (todayMood === "okay") return "Thanks for checking in. Steady does it.";
+  if (storyCompleted > 0) {
+    return `${storyCompleted} of ${storyTotal} done already — nice.`;
+  }
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning — a fresh day. Start small.";
+  if (hour < 18) return "Good afternoon — still plenty of day left.";
+  return "Good evening — a gentle check-in goes a long way.";
 }
 
 // ─────────────────────────────────────────────
@@ -586,12 +632,10 @@ function TodaysFocusCard({
   const tf = makeTf(colors);
   const latestMealLabel = latestMeal?.type || latestMeal?.name || "recent meal";
   const latestMealType = latestMeal?.type?.toLowerCase();
-  const latestMealTime = latestMeal?.createdAt
-    ? new Date(latestMeal.createdAt).toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      })
-    : null;
+  const latestMealTime = toDate(latestMeal?.createdAt)?.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   let headline = "Try adding protein to your next meal today.";
   let actionBody =
@@ -1284,6 +1328,7 @@ export default function HomeScreen({ navigation }) {
 
   const {
     storySteps,
+    storyCompleted,
     wins,
     clarity,
     momentum,
@@ -1293,7 +1338,47 @@ export default function HomeScreen({ navigation }) {
     latestMeal,
     waterCount,
     bodyCheckToday,
+    todayMood,
+    latestBodyCheckId,
+    latestBodyCheckAtMs,
   } = derived;
+
+  // Companion reactions: bump bounceKey when a NEW body check-in
+  // lands while Home is showing (the user just came back from the
+  // body check-in). The first render only records what is already
+  // there, and only a check-in from the last minute counts — so
+  // opening the app to an older check-in never pops the buddy.
+  const [bounceKey, setBounceKey] = useState(0);
+  const lastCheckInIdRef = useRef(null);
+  const firstCheckInRenderRef = useRef(true);
+  useEffect(() => {
+    if (firstCheckInRenderRef.current) {
+      firstCheckInRenderRef.current = false;
+      lastCheckInIdRef.current = latestBodyCheckId;
+      return;
+    }
+    if (latestBodyCheckId && latestBodyCheckId !== lastCheckInIdRef.current) {
+      lastCheckInIdRef.current = latestBodyCheckId;
+      if (latestBodyCheckAtMs && Date.now() - latestBodyCheckAtMs < 60000) {
+        setBounceKey((k) => k + 1);
+      }
+    }
+  }, [latestBodyCheckId, latestBodyCheckAtMs]);
+
+  // The buddy mirrors the day: celebrating when everything is done,
+  // happy on a great/good check-in, neutral otherwise — it never
+  // mirrors a low or rough mood back at the user.
+  const buddyExpression =
+    storySteps.length > 0 && storyCompleted >= storySteps.length
+      ? "celebrating"
+      : todayMood === "great" || todayMood === "good"
+      ? "happy"
+      : "neutral";
+  const speechMessage = companionMessage({
+    todayMood,
+    storyCompleted,
+    storyTotal: storySteps.length,
+  });
 
   const firstName =
     userData?.firstName ||
@@ -1418,6 +1503,7 @@ export default function HomeScreen({ navigation }) {
         {/* Companion check-in — a quick, friendly entry point into the existing body-check flow. */}
         <FadeIn delay={300}>
           <View style={styles.moodCard}>
+            <CompanionSpeech message={speechMessage} />
             <View style={styles.moodCardHeader}>
               <View style={styles.moodCardCopy}>
                 <Text style={styles.moodEyebrow}>A MOMENT FOR YOU</Text>
@@ -1427,7 +1513,11 @@ export default function HomeScreen({ navigation }) {
                 </Text>
               </View>
               <View style={styles.moodBuddy}>
-                <CompanionBuddy size={66} />
+                <CompanionBuddy
+                  size={66}
+                  expression={buddyExpression}
+                  bounceKey={bounceKey}
+                />
               </View>
             </View>
             <View style={styles.moodChoices}>
