@@ -14,14 +14,6 @@ function toDate(ts) {
   return new Date(ts);
 }
 
-/** Milliseconds between two log timestamps */
-function msBetween(a, b) {
-  const da = toDate(a?.createdAt);
-  const db_ = toDate(b?.createdAt);
-  if (!da || !db_) return Infinity;
-  return Math.abs(da.getTime() - db_.getTime());
-}
-
 /** Returns the ISO date string (YYYY-MM-DD) for a log entry */
 function logDay(log) {
   const d = toDate(log?.createdAt);
@@ -109,7 +101,7 @@ export function deriveRuleBasedInsights(logs) {
     const wellHydratedDays = [];
     const poorHydratedDays = [];
 
-    for (const [day, dayLogs] of Object.entries(byDay)) {
+    for (const [, dayLogs] of Object.entries(byDay)) {
       const waterCount = dayLogs.filter(isHydrationLog).length;
       const dayChecks = dayLogs.filter((l) => l?.category === "body_check");
       if (dayChecks.length === 0) continue;
@@ -233,40 +225,6 @@ export function deriveRuleBasedInsights(logs) {
 }
 
 // ─── Gemini-Powered Insight ────────────────────────────────────────────────────
-
-/**
- * Build a summary of the last 30 days of logs suitable for a Gemini prompt.
- * @param {Array} logs
- * @returns {string}
- */
-function buildLogSummary(logs) {
-  const meals = logs.filter((l) => l?.category === "meal");
-  const hydration = logs.filter(isHydrationLog);
-  const checks = logs.filter((l) => l?.category === "body_check");
-  const sleepLogs = logs.filter((l) => l?.category === "sleep");
-  const glucoseLogs = logs.filter((l) => l?.category === "glucose");
-
-  const mealSummary = meals
-    .slice(0, 10)
-    .map((m) => `${m.name ?? m.type ?? "meal"} (${logDay(m) ?? "unknown date"})`)
-    .join(", ");
-
-  const checkSummary = checks
-    .slice(0, 10)
-    .map(
-      (c) =>
-        `energy=${c.energy ?? "?"}, mood=${c.mood ?? "?"}, symptoms=[${(c.symptoms ?? []).join(",")}] on ${logDay(c) ?? "?"}`
-    )
-    .join("; ");
-
-  return [
-    `Recent meals (last 10): ${mealSummary || "none"}`,
-    `Body check-ins (last 10): ${checkSummary || "none"}`,
-    `Hydration logs: ${hydration.length} entries`,
-    `Sleep logs: ${sleepLogs.length} entries`,
-    `Glucose logs: ${glucoseLogs.length} entries`,
-  ].join("\n");
-}
 
 import { generateHealthInsights } from "../../track/services/aiService";
 

@@ -6,7 +6,7 @@
 // original in-house artwork made for the app — no licence issue. See
 // assets/images/illustrations/README.md.
 //
-// All ten are original flat-vector art with the subject filling the
+// All nine are original flat-vector art with the subject filling the
 // frame edge to edge — display them with resizeMode="contain" in their
 // wired spots. Backgrounds are matched to their containers: white for
 // the white-card spots, sage for the sage-screen spots (see the
@@ -16,7 +16,6 @@
 const ILLUSTRATIONS = {
   "welcome-hero": require("../../../assets/images/illustrations/welcome-hero.png"),
   "empty-meals": require("../../../assets/images/illustrations/empty-meals.png"),
-  "empty-readings": require("../../../assets/images/illustrations/empty-readings.png"),
   "milestone-plant": require("../../../assets/images/illustrations/milestone-plant.png"),
   "guide-sprout": require("../../../assets/images/illustrations/guide-sprout.png"),
   "onboard-understand": require("../../../assets/images/illustrations/onboard-understand.png"),

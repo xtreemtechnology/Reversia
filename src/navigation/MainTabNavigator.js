@@ -78,11 +78,6 @@ function TabBarRenderer(props) {
 }
 
 export default function MainTabNavigator() {
-  try {
-    const profiler = require("../utils/renderProfiler");
-    profiler.increment("MainTabNavigator");
-  } catch (error) {}
-
   const { colors } = useTheme();
   const screenOptions = React.useMemo(() => buildScreenOptions(), []);
 
