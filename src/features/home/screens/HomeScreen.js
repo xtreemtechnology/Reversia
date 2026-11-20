@@ -101,6 +101,15 @@ function useDerivedState(logs = []) {
     // Body check
     const bodyCheckToday = todayLogs.some((l) => l?.category === "body_check");
 
+    // Evening reflection: a body check-in logged after 6 PM. A morning
+    // check-in counts for "Body Check" only, so this step is only
+    // completable in the evening.
+    const eveningReflectionDone = todayLogs.some(
+      (l) =>
+        l?.category === "body_check" &&
+        new Date(l?.createdAt || 0).getHours() >= 18
+    );
+
     const weekBuckets = {
       current: { hydration: 0, meal: 0, bodyCheck: 0 },
       previous: { hydration: 0, meal: 0, bodyCheck: 0 },
@@ -205,7 +214,7 @@ function useDerivedState(logs = []) {
       { label: "Breakfast Logged", done: breakfastLogged },
       { label: "Water Check-In", done: waterCount >= 4 },
       { label: "Lunch", done: lunchLogged },
-      { label: "Evening Reflection", done: false }, // only possible after 6 PM
+      { label: "Evening Reflection", done: eveningReflectionDone },
     ];
     const storyCompleted = storySteps.filter((s) => s.done).length;
 
@@ -325,6 +334,7 @@ const TASK_ROUTES = {
   "Breakfast Logged": "LogMeal",
   "Water Check-In": "LogWater",
   Lunch: "LogMeal",
+  "Evening Reflection": "BodyCheck",
 };
 
 function TasksList({ storySteps, navigation }) {

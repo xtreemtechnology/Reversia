@@ -57,7 +57,7 @@ const SLIDES = [
     id: "reverse",
     tag: "03 — REVERSE",
     headline: "Small shifts.\nReal change.",
-    body: "Prediabetes and Type 2 diabetes can be reversed. Reversia shows you exactly which habits are moving the needle — and which ones aren't.",
+    body: "For some people, prediabetes and Type 2 diabetes can go into remission with lasting lifestyle changes. It's never guaranteed — and it's not a cure. Reversia shows you which habits are moving the needle, and which ones aren't.",
     accentColor: "#F2CC8F",
     iconName: "trending-up",
     art: "onboard-reverse",

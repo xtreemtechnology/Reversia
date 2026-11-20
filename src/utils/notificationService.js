@@ -240,6 +240,11 @@ export async function scheduleMealReminders() {
   } catch (_) {}
 }
 
+/** Whether the OS notification module is available on this platform (it is not on web, where reminders cannot be scheduled). */
+export function isReminderSchedulingSupported() {
+  return !!Notifications;
+}
+
 /**
  * Request permissions then schedule all reminders (water + meal).
  * Returns true if permissions were granted and scheduling was attempted.

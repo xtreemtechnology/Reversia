@@ -2,7 +2,7 @@
 // Home screen of the 12-week Reversal Plan: baseline, progress, this week's
 // goals, milestones and the safety disclaimer.
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -41,6 +41,9 @@ import {
 } from "../data/planData";
 
 const GOALS_STORAGE_KEY = "@reversia_reversal_goals";
+const CELEBRATED_MILESTONES_KEY = "@reversia_celebrated_milestones";
+const goalsKeyFor = (uid) => `${GOALS_STORAGE_KEY}_${uid}`;
+const celebratedKeyFor = (uid) => `${CELEBRATED_MILESTONES_KEY}_${uid}`;
 
 function optionLabel(options, value) {
   if (!value) return "Not set";
@@ -66,6 +69,7 @@ export default function ReversalPlanScreen({ navigation }) {
   const [checkIns, setCheckIns] = useState([]);
   const [profile, setProfile] = useState(null);
   const [goals, setGoals] = useState({});
+  const [celebratedWeeks, setCelebratedWeeks] = useState([]);
 
   const load = useCallback(async () => {
     const uid = auth.currentUser?.uid;
@@ -82,14 +86,30 @@ export default function ReversalPlanScreen({ navigation }) {
       setPlan(loadedPlan);
       setCheckIns(Array.isArray(loadedCheckIns) ? loadedCheckIns : []);
       setProfile(loadedProfile);
-      const storedGoals = await AsyncStorage.getItem(GOALS_STORAGE_KEY).catch(
-        () => null
-      );
+      // Weekly goal ticks are cached locally per account (Firestore holds
+      // the shared copy). Adopt the old single global key once, if it has
+      // data, so no one loses their ticks.
+      const goalsKey = goalsKeyFor(uid);
+      let storedGoals = await AsyncStorage.getItem(goalsKey).catch(() => null);
+      if (!storedGoals) {
+        const legacyGoals = await AsyncStorage.getItem(GOALS_STORAGE_KEY).catch(
+          () => null
+        );
+        if (legacyGoals) {
+          storedGoals = legacyGoals;
+          await AsyncStorage.setItem(goalsKey, legacyGoals).catch(() => {});
+          await AsyncStorage.removeItem(GOALS_STORAGE_KEY).catch(() => {});
+        }
+      }
       const mergedGoals = {
         ...(loadedPlan?.completedGoals || {}),
         ...(storedGoals ? JSON.parse(storedGoals) : {}),
       };
       setGoals(mergedGoals);
+      const storedCelebrated = await AsyncStorage.getItem(
+        celebratedKeyFor(uid)
+      ).catch(() => null);
+      setCelebratedWeeks(storedCelebrated ? JSON.parse(storedCelebrated) : []);
     } catch (error) {
       // Keep the empty state instead of crashing the tab.
       console.warn("Failed to load reversal plan", error);
@@ -109,12 +129,15 @@ export default function ReversalPlanScreen({ navigation }) {
   const toggleGoal = async (key) => {
     const nextGoals = { ...goals, [key]: !goals[key] };
     setGoals(nextGoals);
+    const uid = auth.currentUser?.uid;
     try {
-      await AsyncStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(nextGoals));
+      await AsyncStorage.setItem(
+        uid ? goalsKeyFor(uid) : GOALS_STORAGE_KEY,
+        JSON.stringify(nextGoals)
+      );
     } catch (error) {
       // Local cache is best-effort only.
     }
-    const uid = auth.currentUser?.uid;
     if (uid && plan) {
       updatePlanGoals(uid, nextGoals).catch(() => {});
     }
@@ -131,16 +154,24 @@ export default function ReversalPlanScreen({ navigation }) {
   const latestMilestone =
     reachedMilestones[reachedMilestones.length - 1] || null;
   const [showGoal, setShowGoal] = useState(false);
-  const celebratedWeekRef = useRef(null);
 
-  // Play the goal animation once when a new milestone is reached — not
-  // on every render, and never on a loop.
+  // Celebrate a milestone only the first time it is reached. Celebrated
+  // weeks are persisted per account, so reopening the Plan screen does
+  // not replay the celebration for the same milestone.
   useEffect(() => {
-    if (latestMilestone && celebratedWeekRef.current !== latestMilestone.week) {
-      celebratedWeekRef.current = latestMilestone.week;
-      setShowGoal(true);
+    if (!latestMilestone) return;
+    if (celebratedWeeks.includes(latestMilestone.week)) return;
+    const nextCelebrated = [...celebratedWeeks, latestMilestone.week];
+    setCelebratedWeeks(nextCelebrated);
+    setShowGoal(true);
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      AsyncStorage.setItem(
+        celebratedKeyFor(uid),
+        JSON.stringify(nextCelebrated)
+      ).catch(() => {});
     }
-  }, [latestMilestone]);
+  }, [latestMilestone, celebratedWeeks]);
   const lastCheckIn = checkIns[0] || null;
 
   const styles = makeStyles(colors);
