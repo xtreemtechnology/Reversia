@@ -384,6 +384,12 @@ function useDerivedState(logs = []) {
       headerSub,
       clarity,
       momentum,
+      // Visibility gates — these sections stay off Home until there is
+      // real data behind them (see the render below).
+      hasClarityData: Boolean(latestMeal) || waterCount > 0,
+      hasMomentumData: momentum.some(
+        (item) => item.current > 0 || item.previous > 0
+      ),
     };
   }, [logs]);
 }
@@ -894,33 +900,14 @@ const qa = StyleSheet.create({
 // ─────────────────────────────────────────────
 // ⑥ Recent Wins — data-driven
 // ─────────────────────────────────────────────
+// Only ever rendered when wins.length > 0 (HomeScreen gates it) —
+// there is no empty state here by design: the section appears
+// when the first real win arrives.
 function RecentWins({ wins }) {
-  let subtitle = "Start logging to surface real patterns";
-  if (wins.length === 1) {
-    subtitle = "1 real win pulled from your logs";
-  } else if (wins.length > 1) {
-    subtitle = `${wins.length} real wins pulled from your logs`;
-  }
-
-  if (!wins.length) {
-    return (
-      <View style={rw.card}>
-        <View style={rw.headerRow}>
-          <View style={rw.iconBadge}>
-            <Ionicons name="ribbon-outline" size={18} color={T.PRIMARY} />
-          </View>
-          <View>
-            <Text style={rw.title}>Recent Wins</Text>
-            <Text style={rw.subtitle}>{subtitle}</Text>
-          </View>
-        </View>
-        <Text style={rw.emptyState}>
-          Log a meal, water, or a body check-in and this section will fill with
-          your real progress.
-        </Text>
-      </View>
-    );
-  }
+  const subtitle =
+    wins.length === 1
+      ? "1 real win pulled from your logs"
+      : `${wins.length} real wins pulled from your logs`;
 
   return (
     <View style={rw.card}>
@@ -1015,22 +1002,15 @@ const rw = StyleSheet.create({
     color: T.MUTED,
     marginTop: 3,
   },
-  emptyState: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: T.MUTED,
-    lineHeight: 19,
-  },
 });
 
 // ─────────────────────────────────────────────
 // ⑦ Weekly Momentum (scaffold — wires up later)
 // ─────────────────────────────────────────────
+// Only ever rendered when there is data (HomeScreen gates it) —
+// there is no empty state here by design: the section appears
+// when this week or last week has logged activity.
 function WeeklyMomentum({ momentum }) {
-  const hasData = momentum.some(
-    (item) => item.current > 0 || item.previous > 0
-  );
-
   return (
     <View style={wm.card}>
       <View style={wm.headerRow}>
@@ -1042,49 +1022,42 @@ function WeeklyMomentum({ momentum }) {
           <Text style={wm.subtitle}>Compared to last week</Text>
         </View>
       </View>
-      {!hasData ? (
-        <Text style={wm.emptyState}>
-          Log a few meals, body check-ins, and glasses of water to reveal your
-          weekly momentum.
-        </Text>
-      ) : (
-        momentum.map((item, index) => {
-          const delta = item.current - item.previous;
-          const deltaColor = delta >= 0 ? T.PRIMARY : T.DANGER;
-          const deltaLabel =
-            item.previous === 0
-              ? item.current > 0
-                ? `New this week · ${item.current} ${item.unit}`
-                : `No ${item.unit} last week`
-              : `${delta >= 0 ? "+" : ""}${delta} vs last week`;
+      {momentum.map((item, index) => {
+        const delta = item.current - item.previous;
+        const deltaColor = delta >= 0 ? T.PRIMARY : T.DANGER;
+        const deltaLabel =
+          item.previous === 0
+            ? item.current > 0
+              ? `New this week · ${item.current} ${item.unit}`
+              : `No ${item.unit} last week`
+            : `${delta >= 0 ? "+" : ""}${delta} vs last week`;
 
-          return (
-            <View
-              key={item.label}
-              style={[
-                wm.trendRow,
-                index < momentum.length - 1 && wm.trendRowBorder,
-              ]}
-            >
-              <Text style={wm.trendLabel}>{item.label}</Text>
-              <View style={wm.trendRight}>
-                <Text style={wm.trendCurrent}>
-                  {item.current} {item.unit}
-                </Text>
-                <Ionicons
-                  name={delta >= 0 ? "arrow-up" : "arrow-down"}
-                  size={12}
-                  color={deltaColor}
-                  style={wm.trendArrow}
-                />
-                <Text style={[wm.trendDelta, { color: deltaColor }]}>
-                  {deltaLabel}
-                </Text>
-              </View>
+        return (
+          <View
+            key={item.label}
+            style={[
+              wm.trendRow,
+              index < momentum.length - 1 && wm.trendRowBorder,
+            ]}
+          >
+            <Text style={wm.trendLabel}>{item.label}</Text>
+            <View style={wm.trendRight}>
+              <Text style={wm.trendCurrent}>
+                {item.current} {item.unit}
+              </Text>
+              <Ionicons
+                name={delta >= 0 ? "arrow-up" : "arrow-down"}
+                size={12}
+                color={deltaColor}
+                style={wm.trendArrow}
+              />
+              <Text style={[wm.trendDelta, { color: deltaColor }]}>
+                {deltaLabel}
+              </Text>
             </View>
-          );
-        })
-      )}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -1154,12 +1127,6 @@ const wm = StyleSheet.create({
     fontFamily: FONTS.body,
     fontSize: 14,
     fontWeight: "700",
-  },
-  emptyState: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: T.MUTED,
-    lineHeight: 19,
   },
 });
 
@@ -1342,6 +1309,8 @@ export default function HomeScreen({ navigation }) {
     wins,
     clarity,
     momentum,
+    hasClarityData,
+    hasMomentumData,
     breakfastLogged,
     latestMeal,
     waterCount,
@@ -1481,10 +1450,14 @@ export default function HomeScreen({ navigation }) {
           />
         </FadeIn>
 
-        {/* ── Clarity Insight ── */}
-        <FadeIn delay={240}>
-          <ClarityCard clarity={clarity} />
-        </FadeIn>
+        {/* ── Clarity Insight — hidden until a meal or water log gives
+            it something real to say. With no data at all the fallback
+            invents a pattern about "yesterday" that never happened. ── */}
+        {hasClarityData ? (
+          <FadeIn delay={240}>
+            <ClarityCard clarity={clarity} />
+          </FadeIn>
+        ) : null}
 
         {/* Companion check-in — a quick, friendly entry point into the existing body-check flow. */}
         <FadeIn delay={300}>
@@ -1547,17 +1520,22 @@ export default function HomeScreen({ navigation }) {
           />
         </FadeIn>
 
-        {/* ── Recent Wins ── */}
-        <FadeIn delay={420}>
-          <Text style={styles.sectionTitle}>Recent Wins</Text>
-          <RecentWins wins={wins} />
-        </FadeIn>
+        {/* ── Recent Wins — hidden until there is a real win to show. ── */}
+        {wins.length > 0 ? (
+          <FadeIn delay={420}>
+            <Text style={styles.sectionTitle}>Recent Wins</Text>
+            <RecentWins wins={wins} />
+          </FadeIn>
+        ) : null}
 
-        {/* ── Weekly Momentum ── */}
-        <FadeIn delay={480}>
-          <Text style={styles.sectionTitle}>Weekly Momentum</Text>
-          <WeeklyMomentum momentum={momentum} />
-        </FadeIn>
+        {/* ── Weekly Momentum — hidden until this week or last week
+            has any logged activity. ── */}
+        {hasMomentumData ? (
+          <FadeIn delay={480}>
+            <Text style={styles.sectionTitle}>Weekly Momentum</Text>
+            <WeeklyMomentum momentum={momentum} />
+          </FadeIn>
+        ) : null}
 
         {/* ── From the Food Guide ── */}
         <FadeIn delay={540}>
