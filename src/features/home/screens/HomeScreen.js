@@ -209,85 +209,6 @@ function useDerivedState(logs = []) {
     ];
     const storyCompleted = storySteps.filter((s) => s.done).length;
 
-    // Next Best Action — priority ladder
-    let lunchImpact =
-      "Consistent meal logging helps surface your body's patterns faster.";
-    if (breakfastLogged) {
-      lunchImpact =
-        "Breakfast is already captured, so lunch will anchor the rest of today.";
-    } else if (latestMeal) {
-      lunchImpact = `Your latest meal is ${latestMealLabel}; logging lunch updates the pattern.`;
-    }
-
-    let nextAction = null;
-    if (!bodyCheckToday) {
-      nextAction = {
-        icon: "happy-outline",
-        iconColor: "#689F38",
-        iconBg: "rgba(139,195,74,0.12)",
-        title: "Log a body check-in",
-        impact: latestMeal
-          ? `You already logged ${latestMealLabel}; a body check-in completes the morning picture.`
-          : "Helps build a clearer picture of your daily energy patterns.",
-        cta: "Body Check",
-        route: "BodyCheck",
-        routeParams: {},
-      };
-    } else if (waterCount < 3) {
-      nextAction = {
-        icon: "water-outline",
-        iconColor: "#5E9B4A",
-        iconBg: "rgba(139,195,74,0.12)",
-        title: "Drink a glass of water",
-        impact: latestMeal
-          ? `${latestMealLabel} is already in your log. Water helps the app see how that meal is landing.`
-          : "May improve energy stability and reduce afternoon fatigue.",
-        cta: "Log Water",
-        route: "LogWater",
-        routeParams: {},
-      };
-    } else if (!lunchLogged) {
-      nextAction = {
-        icon: "restaurant-outline",
-        iconColor: "#E8A33D",
-        iconBg: "rgba(232,163,61,0.12)",
-        title: "Log your lunch",
-        impact: lunchImpact,
-        cta: "Log Meal",
-        route: "LogMeal",
-        routeParams: {},
-      };
-    } else if (waterCount < waterGoal) {
-      nextAction = {
-        icon: "water-outline",
-        iconColor: "#5E9B4A",
-        iconBg: "rgba(139,195,74,0.12)",
-        title: `${waterGoal - waterCount} more glasses to hit your goal`,
-        impact: latestMeal
-          ? `You're on track after ${latestMealLabel}. Keep hydration going to keep the pattern readable.`
-          : "You're on track — keep the hydration going.",
-        cta: "Log Water",
-        route: "LogWater",
-        routeParams: {},
-      };
-    } else {
-      nextAction = {
-        icon: "moon-outline",
-        iconColor: "#689F38",
-        iconBg: "rgba(139,195,74,0.12)",
-        title: latestMeal
-          ? `${latestMealLabel} is already shaping today`
-          : "You're doing well today",
-        impact: latestMeal
-          ? latestMeal?.notes ||
-            "All key check-ins are complete. Check back this evening."
-          : "All key check-ins are complete. Check back this evening.",
-        cta: null,
-        route: null,
-        routeParams: {},
-      };
-    }
-
     // Data-driven wins
     const wins = [];
     const latestBodyCheck = [...todayLogs]
@@ -379,7 +300,6 @@ function useDerivedState(logs = []) {
       latestMeal,
       storySteps,
       storyCompleted,
-      nextAction,
       wins,
       headerSub,
       clarity,
@@ -1005,7 +925,7 @@ const rw = StyleSheet.create({
 });
 
 // ─────────────────────────────────────────────
-// ⑦ Weekly Momentum (scaffold — wires up later)
+// ⑦ Weekly Momentum
 // ─────────────────────────────────────────────
 // Only ever rendered when there is data (HomeScreen gates it) —
 // there is no empty state here by design: the section appears
@@ -1352,31 +1272,9 @@ export default function HomeScreen({ navigation }) {
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.helloPill}
-              onPress={() => navigation.navigate("Profile")}
-            >
+            <View style={styles.helloPill}>
               <Text style={styles.helloText}>Hello, {firstName}!</Text>
-              <Ionicons name="chevron-down" size={14} color={T.TEXT} />
-            </TouchableOpacity>
-            <View style={styles.headerSpacer} />
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.headerIconBtn}
-              onPress={() => navigation.navigate("Guide")}
-              accessibilityLabel="Ask the Reversia Guide"
-            >
-              <Ionicons name="sparkles" size={20} color={T.SECONDARY} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.headerIconBtn}
-              onPress={() => navigation.navigate("Profile")}
-              accessibilityLabel="Menu"
-            >
-              <Ionicons name="menu" size={20} color={T.TEXT} />
-            </TouchableOpacity>
+            </View>
           </View>
 
           {/* ── Headline ── */}
@@ -1605,17 +1503,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: T.TEXT,
-  },
-  headerSpacer: { flex: 1 },
-  headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: T.SURFACE,
-    borderWidth: 1,
-    borderColor: T.BORDER,
-    alignItems: "center",
-    justifyContent: "center",
   },
 
   headline: {

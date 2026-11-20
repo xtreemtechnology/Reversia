@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -12,7 +12,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { useUserLogs } from "../../../hooks/useUserLogs";
-import { auth } from "../../../config/firebase";
 
 // ─── Date Helpers ─────────────────────────────────────────────────────────────
 
@@ -122,7 +121,6 @@ const buildReport = (logs, days) => {
   const postMealValues = glucoseReadings
     .filter((r) => !r.isFasting)
     .map((r) => r.value);
-  const allValues = glucoseReadings.map((r) => r.value);
 
   const normalCount = glucoseReadings.filter(
     (r) => classifyGlucose(r.value, r.isFasting) === "normal"
@@ -279,8 +277,6 @@ export default function ExportReportScreen({ navigation }) {
   const [selectedDays, setSelectedDays] = useState(30);
   const [generating, setGenerating] = useState(false);
   const [report, setReport] = useState(null); // { text, stats }
-
-  const user = auth?.currentUser;
 
   const handleGenerate = useCallback(async () => {
     setGenerating(true);
