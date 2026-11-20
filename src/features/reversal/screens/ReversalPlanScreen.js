@@ -20,10 +20,10 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import PressScale from "../../home/components/PressScale";
-import LottieMoment from "../../../components/LottieMoment";
 import CountUp from "../../../components/CountUp";
 import AnimatedBar from "../../../components/AnimatedBar";
 import PopOnActive from "../../../components/PopOnActive";
+import MilestoneCelebration from "../components/MilestoneCelebration";
 import ILLUSTRATIONS from "../../illustrations/illustrations";
 import PlanHeroCard from "../components/PlanHeroCard";
 import { getUserProfile } from "../../profile/services/profileService";
@@ -156,7 +156,7 @@ export default function ReversalPlanScreen({ navigation }) {
   );
   const latestMilestone =
     reachedMilestones[reachedMilestones.length - 1] || null;
-  const [showGoal, setShowGoal] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Celebrate a milestone only the first time it is reached. Celebrated
   // weeks are persisted per account, so reopening the Plan screen does
@@ -166,7 +166,7 @@ export default function ReversalPlanScreen({ navigation }) {
     if (celebratedWeeks.includes(latestMilestone.week)) return;
     const nextCelebrated = [...celebratedWeeks, latestMilestone.week];
     setCelebratedWeeks(nextCelebrated);
-    setShowGoal(true);
+    setShowCelebration(true);
     const uid = auth.currentUser?.uid;
     if (uid) {
       AsyncStorage.setItem(
@@ -338,14 +338,6 @@ export default function ReversalPlanScreen({ navigation }) {
                 <Text style={styles.cardTitle}>Milestones</Text>
                 {latestMilestone ? (
                   <View style={styles.milestoneArt}>
-                    {showGoal ? (
-                      <LottieMoment
-                        animation="goal-achieved"
-                        size={180}
-                        onAnimationFinish={() => setShowGoal(false)}
-                        style={styles.goalLottie}
-                      />
-                    ) : null}
                     <Image
                       source={ILLUSTRATIONS["milestone-plant"]}
                       style={styles.milestoneImage}
@@ -446,6 +438,12 @@ export default function ReversalPlanScreen({ navigation }) {
           </View>
         </FadeIn>
       </ScrollView>
+      <MilestoneCelebration
+        milestone={latestMilestone}
+        nextMilestone={nextMilestone}
+        visible={showCelebration}
+        onDismiss={() => setShowCelebration(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -617,9 +615,6 @@ function makeStyles(colors) {
     milestoneImage: {
       width: "100%",
       height: 210,
-    },
-    goalLottie: {
-      marginBottom: 4,
     },
     milestoneCaption: {
       fontFamily: FONTS.body,
