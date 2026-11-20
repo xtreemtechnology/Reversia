@@ -20,6 +20,11 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { useProfile } from "../hooks/useProfile";
 import { showNotification } from "../../../components/Notification";
 import { confirm } from "../../../utils/confirmService";
+import {
+  scheduleAllReminders,
+  cancelAllReminders,
+  isReminderSchedulingSupported,
+} from "../../../utils/notificationService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import ProfileHeader from "../components/ProfileHeader";
@@ -146,6 +151,32 @@ export default function ProfileScreen({ navigation }) {
           String(val)
         );
       } catch (_) {}
+      if (val) {
+        // Turning on: actually schedule the reminders (asks for OS
+        // permission). On platforms without notifications (web preview)
+        // the preference is still saved, so it applies on a real device.
+        if (isReminderSchedulingSupported()) {
+          const scheduled = await scheduleAllReminders();
+          if (!scheduled) {
+            // Permission denied: reflect reality instead of a dead switch.
+            setNotificationsEnabled(false);
+            try {
+              await AsyncStorage.setItem(
+                `@reversia_notifications_enabled_${userId}`,
+                "false"
+              );
+            } catch (_) {}
+            showNotification({
+              type: "error",
+              title: "Notifications off",
+              message:
+                "Permission was not granted, so reminders stay off. Enable notifications for Reversia in your device settings to turn them on.",
+            });
+          }
+        }
+      } else {
+        await cancelAllReminders();
+      }
     },
     [userId]
   );
