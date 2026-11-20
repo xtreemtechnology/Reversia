@@ -254,6 +254,7 @@ export default function TrackScreen({ navigation, route }) {
   const voiceAction = () => navigation?.navigate("VoiceLog");
   const photoAction = () => navigation?.navigate("PhotoLog");
   const glucoseAction = () => navigation?.navigate("GlucoseLog");
+  const sleepAction = () => navigation?.navigate("SleepEntry");
 
   const saveBodyCheck = async () => {
     const mood = selectedMood;
@@ -497,6 +498,28 @@ export default function TrackScreen({ navigation, route }) {
               </View>
               <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
                 Log Glucose
+              </Text>
+            </PressScale>
+
+            <PressScale
+              onPress={sleepAction}
+              style={styles.voiceCard}
+              accessibilityLabel="Log Sleep"
+            >
+              <View
+                style={[
+                  styles.actionCircle,
+                  { backgroundColor: "rgba(139,195,74,0.12)" },
+                ]}
+              >
+                <SolarIcon
+                  name="moon-sleep-bold-duotone"
+                  size={22}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={[styles.voiceLabel, { color: colors.foreground }]}>
+                Log Sleep
               </Text>
             </PressScale>
           </View>
