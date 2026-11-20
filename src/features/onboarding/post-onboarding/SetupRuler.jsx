@@ -3,31 +3,45 @@
 // A screw-gauge ruler for the age / weight / height / target-weight
 // steps (Figma kit screens 16–18, 20): a horizontal strip of numbers
 // or tick marks you drag with your finger. The value at the CENTRE of
-// the strip is the selected one — it updates live while you drag
-// (onScroll), and the strip snaps so a value always lands centred.
+// the strip is the selected one — it updates live while you drag, and
+// the strip glides to the nearest centred value on release.
 //
-// Built on a horizontal ScrollView with snapToInterval (no new
-// dependency): every step is one fixed-width slot, the content has
-// half-viewport padding on both ends so the first and last values can
-// centre, and the centre value is derived from the scroll offset.
-// External changes (chevrons, tapping a number) glide the strip to
-// the new value; while the user is dragging or the strip is still
-// settling from a flick, the strip is never steered programmatically,
-// so the finger always wins.
+// The strip is moved by a reanimated shared translateX value and driven
+// by a PanResponder on the container — there is NO ScrollView here, on
+// purpose. The previous ScrollView version could not be slid with a
+// finger: the ruler sits inside the step's vertical ScrollView, which
+// steals the gesture before the inner horizontal ScrollView ever
+// becomes the responder, and on the web preview a ScrollView does not
+// respond to mouse-drag at all. The PanResponder claims the touch
+// itself (onStartShouldSetPanResponder and onMoveShouldSetPanResponder
+// both return true, and termination requests are refused), so the
+// parent ScrollView can never steal it, and the same code works with
+// a mouse drag on web and a finger on a phone.
+//
+// Dragging left increases the value and dragging right decreases it —
+// the strip follows the finger 1:1, like a real screw gauge. A tap
+// (no movement) selects the slot under the finger, so tapping a
+// number in the age strip still works; the age chevrons keep working
+// as tap-to-nudge via the external value change below.
 //
 // Also holds the measure-step chrome that used to live in
 // SetupSlider.jsx (unit toggle + value box) — the old PanResponder
 // slider is gone.
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  PanResponder,
   TouchableOpacity,
-  Dimensions,
   StyleSheet,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  cancelAnimation,
+} from "react-native-reanimated";
 import { FONTS, T } from "../../../theme/tokens";
 import { DEEP_GREEN } from "./SetupChrome";
 
@@ -80,17 +94,15 @@ function numberSize(distance) {
   return styles.numDistant;
 }
 
-function NumberSlot({ value, focused, itemWidth, onPress }) {
+function NumberSlot({ value, focused, itemWidth }) {
   const distance = Math.abs(value - focused);
   return (
-    <TouchableOpacity
-      onPress={() => onPress(value)}
-      activeOpacity={0.7}
+    <View
       style={[styles.numberSlot, { width: itemWidth }]}
       accessibilityLabel={`${value}`}
     >
       <Text style={[styles.numberText, numberSize(distance)]}>{value}</Text>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -113,6 +125,9 @@ function TickSlot({ value, min, step, labelEvery, itemWidth, formatLabel }) {
   );
 }
 
+const SNAP_MS = 180;
+const TAP_SLOP = 8;
+
 export default function SetupRuler({
   min,
   max,
@@ -124,69 +139,148 @@ export default function SetupRuler({
   itemWidth = 16,
   formatLabel = (v) => String(v),
 }) {
-  const scrollRef = useRef(null);
+  // The strip's horizontal position, driven on the UI thread.
+  const translateX = useSharedValue(0);
+
+  // Mutable state the PanResponder (created once) reads through refs,
+  // so its handlers never go stale across re-renders.
   const valueRef = useRef(value);
   valueRef.current = value;
-  const draggingRef = useRef(false);
-  const momentumRef = useRef(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const widthRef = useRef(0);
   const mountedRef = useRef(false);
-  const [containerWidth, setContainerWidth] = useState(
-    Math.max(200, Dimensions.get("window").width - 32)
-  );
+  const measuredRef = useRef(false);
+  const draggingRef = useRef(false);
+  const startOffsetRef = useRef(0);
+  const grantXRef = useRef(0);
 
   const count = Math.floor((max - min) / step) + 1;
-  const pad = Math.max(0, (containerWidth - itemWidth) / 2);
-  const offsetFor = (v) => ((v - min) / step) * itemWidth;
-  const valueFromOffset = (x) => {
-    const idx = Math.round(x / itemWidth);
-    return Math.min(max, Math.max(min, min + idx * step));
-  };
 
-  const handleScroll = (event) => {
-    // Only the finger drives the value. Programmatic scrolls (initial
-    // positioning, chevron glides) are ignored here, so a glide can
-    // never push the value back through the numbers it passes.
-    if (!draggingRef.current && !momentumRef.current) return;
-    const v = valueFromOffset(event.nativeEvent.contentOffset.x);
-    if (v !== valueRef.current) onChange(v);
-  };
+  // Geometry: offsetFor(v) is the translateX that puts value v's slot
+  // centre exactly on the container's centre line.
+  const offsetFor = useCallback(
+    (v) => {
+      const w = widthRef.current;
+      return w / 2 - (((v - min) / step) * itemWidth + itemWidth / 2);
+    },
+    [min, step, itemWidth]
+  );
 
-  const handleMomentumEnd = (event) => {
-    const wasMoving = momentumRef.current;
-    momentumRef.current = false;
-    if (!wasMoving) return;
-    // Insurance: the snap should already have settled on a value, but
-    // if the last onScroll was throttled away, commit it now.
-    const v = valueFromOffset(event.nativeEvent.contentOffset.x);
-    if (v !== valueRef.current) onChange(v);
-  };
+  const valueFromOffset = useCallback(
+    (x) => {
+      const w = widthRef.current;
+      const idx = Math.round((w / 2 - itemWidth / 2 - x) / itemWidth);
+      const clamped = Math.min(count - 1, Math.max(0, idx));
+      return min + clamped * step;
+    },
+    [min, step, itemWidth, count]
+  );
 
-  const handleContentSizeChange = () => {
-    // Positions the strip once its geometry is known (first layout,
-    // and whenever the measured width changes the padding). Never
-    // steers while the user is dragging or the strip is settling.
-    if (draggingRef.current || momentumRef.current) return;
-    scrollRef.current?.scrollTo({
-      x: offsetFor(valueRef.current),
-      animated: false,
+  const clampOffset = useCallback(
+    (x) => Math.min(offsetFor(min), Math.max(offsetFor(max), x)),
+    [offsetFor, min, max]
+  );
+
+  const snapTo = useCallback(
+    (v) => {
+      translateX.value = withTiming(offsetFor(v), { duration: SNAP_MS });
+    },
+    [offsetFor, translateX]
+  );
+
+  // The PanResponder is created once. Every callback reads live state
+  // through refs, so it stays correct across re-renders.
+  const panResponderRef = useRef(null);
+  if (panResponderRef.current === null) {
+    panResponderRef.current = PanResponder.create({
+      // Claim the touch at the start and on movement, and refuse to
+      // hand it back — the parent vertical ScrollView can never steal
+      // a drag that starts on the ruler.
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: (evt) => {
+        draggingRef.current = true;
+        startOffsetRef.current = translateX.value;
+        grantXRef.current = evt.nativeEvent.locationX;
+        // Stop any in-flight snap so the strip follows the finger
+        // from exactly where it is.
+        cancelAnimation(translateX);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const next = clampOffset(startOffsetRef.current + gestureState.dx);
+        translateX.value = next;
+        const v = valueFromOffset(next);
+        if (v !== valueRef.current) onChangeRef.current(v);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        draggingRef.current = false;
+        const moved = Math.max(
+          Math.abs(gestureState.dx),
+          Math.abs(gestureState.dy)
+        );
+        if (moved < TAP_SLOP) {
+          // A tap: select the slot under the finger.
+          const localX = grantXRef.current - translateX.value;
+          const idx = Math.min(
+            count - 1,
+            Math.max(0, Math.floor(localX / itemWidth))
+          );
+          const v = min + idx * step;
+          if (v !== valueRef.current) onChangeRef.current(v);
+          snapTo(v);
+          return;
+        }
+        const centred = valueFromOffset(translateX.value);
+        if (centred !== valueRef.current) onChangeRef.current(centred);
+        snapTo(centred);
+      },
+      onPanResponderTerminate: () => {
+        // Interrupted mid-drag (e.g. by the OS): settle on the
+        // nearest centred value instead of leaving the strip adrift.
+        draggingRef.current = false;
+        const centred = valueFromOffset(translateX.value);
+        if (centred !== valueRef.current) onChangeRef.current(centred);
+        snapTo(centred);
+      },
     });
+  }
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  // First measurement positions the strip directly (no glide-in on
+  // appearance); later width changes glide to the current value.
+  const handleLayout = (event) => {
+    const w = event.nativeEvent.layout.width;
+    if (w <= 0 || w === widthRef.current) return;
+    widthRef.current = w;
+    if (!measuredRef.current) {
+      measuredRef.current = true;
+      translateX.value = offsetFor(valueRef.current);
+      return;
+    }
+    if (!draggingRef.current) {
+      translateX.value = withTiming(offsetFor(valueRef.current), {
+        duration: SNAP_MS,
+      });
+    }
   };
 
-  // External value changes (chevrons, tapping a number) glide the
+  // External value changes (age chevrons, unit changes) glide the
   // strip to the new value. The first run is skipped — the initial
-  // position is set by handleContentSizeChange instead, so the strip
-  // never slides in on its own when the screen appears.
+  // position is set by handleLayout instead. While dragging, the
+  // finger owns the strip and this stays out of the way.
   useEffect(() => {
     if (!mountedRef.current) {
       mountedRef.current = true;
       return;
     }
-    if (draggingRef.current || momentumRef.current) return;
-    scrollRef.current?.scrollTo({
-      x: ((value - min) / step) * itemWidth,
-      animated: true,
-    });
-  }, [value, min, step, itemWidth]);
+    if (draggingRef.current || widthRef.current <= 0) return;
+    translateX.value = withTiming(offsetFor(value), { duration: SNAP_MS });
+  }, [value, offsetFor, translateX]);
 
   const values = [];
   for (let i = 0; i < count; i++) values.push(min + i * step);
@@ -194,29 +288,11 @@ export default function SetupRuler({
   return (
     <View
       style={styles.rulerWrap}
-      onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
+      onLayout={handleLayout}
+      {...panResponderRef.current.panHandlers}
+      accessibilityLabel="Drag to change the value"
     >
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={16}
-        decelerationRate="fast"
-        snapToInterval={itemWidth}
-        nestedScrollEnabled
-        onScrollBeginDrag={() => {
-          draggingRef.current = true;
-          momentumRef.current = true;
-        }}
-        onScrollEndDrag={() => {
-          draggingRef.current = false;
-        }}
-        onMomentumScrollEnd={handleMomentumEnd}
-        onScroll={handleScroll}
-        onContentSizeChange={handleContentSizeChange}
-        contentContainerStyle={{ paddingHorizontal: pad }}
-        accessibilityLabel="Drag to change the value"
-      >
+      <Animated.View style={[styles.strip, animatedStyle]}>
         {variant === "numbers"
           ? values.map((v) => (
               <NumberSlot
@@ -224,7 +300,6 @@ export default function SetupRuler({
                 value={v}
                 focused={value}
                 itemWidth={itemWidth}
-                onPress={onChange}
               />
             ))
           : values.map((v) => (
@@ -238,7 +313,7 @@ export default function SetupRuler({
                 formatLabel={formatLabel}
               />
             ))}
-      </ScrollView>
+      </Animated.View>
       {variant === "ticks" ? (
         <View style={styles.centreBar} pointerEvents="none" />
       ) : null}
@@ -306,6 +381,10 @@ const styles = StyleSheet.create({
   },
   rulerWrap: {
     position: "relative",
+    overflow: "hidden",
+  },
+  strip: {
+    flexDirection: "row",
   },
   numberSlot: {
     height: 64,
