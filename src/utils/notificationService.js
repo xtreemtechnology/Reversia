@@ -1,7 +1,16 @@
 // Lightweight notification service: subscribe to notifications and show via host
 import { db, auth } from "../config/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUsualMealTimes } from "./mealTimes";
 
 // expo-notifications imports wrapped in try/catch to avoid crashing on web/simulators
 let Notifications = null;
@@ -198,28 +207,44 @@ export async function cancelMealReminders() {
   } catch (_) {}
 }
 
-/** Schedule three daily meal-logging reminders. */
-export async function scheduleMealReminders() {
+const NOTIFICATIONS_ENABLED_KEY = (uid) =>
+  `@reversia_notifications_enabled_${uid}`;
+
+/** The fixed meal-reminder times, used until the user has a pattern. */
+const DEFAULT_MEAL_TIMES = {
+  breakfast: { hour: 7, minute: 30 },
+  lunch: { hour: 13, minute: 0 },
+  dinner: { hour: 19, minute: 30 },
+};
+
+/**
+ * Schedule three daily meal-logging reminders. `usualTimes` (from
+ * getUsualMealTimes) puts them at the user's real meal times; without
+ * it the fixed defaults are used. Cancels the previous set first, so
+ * re-scheduling never duplicates.
+ */
+export async function scheduleMealReminders(usualTimes) {
   try {
     if (!Notifications) return;
     await cancelMealReminders();
 
+    const times = usualTimes || DEFAULT_MEAL_TIMES;
     const reminders = [
       {
-        hour: 7,
-        minute: 30,
+        hour: times.breakfast.hour,
+        minute: times.breakfast.minute,
         title: "Good morning 🌅",
         body: "Don't skip breakfast — log it in Reversia.",
       },
       {
-        hour: 13,
-        minute: 0,
+        hour: times.lunch.hour,
+        minute: times.lunch.minute,
         title: "Lunch time 🍽",
         body: "Log your lunch to keep your story complete.",
       },
       {
-        hour: 19,
-        minute: 30,
+        hour: times.dinner.hour,
+        minute: times.dinner.minute,
         title: "Dinner check-in",
         body: "Log dinner and do a quick body check.",
       },
@@ -248,17 +273,46 @@ export function isReminderSchedulingSupported() {
 /**
  * Request permissions then schedule all reminders (water + meal).
  * Returns true if permissions were granted and scheduling was attempted.
+ * `usualMealTimes` (from getUsualMealTimes) times the meal reminders
+ * to the user's real schedule; without it the fixed defaults are used.
  */
-export async function scheduleAllReminders() {
+export async function scheduleAllReminders(usualMealTimes) {
   try {
     const granted = await requestNotificationPermissions();
     if (!granted) return false;
     await scheduleWaterReminders();
-    await scheduleMealReminders();
+    await scheduleMealReminders(usualMealTimes);
     return true;
   } catch (_) {
     return false;
   }
+}
+
+/**
+ * Re-time the meal reminders to the user's usual meal times, learned
+ * from the last 100 logs. Called after a meal is saved, so the
+ * schedule follows the user's real pattern as it changes. Does
+ * nothing when reminders are off or cannot be scheduled (web), and
+ * never throws — a failure here must never touch the saved meal.
+ */
+export async function refreshMealReminders(uid) {
+  try {
+    if (!uid || !Notifications) return;
+    const enabled = await AsyncStorage.getItem(NOTIFICATIONS_ENABLED_KEY(uid));
+    if (enabled !== "true") return;
+    const snapshot = await getDocs(
+      query(
+        collection(db, "users", uid, "logs"),
+        orderBy("createdAt", "desc"),
+        limit(100)
+      )
+    );
+    const logs = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    await scheduleMealReminders(getUsualMealTimes(logs));
+  } catch (_) {}
 }
 
 /** Cancel all water and meal reminders. */

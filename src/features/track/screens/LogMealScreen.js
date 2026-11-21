@@ -24,6 +24,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth, db } from "../../../config/firebase";
 import { normalizeMealForFirestore } from "../../../utils/mealNormalizer";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
+import { refreshMealReminders } from "../../../utils/notificationService";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 import LottieMoment from "../../../components/LottieMoment";
@@ -592,6 +593,12 @@ export default function LogMealScreen({ navigation }) {
         // Offline mirroring failure must not block the user
       }
       setJustSaved(true);
+
+      // Keep meal reminders on the user's real schedule: re-time them
+      // to the usual meal times learned from the log history, now that
+      // this meal is part of it. Fire-and-forget — the refresh never
+      // throws, so it cannot touch the saved meal.
+      refreshMealReminders(uid);
     } catch (error) {
       try {
         const mealData = normalizeMealForFirestore({
