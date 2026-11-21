@@ -20,20 +20,35 @@ import Svg, {
   LinearGradient,
   Stop,
 } from "react-native-svg";
+import { classifyReading, toMgdl } from "../../../utils/glucose";
+import { T } from "../../../theme/tokens";
 
 // ─────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────
-const MMOL_TO_MGDL = 18.0182;
-
-const Y_MIN = 60;
+// Y_MIN is 40 so an urgent-low reading (20–53) still draws above the
+// bottom edge instead of being clamped onto it.
+const Y_MIN = 40;
 const Y_MAX = 300;
 
-const REF_LINES = [
-  { value: 100, color: "#689F38", label: "Normal" },
-  { value: 126, color: "#E8A33D", label: "Pre-diabetic" },
-  { value: 180, color: "#E86A6A", label: "High" },
-];
+// Reference lines for the active diagnosis branch (brief 0.1).
+// Screening: the low floor, the top of the normal band, and the
+// diabetes-range floor. Diagnosed: the low floor and the target
+// band edges (80–130 mg/dL, CLINICAL REVIEW NEEDED).
+function referenceLines(diagnosis) {
+  if (diagnosis === "type2") {
+    return [
+      { value: 70, color: T.WARNING, label: "Low" },
+      { value: 80, color: T.SUCCESS, label: "Target" },
+      { value: 130, color: T.WARNING, label: "Above target" },
+    ];
+  }
+  return [
+    { value: 70, color: T.WARNING, label: "Low" },
+    { value: 100, color: T.SUCCESS, label: "Normal" },
+    { value: 126, color: T.DANGER, label: "Diabetes range" },
+  ];
+}
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -52,14 +67,13 @@ function toDate(ts) {
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-function toMgDl(value, unit) {
-  if (!value || typeof value !== "number") return null;
-  const u = (unit || "").toLowerCase().trim();
-  if (u === "mmol/l" || u === "mmol") {
-    return value * MMOL_TO_MGDL;
-  }
-  // assume mg/dL
-  return value;
+// Points are daily averages of mixed contexts (fasting + after meal),
+// so they are classified on the "random" branch — the honest choice
+// for a mixed average — with the user's diagnosis (brief 0.1). A
+// 45 mg/dL average is red here, never green.
+function getPointColor(mgdl, diagnosis) {
+  if (mgdl === null) return T.MUTED;
+  return classifyReading(mgdl, { context: "random", diagnosis }).color;
 }
 
 function getDayKey(date) {
@@ -68,14 +82,6 @@ function getDayKey(date) {
     2,
     "0"
   )}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getPointColor(mgdl) {
-  if (mgdl === null) return "#7A8A72";
-  if (mgdl < 100) return "#689F38"; // lime — normal
-  if (mgdl < 126) return "#E8A33D"; // amber — pre-diabetic range
-  if (mgdl < 180) return "#E8A33D"; // amber — still manageable
-  return "#E86A6A"; // red — high
 }
 
 // ─────────────────────────────────────────────
@@ -104,7 +110,7 @@ function useGlucoseChartData(logs) {
       if (!date || Number.isNaN(date.getTime())) return;
       const key = getDayKey(date);
       if (!byDay[key]) byDay[key] = [];
-      const mgdl = toMgDl(log.value, log.unit);
+      const mgdl = toMgdl(log.value, log.unit);
       if (mgdl !== null) byDay[key].push(mgdl);
     });
 
@@ -133,7 +139,13 @@ function useGlucoseChartData(logs) {
 // ─────────────────────────────────────────────
 // SVG Chart
 // ─────────────────────────────────────────────
-function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
+function GlucoseLineChart({
+  points,
+  chartWidth,
+  chartHeight,
+  colors,
+  diagnosis,
+}) {
   const PADDING_LEFT = 36;
   const PADDING_RIGHT = 12;
   const PADDING_TOP = 10;
@@ -141,6 +153,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
 
   const drawWidth = chartWidth - PADDING_LEFT - PADDING_RIGHT;
   const drawHeight = chartHeight - PADDING_TOP - PADDING_BOTTOM;
+  const refs = referenceLines(diagnosis);
 
   function yPos(value) {
     // map value from [Y_MIN, Y_MAX] → [drawHeight, 0]
@@ -179,7 +192,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
       </Defs>
 
       {/* Reference lines */}
-      {REF_LINES.map((ref) => {
+      {refs.map((ref) => {
         const y = yPos(ref.value);
         return (
           <React.Fragment key={ref.value}>
@@ -207,16 +220,30 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
         );
       })}
 
-      {/* Polyline segments */}
+      {/* Polyline segments — each segment takes the colour of its
+          worst reading, so a stretch of lows never draws a green line. */}
       {segments.map((seg, si) => {
         if (seg.length < 2) return null;
         const pointsStr = seg.map((pt) => `${pt.x},${pt.y}`).join(" ");
+        const segColor = seg.some(
+          (pt) =>
+            classifyReading(pt.value, { context: "random", diagnosis })
+              .color === T.DANGER
+        )
+          ? T.DANGER
+          : seg.some(
+              (pt) =>
+                classifyReading(pt.value, { context: "random", diagnosis })
+                  .color === T.WARNING
+            )
+          ? T.WARNING
+          : T.SUCCESS;
         return (
           <Polyline
             key={si}
             points={pointsStr}
             fill="none"
-            stroke="#689F38"
+            stroke={segColor}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -230,7 +257,7 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
         if (p.value === null) return null;
         const cx = xPos(i);
         const cy = yPos(p.value);
-        const fill = getPointColor(p.value);
+        const fill = getPointColor(p.value, diagnosis);
         return (
           <React.Fragment key={i}>
             <Circle cx={cx} cy={cy} r={5} fill={fill} opacity={0.9} />
@@ -260,7 +287,12 @@ function GlucoseLineChart({ points, chartWidth, chartHeight, colors }) {
 // ─────────────────────────────────────────────
 // Main exported component
 // ─────────────────────────────────────────────
-export default function GlucoseTrendChart({ logs, colors, onPress }) {
+export default function GlucoseTrendChart({
+  logs,
+  colors,
+  onPress,
+  diagnosis,
+}) {
   const { width: screenWidth } = useWindowDimensions();
   const { points, latestToday, hasAnyData } = useGlucoseChartData(logs);
 
@@ -282,15 +314,11 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
 
   const latestColor =
     latestToday !== null
-      ? getPointColor(latestToday)
+      ? getPointColor(latestToday, diagnosis)
       : colors?.textMuted || "#7A8A72";
 
-  // ── Legend items ──
-  const legend = [
-    { color: "#689F38", label: "Normal" },
-    { color: "#E8A33D", label: "Pre-diabetic" },
-    { color: "#E86A6A", label: "High" },
-  ];
+  // ── Legend items — the same three levels as the reference lines. ──
+  const legend = referenceLines(diagnosis);
 
   return (
     <View
@@ -336,6 +364,7 @@ export default function GlucoseTrendChart({ logs, colors, onPress }) {
           points={points}
           chartWidth={chartWidth}
           chartHeight={chartHeight}
+          diagnosis={diagnosis}
           colors={colors || {}}
         />
       </View>

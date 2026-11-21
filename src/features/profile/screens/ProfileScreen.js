@@ -203,6 +203,7 @@ export default function ProfileScreen({ navigation }) {
     useState("");
   const [editPrimaryHba1c, setEditPrimaryHba1c] = useState(null);
   const [editFastingBloodSugar, setEditFastingBloodSugar] = useState(null);
+  const [editDiabetesType, setEditDiabetesType] = useState(null);
   const [editFears, setEditFears] = useState([]);
 
   useEffect(() => {
@@ -239,6 +240,7 @@ export default function ProfileScreen({ navigation }) {
     setEditEmergencyContactPhone(profile?.emergencyContactPhone || "");
     setEditPrimaryHba1c(profile?.primaryHba1c || null);
     setEditFastingBloodSugar(profile?.fastingBloodSugar || null);
+    setEditDiabetesType(profile?.diabetesType || null);
     setEditFears(profile?.healthFears || []);
     setEditVisible(true);
   }, [profile]);
@@ -266,6 +268,7 @@ export default function ProfileScreen({ navigation }) {
         updatedAt: new Date().toISOString(),
         primaryHba1c: editPrimaryHba1c || null,
         fastingBloodSugar: editFastingBloodSugar || null,
+        diabetesType: editDiabetesType,
         healthFears: editFears || [],
       });
       showNotification({
@@ -297,6 +300,7 @@ export default function ProfileScreen({ navigation }) {
     editSleepQuality,
     editPrimaryHba1c,
     editFastingBloodSugar,
+    editDiabetesType,
     editFears,
     editStaples,
     editSweetDrinkFrequency,
@@ -559,6 +563,8 @@ export default function ProfileScreen({ navigation }) {
           setEditPrimaryHba1c={setEditPrimaryHba1c}
           editFastingBloodSugar={editFastingBloodSugar}
           setEditFastingBloodSugar={setEditFastingBloodSugar}
+          editDiabetesType={editDiabetesType}
+          setEditDiabetesType={setEditDiabetesType}
           editFears={editFears}
           setEditFears={setEditFears}
         />

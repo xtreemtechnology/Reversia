@@ -6,6 +6,7 @@ import React, { useState, useCallback } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -20,8 +21,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { useUserProfile } from "../../../hooks/useUserProfile";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { enqueueFailedWrite } from "../../../utils/offlineQueue";
+import {
+  classifyReading,
+  toMgdl,
+  mgdlToMmol,
+  mmolToMgdl,
+  isPlausibleMgdl,
+  GLUCOSE_MIN_MGDL,
+  GLUCOSE_MAX_MGDL,
+} from "../../../utils/glucose";
 import { T, FONTS } from "../../../theme/tokens";
 import FadeIn from "../../home/components/FadeIn";
 
@@ -38,63 +49,94 @@ const CONTEXTS = [
   { key: "random", label: "Random", icon: "help-circle-outline" },
 ];
 
-// Reference ranges in mg/dL
-const RANGES_MGDL = [
-  { label: "Normal fasting", range: "< 100 mg/dL", color: T.SUCCESS },
-  { label: "Pre-diabetic (fasting)", range: "100–125 mg/dL", color: T.WARNING },
-  { label: "Diabetic (fasting)", range: "≥ 126 mg/dL", color: T.DANGER },
-  { label: "Normal after meal (2hr)", range: "< 140 mg/dL", color: T.SUCCESS },
-  {
-    label: "Pre-diabetic after meal",
-    range: "140–199 mg/dL",
-    color: T.WARNING,
-  },
-  { label: "Diabetic after meal", range: "≥ 200 mg/dL", color: T.DANGER },
-];
-
-function mgdlToMmol(mgdl) {
-  return (mgdl / 18.0182).toFixed(1);
-}
-function mmolToMgdl(mmol) {
-  return Math.round(mmol * 18.0182);
-}
-
-/** Returns color and category based on value and context */
-function classifyReading(value, unit, context) {
-  const mgdl =
-    unit === "mmol/L" ? mmolToMgdl(parseFloat(value)) : parseFloat(value);
-  if (isNaN(mgdl)) return { color: T.MUTED, label: "" };
-  const isFasting = context === "fasting" || context === "before_meal";
-  const isAfterMeal =
-    context === "after_meal_1h" || context === "after_meal_2h";
-
-  if (isFasting) {
-    if (mgdl < 100) return { color: T.SUCCESS, label: "Normal" };
-    if (mgdl < 126) return { color: T.WARNING, label: "Pre-diabetic range" };
-    return { color: T.DANGER, label: "High — log and monitor" };
+// Reference ranges in mg/dL, for the active diagnosis branch.
+// Screening (not diagnosed / pre-diabetes / prevention / unknown)
+// keeps the screening labels, with "Diabetic" reworded; diagnosed
+// users see their management targets instead (brief 0.1).
+// Targets are proposed adult, non-pregnant defaults —
+// CLINICAL REVIEW NEEDED.
+function referenceRanges(diagnosis) {
+  const low = [
+    { label: "Dangerously low", range: "< 54 mg/dL", color: T.DANGER },
+    { label: "Low", range: "54–69 mg/dL", color: T.WARNING },
+  ];
+  const veryHigh = {
+    label: "Very high",
+    range: "> 300 mg/dL",
+    color: T.DANGER,
+  };
+  if (diagnosis === "type2") {
+    return [
+      ...low,
+      {
+        label: "Below target (fasting)",
+        range: "70–79 mg/dL",
+        color: T.WARNING,
+      },
+      { label: "In target (fasting)", range: "80–130 mg/dL", color: T.SUCCESS },
+      {
+        label: "In target (after meal)",
+        range: "< 180 mg/dL",
+        color: T.SUCCESS,
+      },
+      { label: "Above target", range: "≥ 180 mg/dL", color: T.WARNING },
+      veryHigh,
+    ];
   }
-  if (isAfterMeal) {
-    if (mgdl < 140) return { color: T.SUCCESS, label: "Normal" };
-    if (mgdl < 200) return { color: T.WARNING, label: "Pre-diabetic range" };
-    return { color: T.DANGER, label: "High — log and monitor" };
-  }
-  // Bedtime / random
-  if (mgdl < 100) return { color: T.SUCCESS, label: "Normal" };
-  if (mgdl < 180) return { color: T.WARNING, label: "Moderate" };
-  return { color: T.DANGER, label: "Elevated" };
+  return [
+    ...low,
+    { label: "Normal fasting", range: "70–99 mg/dL", color: T.SUCCESS },
+    {
+      label: "Pre-diabetic (fasting)",
+      range: "100–125 mg/dL",
+      color: T.WARNING,
+    },
+    {
+      label: "In the diabetes range (fasting)",
+      range: "≥ 126 mg/dL",
+      color: T.DANGER,
+    },
+    {
+      label: "Normal after meal (2hr)",
+      range: "70–139 mg/dL",
+      color: T.SUCCESS,
+    },
+    {
+      label: "Pre-diabetic after meal",
+      range: "140–199 mg/dL",
+      color: T.WARNING,
+    },
+    {
+      label: "In the diabetes range (after meal)",
+      range: "≥ 200 mg/dL",
+      color: T.DANGER,
+    },
+    veryHigh,
+  ];
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function GlucoseLogScreen({ navigation }) {
   const { colors } = useTheme();
+  const { userData: profile } = useUserProfile();
+  // Diagnosis branch for classification: the profile's diabetesType
+  // ("type2" | "prediabetes" | "prevention" | null). A missing value
+  // defaults to the screening branch in classifyReading.
+  const diagnosis = profile?.diabetesType ?? null;
+  const emergencyContactName = profile?.emergencyContactName || "";
+  const emergencyContactPhone = profile?.emergencyContactPhone || "";
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("mg/dL"); // "mg/dL" or "mmol/L"
   const [context, setContext] = useState("fasting");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const classification = classifyReading(value, unit, context);
+  const classification = classifyReading(toMgdl(value, unit), {
+    context,
+    diagnosis,
+  });
+  const ranges = referenceRanges(diagnosis);
 
   const displayValue = value ? (unit === "mmol/L" ? value : value) : "";
 
@@ -126,14 +168,85 @@ export default function GlucoseLogScreen({ navigation }) {
       return;
     }
     const numVal = parseFloat(value);
-    if (!value || isNaN(numVal) || numVal <= 0) {
+    if (!value || isNaN(numVal)) {
       Alert.alert(
         "Enter a value",
         "Please enter a valid glucose reading before saving."
       );
       return;
     }
+    // Plausibility bounds (brief 0.1): reject, never silently clamp.
+    const mgdl = toMgdl(numVal, unit);
+    if (mgdl === null || !isPlausibleMgdl(mgdl)) {
+      Alert.alert(
+        "That reading looks off",
+        `Please re-check your entry. Readings should be between ${GLUCOSE_MIN_MGDL} and ${GLUCOSE_MAX_MGDL} mg/dL (about 1.1–33.3 mmol/L).`
+      );
+      return;
+    }
 
+    const result = classifyReading(mgdl, { context, diagnosis });
+
+    // Urgent low: blocking alert; the reading is saved only after the
+    // user acknowledges it. One-tap call to the saved emergency
+    // contact, when there is one.
+    if (result.level === "urgent_low") {
+      const buttons = [];
+      if (emergencyContactPhone) {
+        buttons.push({
+          text: `Call ${emergencyContactName || "emergency contact"}`,
+          onPress: () => Linking.openURL(`tel:${emergencyContactPhone}`),
+        });
+      }
+      buttons.push({
+        text: "I treated it — save reading",
+        onPress: () => saveReading(numVal),
+      });
+      buttons.push({ text: "Cancel", style: "cancel" });
+      Alert.alert(
+        "Dangerously low",
+        "Treat now with fast-acting sugar, then recheck in 15 minutes. If you feel confused, faint, or can't swallow, get emergency help.",
+        buttons
+      );
+      return;
+    }
+
+    // Low: same treat-and-recheck guidance, without the emergency copy.
+    if (result.level === "low") {
+      Alert.alert(
+        "Low",
+        "Treat now with fast-acting sugar, then recheck in 15 minutes.",
+        [
+          {
+            text: "I treated it — save reading",
+            onPress: () => saveReading(numVal),
+          },
+          { text: "Cancel", style: "cancel" },
+        ]
+      );
+      return;
+    }
+
+    // Very high: clinician advice first; save on acknowledgement.
+    // CLINICAL REVIEW NEEDED: the 300 mg/dL threshold (brief 0.1).
+    if (result.level === "very_high") {
+      Alert.alert(
+        "Very high",
+        "Contact your clinician today. Seek urgent care if you have vomiting, drowsiness, fast breathing, or fruity-smelling breath.",
+        [
+          { text: "OK — save reading", onPress: () => saveReading(numVal) },
+          { text: "Cancel", style: "cancel" },
+        ]
+      );
+      return;
+    }
+
+    await saveReading(numVal);
+  };
+
+  const saveReading = async (numVal) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
     setSaving(true);
     try {
       const today = new Date().toISOString().slice(0, 10);
@@ -407,14 +520,14 @@ export default function GlucoseLogScreen({ navigation }) {
                   { color: colors.mutedForeground, marginBottom: 12 },
                 ]}
               >
-                Reference ranges
+                {diagnosis === "type2" ? "Your targets" : "Reference ranges"}
               </Text>
-              {RANGES_MGDL.map((r, i) => (
+              {ranges.map((r, i) => (
                 <View
                   key={i}
                   style={[
                     s.rangeRow,
-                    i < RANGES_MGDL.length - 1 && {
+                    i < ranges.length - 1 && {
                       borderBottomWidth: 1,
                       borderBottomColor: colors.border,
                     },

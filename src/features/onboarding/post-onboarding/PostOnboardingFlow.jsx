@@ -3,8 +3,8 @@
 // Stepped account-setup flow, following the Figma MDI kit's Account
 // Setup screens 13–23 (layout only — Reversia palette and copy):
 // intro ("Prepare your personal information") → one question per
-// screen (name, gender, age, weight, height, goal, target weight,
-// journey) → generating → complete.
+// screen (name, gender, age, weight, height, goal, diagnosis,
+// target weight, journey) → generating → complete.
 //
 // The flow only runs when a Firebase user exists: App.js does not
 // render it before auth, and the save below refuses to pretend it
@@ -41,8 +41,10 @@ import {
   AgeStep,
   MeasureStep,
   GoalStep,
+  DiagnosisStep,
   TargetWeightStep,
   JourneyStep,
+  DIAGNOSIS_OPTIONS,
   JOURNEY_OPTIONS,
   weightDisplay,
   heightDisplay,
@@ -66,6 +68,7 @@ const SCREENS = [
   "weight",
   "height",
   "goal",
+  "diagnosis",
   "target",
   "journey",
   "generating",
@@ -105,13 +108,19 @@ const QUESTION_META = {
     headline: "What is your goal?",
     subtext: "Please give a true answer to the following question.",
   },
-  target: {
+  diagnosis: {
     number: 7,
+    headline: "How would you describe your sugar?",
+    subtext:
+      "This decides how your readings are judged. Optional — you can continue without answering.",
+  },
+  target: {
+    number: 8,
     headline: "What is your target weight?",
     subtext: "Choose a target to work towards, one step at a time.",
   },
   journey: {
-    number: 8,
+    number: 9,
     headline: "Choose your pace",
     subtext: "Pick the pace that fits your life right now.",
   },
@@ -127,6 +136,7 @@ const STEP_EVENTS = {
   weight: ["post_onboarding_weight", (a) => a.weightKg],
   height: ["post_onboarding_height", (a) => a.heightCm],
   goal: ["post_onboarding_goal", (a) => a.primaryGoal],
+  diagnosis: ["post_onboarding_diagnosis", (a) => a.diabetesType],
   target: ["post_onboarding_target", (a) => a.targetWeightKg ?? a.weightKg],
   journey: ["post_onboarding_journey", (a) => a.journey],
 };
@@ -176,6 +186,7 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
     heightCm: 170,
     heightUnit: "cm",
     primaryGoal: null,
+    diabetesType: null,
     targetWeightKg: null,
     targetUnit: "kg",
     journey: null,
@@ -288,6 +299,7 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
             weight: String(snapshot.weightKg),
             height: String(snapshot.heightCm),
             primaryGoal: snapshot.primaryGoal,
+            diabetesType: snapshot.diabetesType,
             targetWeight: String(finalTargetKg),
             journey: snapshot.journey,
             questionnaireUpdatedAt: new Date().toISOString(),
@@ -348,6 +360,12 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
       value:
         PRIMARY_GOAL_OPTIONS.find((o) => o.value === answers.primaryGoal)
           ?.label || "—",
+    },
+    {
+      label: "Diagnosis",
+      value:
+        DIAGNOSIS_OPTIONS.find((o) => o.value === answers.diabetesType)
+          ?.label || "Not answered",
     },
     {
       label: "Journey",
@@ -421,6 +439,13 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
             onChange={(v) => setAnswer("primaryGoal", v)}
           />
         );
+      case "diagnosis":
+        return (
+          <DiagnosisStep
+            value={answers.diabetesType}
+            onChange={(v) => setAnswer("diabetesType", v)}
+          />
+        );
       case "target":
         return (
           <TargetWeightStep
@@ -485,7 +510,7 @@ export default function PostOnboardingFlow({ onComplete, onSkip, navigation }) {
               >
                 <QuestionHeader
                   stepNumber={meta.number}
-                  totalSteps={8}
+                  totalSteps={9}
                   headline={meta.headline}
                   subtext={meta.subtext}
                 />

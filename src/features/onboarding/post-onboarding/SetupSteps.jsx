@@ -271,6 +271,60 @@ export function GoalStep({ value, onChange }) {
   );
 }
 
+// ── Step 6b · Diagnosis status (brief 0.1) ─────────────────────────────────
+// Optional: decides whether glucose readings are judged against
+// screening ranges or management targets. The step is optional —
+// the flow lets the user continue without answering (canContinue
+// stays true), and the value can be changed later in Profile.
+export const DIAGNOSIS_OPTIONS = [
+  {
+    value: "type2",
+    label: "I have diabetes",
+    icon: "medical-outline",
+  },
+  {
+    value: "prediabetes",
+    label: "I have high blood sugar or pre-diabetes",
+    icon: "pulse-outline",
+  },
+  {
+    value: "prevention",
+    label: "I'm not diagnosed, just eating healthier",
+    icon: "leaf-outline",
+  },
+];
+
+export function DiagnosisStep({ value, onChange }) {
+  return (
+    <View style={styles.stepBody}>
+      {DIAGNOSIS_OPTIONS.map((option) => {
+        const selected = value === option.value;
+        return (
+          <ScalePress
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            activeOpacity={0.85}
+            style={[styles.optionRow, selected && styles.optionRowSelected]}
+            accessibilityLabel={option.label}
+          >
+            <View style={styles.optionIcon}>
+              <Ionicons name={option.icon} size={26} color={DEEP_GREEN} />
+            </View>
+            <Text style={styles.optionLabel}>{option.label}</Text>
+            {selected ? (
+              <Ionicons name="checkbox" size={24} color={DEEP_GREEN} />
+            ) : null}
+          </ScalePress>
+        );
+      })}
+      <Text style={styles.diagnosisNote}>
+        Optional — you can continue without answering, and change it later in
+        your Profile.
+      </Text>
+    </View>
+  );
+}
+
 // ── Step 7 · Target weight ───────────────────────────────────────────────────
 
 export function TargetWeightStep({
@@ -544,6 +598,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: T.MUTED,
+  },
+  diagnosisNote: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: T.MUTED,
+    marginTop: 12,
   },
   targetRow: {
     flexDirection: "row",
