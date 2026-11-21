@@ -30,6 +30,7 @@ import {
   calculateProgress,
 } from "../../reversal/services/reversalService";
 import { toMgdl, toDate } from "../../insights/services/foodSugarService";
+import { classifyReading } from "../../../utils/glucose";
 
 export const GUIDE_SYSTEM_PROMPT =
   "You are Reversia: provide concise, culturally-aware meal guidance for Nigerian foods. Keep answers short and actionable.";
@@ -131,7 +132,7 @@ function mealsAnswer(now) {
   return lines.join("\n");
 }
 
-function glucoseAnswer(logs, now) {
+function glucoseAnswer(logs, now, diagnosis) {
   const readings = (logs || []).filter((log) => log?.category === "glucose");
   if (readings.length === 0) {
     return "You haven't logged a glucose reading yet. Log one from the Track tab and I'll summarise it here.";
@@ -168,6 +169,28 @@ function glucoseAnswer(logs, now) {
       latest.context ? `, ${latest.context}` : ""
     }.`,
   ];
+  // The latest reading, judged by the shared classifier (brief 0.1)
+  // — a low is never reported as good news, and a low or very high
+  // reading carries its guidance here too.
+  const latestClass = classifyReading(latestMgdl, {
+    context: latest.context,
+    diagnosis,
+  });
+  if (latestClass.level === "urgent_low") {
+    lines.push(
+      "That's dangerously low — treat now with fast-acting sugar, then recheck in 15 minutes. If you feel confused, faint, or can't swallow, get emergency help."
+    );
+  } else if (latestClass.level === "low") {
+    lines.push(
+      "That's low — treat now with fast-acting sugar, then recheck in 15 minutes."
+    );
+  } else if (latestClass.level === "very_high") {
+    lines.push(
+      "That's very high — contact your clinician today. Seek urgent care if you have vomiting, drowsiness, fast breathing, or fruity-smelling breath."
+    );
+  } else if (latestClass.label) {
+    lines.push(`That's ${latestClass.label.toLowerCase()}.`);
+  }
   if (average !== null) {
     lines.push(
       `Your 7-day average is ${average} mg/dL across ${
@@ -257,7 +280,12 @@ function fallbackAnswer() {
  * Every answer ends with the safety line.
  */
 export function answerLocally(question, context = {}) {
-  const { logs = [], plan = null, now = new Date() } = context;
+  const {
+    logs = [],
+    plan = null,
+    now = new Date(),
+    diagnosis = null,
+  } = context;
   const q = normalize(question);
   const foods = findFoodsInQuestion(question);
 
@@ -291,7 +319,7 @@ export function answerLocally(question, context = {}) {
     text = foodSafetyPrompt();
     topic = "food";
   } else if (/sugar|glucose|reading/.test(q)) {
-    text = glucoseAnswer(logs, now);
+    text = glucoseAnswer(logs, now, diagnosis);
     topic = "sugar";
   } else {
     text = fallbackAnswer();

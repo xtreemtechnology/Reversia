@@ -1793,6 +1793,7 @@ export default function HomeScreen({ navigation }) {
           <GlucoseTrendChart
             logs={logs}
             colors={homeColors}
+            diagnosis={userData?.diabetesType}
             onPress={() => navigation.navigate("GlucoseLog")}
           />
         </FadeIn>

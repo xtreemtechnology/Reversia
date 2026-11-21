@@ -39,6 +39,7 @@ import Animated, {
 import { useTheme } from "../../../theme/ThemeProvider";
 import { T, FONTS } from "../../../theme/tokens";
 import { useUserLogs } from "../../../hooks/useUserLogs";
+import { useUserProfile } from "../../../hooks/useUserProfile";
 import { auth } from "../../../config/firebase";
 import { getReversalPlan } from "../../reversal/services/reversalService";
 import { askGuide, GUIDE_CHIPS } from "../services/guideService";
@@ -170,6 +171,7 @@ function GuideOrb({ state, compact }) {
 export default function GuideScreen({ navigation }) {
   const { colors } = useTheme();
   const { logs } = useUserLogs(50);
+  const { userData: profile } = useUserProfile();
   const [plan, setPlan] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -213,7 +215,11 @@ export default function GuideScreen({ navigation }) {
       setOrbState("thinking");
       await trackEvent("ai_guide_asked", { question });
       const started = Date.now();
-      const result = await askGuide(question, { logs, plan });
+      const result = await askGuide(question, {
+        logs,
+        plan,
+        diagnosis: profile?.diabetesType ?? null,
+      });
       const elapsed = Date.now() - started;
       if (elapsed < 600) {
         await new Promise((resolve) => setTimeout(resolve, 600 - elapsed));
@@ -230,7 +236,7 @@ export default function GuideScreen({ navigation }) {
       setThinking(false);
       setOrbState("landed");
     },
-    [thinking, logs, plan]
+    [thinking, logs, plan, profile?.diabetesType]
   );
 
   const handleFeedback = useCallback(async (message, helpful) => {

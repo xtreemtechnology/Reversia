@@ -12,6 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { useUserLogs } from "../../../hooks/useUserLogs";
+import { useUserProfile } from "../../../hooks/useUserProfile";
+import { classifyReading, toMgdl } from "../../../utils/glucose";
 
 // ─── Date Helpers ─────────────────────────────────────────────────────────────
 
@@ -79,22 +81,25 @@ const topEntry = (arr) => {
 };
 
 // ─── Glucose classification ───────────────────────────────────────────────────
+// The shared classifier (src/utils/glucose.js, brief 0.1) — a low
+// reading is never counted as "normal" here. Buckets for the summary:
+//   low     — urgent_low, low (< 70 mg/dL)
+//   inRange — normal, in_target, and below_target (70–79 fasting for a
+//             diagnosed user: not low, so it sits with in-range here;
+//             the log screen still shows it as "Below target")
+//   high    — above_target, diabetes_range, very_high, moderate, elevated
+const LOW_LEVELS = ["urgent_low", "low"];
+const IN_RANGE_LEVELS = ["normal", "in_target", "below_target"];
 
-const classifyGlucose = (value, isFasting) => {
-  if (isFasting) {
-    if (value < 100) return "normal";
-    if (value < 126) return "prediabetic";
-    return "diabetic";
-  }
-  // Post-meal thresholds
-  if (value < 140) return "normal";
-  if (value < 200) return "prediabetic";
-  return "diabetic";
-};
+const classifyGlucoseLevel = (reading, diagnosis) =>
+  classifyReading(reading.value, {
+    context: reading.context,
+    diagnosis,
+  }).level;
 
 // ─── Report builder ───────────────────────────────────────────────────────────
 
-const buildReport = (logs, days) => {
+const buildReport = (logs, days, diagnosis) => {
   const now = new Date();
   const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   const startLabel = fmtDate(cutoff);
@@ -109,11 +114,19 @@ const buildReport = (logs, days) => {
   const glucoseLogs = inRange.filter((l) => l.category === "glucose");
   const glucoseReadings = glucoseLogs
     .map((l) => ({
-      value: parseFloat(l.value || l.glucoseLevel || l.level || 0),
-      isFasting: l.isFasting || l.type === "fasting",
+      // Convert to mg/dL first (brief 0.1): a mmol/L log used to be
+      // counted and averaged as if it were mg/dL.
+      value: toMgdl(
+        parseFloat(l.value || l.glucoseLevel || l.level || 0),
+        l.unit
+      ),
+      // Glucose logs store `context` ("fasting", "before_meal", …),
+      // not `isFasting` or `type` — the old check was always false.
+      context: l.context || "random",
+      isFasting: l.context === "fasting" || l.context === "before_meal",
       date: toDate(l.createdAt),
     }))
-    .filter((r) => r.value > 0);
+    .filter((r) => r.value !== null && r.value > 0);
 
   const fastingValues = glucoseReadings
     .filter((r) => r.isFasting)
@@ -122,15 +135,13 @@ const buildReport = (logs, days) => {
     .filter((r) => !r.isFasting)
     .map((r) => r.value);
 
-  const normalCount = glucoseReadings.filter(
-    (r) => classifyGlucose(r.value, r.isFasting) === "normal"
+  const lowCount = glucoseReadings.filter((r) =>
+    LOW_LEVELS.includes(classifyGlucoseLevel(r, diagnosis))
   ).length;
-  const preDiabeticCount = glucoseReadings.filter(
-    (r) => classifyGlucose(r.value, r.isFasting) === "prediabetic"
+  const inRangeCount = glucoseReadings.filter((r) =>
+    IN_RANGE_LEVELS.includes(classifyGlucoseLevel(r, diagnosis))
   ).length;
-  const diabeticCount = glucoseReadings.filter(
-    (r) => classifyGlucose(r.value, r.isFasting) === "diabetic"
-  ).length;
+  const highCount = glucoseReadings.length - lowCount - inRangeCount;
 
   const pct = (n) =>
     glucoseReadings.length ? Math.round((n / glucoseReadings.length) * 100) : 0;
@@ -184,9 +195,7 @@ const buildReport = (logs, days) => {
   // ── BODY CHECK ──
   const bodyLogs = inRange.filter((l) => l.category === "body_check");
   const moods = bodyLogs.map((l) => l.mood || "").filter(Boolean);
-  const symptoms = bodyLogs.flatMap(
-    (l) => l.symptoms || l.symptomsList || []
-  );
+  const symptoms = bodyLogs.flatMap((l) => l.symptoms || l.symptomsList || []);
   const energyScores = bodyLogs
     .map((l) => parseFloat(l.energyLevel || l.energy || 0))
     .filter((v) => v > 0);
@@ -201,13 +210,19 @@ const buildReport = (logs, days) => {
     "",
     pad("── GLUCOSE READINGS "),
     `Total readings: ${glucoseReadings.length}`,
-    `Fasting average: ${fastingValues.length ? avg(fastingValues) : "N/A"} mg/dL`,
-    `Post-meal average: ${postMealValues.length ? avg(postMealValues) : "N/A"} mg/dL`,
-    `Readings in normal range: ${pct(normalCount)}%`,
-    `Readings in pre-diabetic range: ${pct(preDiabeticCount)}%`,
-    `Readings in diabetic range: ${pct(diabeticCount)}%`,
+    `Fasting average: ${
+      fastingValues.length ? avg(fastingValues) : "N/A"
+    } mg/dL`,
+    `Post-meal average: ${
+      postMealValues.length ? avg(postMealValues) : "N/A"
+    } mg/dL`,
+    `Readings low (< 70 mg/dL): ${pct(lowCount)}%`,
+    `Readings in range: ${pct(inRangeCount)}%`,
+    `Readings high (above target): ${pct(highCount)}%`,
     highest
-      ? `Highest reading: ${highest.value} mg/dL (${fmtDateShort(highest.date)})`
+      ? `Highest reading: ${highest.value} mg/dL (${fmtDateShort(
+          highest.date
+        )})`
       : "Highest reading: N/A",
     lowest
       ? `Lowest reading: ${lowest.value} mg/dL (${fmtDateShort(lowest.date)})`
@@ -216,25 +231,35 @@ const buildReport = (logs, days) => {
     pad("── MEALS LOGGED "),
     `Total logs: ${mealLogs.length}`,
     mealNames.length
-      ? `Most frequent: ${topMeal.name} (${topMeal.count} time${topMeal.count !== 1 ? "s" : ""})`
+      ? `Most frequent: ${topMeal.name} (${topMeal.count} time${
+          topMeal.count !== 1 ? "s" : ""
+        })`
       : "Most frequent: N/A",
     `Meal types: Breakfast ${mealTypeCounts.Breakfast}, Lunch ${mealTypeCounts.Lunch}, Dinner ${mealTypeCounts.Dinner}, Snack ${mealTypeCounts.Snack}`,
     "",
     pad("── HYDRATION "),
     `Days tracked: ${hydrationDays.length}`,
-    `Average glasses/day: ${hydrationDays.length ? avgFixed(hydrationDays) : "0.0"}`,
+    `Average glasses/day: ${
+      hydrationDays.length ? avgFixed(hydrationDays) : "0.0"
+    }`,
     `Days meeting 8-glass goal: ${daysMetGoal}`,
     "",
     pad("── SLEEP "),
     `Nights logged: ${sleepLogs.length}`,
-    `Average duration: ${sleepDurations.length ? avgFixed(sleepDurations) : "0.0"} hrs`,
-    `Most common quality: ${sleepQualities.length ? mode(sleepQualities) : "N/A"}`,
+    `Average duration: ${
+      sleepDurations.length ? avgFixed(sleepDurations) : "0.0"
+    } hrs`,
+    `Most common quality: ${
+      sleepQualities.length ? mode(sleepQualities) : "N/A"
+    }`,
     "",
     pad("── BODY CHECK-INS "),
     `Total: ${bodyLogs.length}`,
     `Most common mood: ${moods.length ? mode(moods) : "N/A"}`,
     `Most reported symptoms: ${topN(symptoms)}`,
-    `Average energy score: ${energyScores.length ? avgFixed(energyScores) : "N/A"}/10`,
+    `Average energy score: ${
+      energyScores.length ? avgFixed(energyScores) : "N/A"
+    }/10`,
     "",
     pad("── NOTES "),
     "This report was generated by Reversia.",
@@ -247,7 +272,7 @@ const buildReport = (logs, days) => {
     glucoseCount: glucoseReadings.length,
     fastingAvg: fastingValues.length ? avg(fastingValues) : null,
     postMealAvg: postMealValues.length ? avg(postMealValues) : null,
-    normalPct: pct(normalCount),
+    normalPct: pct(inRangeCount),
     mealCount: mealLogs.length,
     hydrationDaysCount: hydrationDays.length,
     avgGlasses: hydrationDays.length ? avgFixed(hydrationDays) : "0.0",
@@ -273,6 +298,7 @@ const RANGE_OPTIONS = [
 export default function ExportReportScreen({ navigation }) {
   const { colors } = useTheme();
   const { logs, loading: logsLoading } = useUserLogs(500);
+  const { userData: profile } = useUserProfile();
 
   const [selectedDays, setSelectedDays] = useState(30);
   const [generating, setGenerating] = useState(false);
@@ -284,12 +310,12 @@ export default function ExportReportScreen({ navigation }) {
     // Slight delay so the spinner renders before heavy computation
     await new Promise((r) => setTimeout(r, 300));
     try {
-      const result = buildReport(logs, selectedDays);
+      const result = buildReport(logs, selectedDays, profile?.diabetesType);
       setReport(result);
     } finally {
       setGenerating(false);
     }
-  }, [logs, selectedDays]);
+  }, [logs, selectedDays, profile?.diabetesType]);
 
   const handleShare = useCallback(async () => {
     if (!report) return;
@@ -354,9 +380,7 @@ export default function ExportReportScreen({ navigation }) {
                   style={[
                     s.pill,
                     {
-                      backgroundColor: active
-                        ? colors.primary
-                        : colors.card,
+                      backgroundColor: active ? colors.primary : colors.card,
                       borderColor: active ? colors.primary : colors.border,
                     },
                   ]}
@@ -390,12 +414,12 @@ export default function ExportReportScreen({ navigation }) {
             size={18}
             color={colors.primary}
           />
-          <Text
-            style={[s.infoBannerText, { color: colors.mutedForeground }]}
-          >
+          <Text style={[s.infoBannerText, { color: colors.mutedForeground }]}>
             {logsLoading
               ? "Loading your logs…"
-              : `${logs.length} log${logs.length !== 1 ? "s" : ""} available. Report will cover the last ${selectedDays} days.`}
+              : `${logs.length} log${
+                  logs.length !== 1 ? "s" : ""
+                } available. Report will cover the last ${selectedDays} days.`}
           </Text>
         </View>
 
@@ -450,9 +474,7 @@ export default function ExportReportScreen({ navigation }) {
                   size={22}
                   color={colors.primary}
                 />
-                <Text
-                  style={[s.previewTitle, { color: colors.foreground }]}
-                >
+                <Text style={[s.previewTitle, { color: colors.foreground }]}>
                   Report Ready
                 </Text>
               </View>
@@ -463,9 +485,7 @@ export default function ExportReportScreen({ navigation }) {
                 Last {selectedDays} days · {report.stats.totalLogs} total logs
               </Text>
 
-              <View
-                style={[s.divider, { backgroundColor: colors.border }]}
-              />
+              <View style={[s.divider, { backgroundColor: colors.border }]} />
 
               <View style={s.statsGrid}>
                 <StatCell
@@ -503,7 +523,7 @@ export default function ExportReportScreen({ navigation }) {
                   colors={colors}
                 />
                 <StatCell
-                  label="Normal %"
+                  label="In range %"
                   value={`${report.stats.normalPct}%`}
                   unit="glucose"
                   colors={colors}
@@ -525,10 +545,7 @@ export default function ExportReportScreen({ navigation }) {
             <TouchableOpacity
               onPress={handleGenerate}
               activeOpacity={0.75}
-              style={[
-                s.secondaryBtn,
-                { borderColor: colors.border },
-              ]}
+              style={[s.secondaryBtn, { borderColor: colors.border }]}
             >
               <Ionicons
                 name="refresh-outline"
@@ -536,10 +553,7 @@ export default function ExportReportScreen({ navigation }) {
                 color={colors.mutedForeground}
               />
               <Text
-                style={[
-                  s.secondaryBtnText,
-                  { color: colors.mutedForeground },
-                ]}
+                style={[s.secondaryBtnText, { color: colors.mutedForeground }]}
               >
                 Regenerate
               </Text>
@@ -553,10 +567,7 @@ export default function ExportReportScreen({ navigation }) {
               ]}
             >
               <Text
-                style={[
-                  s.textPreviewLabel,
-                  { color: colors.mutedForeground },
-                ]}
+                style={[s.textPreviewLabel, { color: colors.mutedForeground }]}
               >
                 REPORT PREVIEW
               </Text>

@@ -165,6 +165,8 @@ export default function ProfileEditModal({
   setEditPrimaryHba1c,
   editFastingBloodSugar,
   setEditFastingBloodSugar,
+  editDiabetesType,
+  setEditDiabetesType,
   editFears,
   setEditFears,
 }) {
@@ -222,6 +224,15 @@ export default function ProfileEditModal({
     { value: "food", label: "Not eating favourite foods" },
     { value: "children", label: "Passing to children" },
     { value: "nothing", label: "Nothing / hopeful" },
+  ];
+
+  // Diagnosis status, as collected in post-onboarding (brief 0.1).
+  // It decides whether glucose readings are shown against screening
+  // ranges or against management targets.
+  const diabetesOptions = [
+    { value: "type2", label: "I have diabetes" },
+    { value: "prediabetes", label: "High blood sugar / pre-diabetes" },
+    { value: "prevention", label: "Not diagnosed" },
   ];
 
   return (
@@ -311,6 +322,14 @@ export default function ProfileEditModal({
               onChangeText={(t) => setEditFastingBloodSugar(t)}
               placeholder="e.g. 110"
               keyboardType="numeric"
+              colors={colors}
+            />
+
+            <ChipGroup
+              label="Diabetes status"
+              options={diabetesOptions}
+              value={editDiabetesType}
+              onChange={setEditDiabetesType}
               colors={colors}
             />
 

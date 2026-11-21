@@ -1,7 +1,8 @@
 // src/features/insights/services/foodSugarService.js
 //
 // Pure helpers for the food-to-sugar insights. No Firestore, no network,
-// no imports from the rest of the app, so they are safe to use in Jest.
+// so they are safe to use in Jest. The glucose converter is the shared
+// one from src/utils/glucose.js (brief 0.1).
 //
 // Data sources (read-only, existing logs in users/{uid}/logs):
 //   meal:    { category: "meal", name: "Jollof Rice, Chicken Stew",
@@ -76,13 +77,11 @@ export function toDate(value) {
   return null;
 }
 
-/** Normalise a glucose value to mg/dL. Returns null for missing/invalid. */
-export function toMgdl(value, unit) {
-  const num = Number(value);
-  if (!Number.isFinite(num) || num <= 0) return null;
-  if (unit === "mmol/L") return Math.round(num * MGDL_PER_MMOL);
-  return Math.round(num);
-}
+/** Normalise a glucose value to mg/dL. The shared converter
+ * (src/utils/glucose.js, brief 0.1) — imported for use in this file
+ * and re-exported so existing importers keep working. */
+import { toMgdl } from "../../../utils/glucose";
+export { toMgdl };
 
 /** The time a log happened: glucose prefers readingTime, meals use createdAt. */
 export function getLogTime(log) {
