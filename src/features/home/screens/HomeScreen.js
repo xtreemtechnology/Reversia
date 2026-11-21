@@ -30,6 +30,7 @@ import PlanHeroCard from "../../reversal/components/PlanHeroCard";
 import { auth } from "../../../config/firebase";
 import { getReversalPlan } from "../../reversal/services/reversalService";
 import { getFoodById } from "../../food-guide/services/foodGuideService";
+import { getDayPlan } from "../../meal-plan/services/mealPlanService";
 import {
   getFoodPhoto,
   FOOD_PHOTO_STRIP_IDS,
@@ -318,6 +319,29 @@ function useDerivedState(logs = []) {
       },
     ];
 
+    // Food preferences, learned from logged meals: the foods this
+    // account logs most, across all history. Only foods logged at
+    // least twice count as a preference — a one-off is not a habit.
+    const foodCounts = new Map();
+    logs.forEach((log) => {
+      if (log?.category !== "meal") return;
+      (log?.foods || []).forEach((food) => {
+        const name = food?.name?.trim();
+        if (!name) return;
+        foodCounts.set(name, (foodCounts.get(name) || 0) + 1);
+      });
+    });
+    const topFoods = Array.from(foodCounts.entries())
+      .filter(([, count]) => count >= 2)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 4)
+      .map(([name, count]) => ({ name, count }));
+
+    // The week's one-line takeaway: the biggest mover vs last week,
+    // up or down, in plain counts. Null when there is no change and
+    // no data — the card already shows the numbers.
+    const momentumInsight = getMomentumInsight(momentum);
+
     return {
       bodyCheckToday,
       // Today's mood and latest check-in identity, for the companion:
@@ -339,6 +363,8 @@ function useDerivedState(logs = []) {
       headerSub,
       clarity,
       momentum,
+      momentumInsight,
+      topFoods,
       // Visibility gates — these sections stay off Home until there is
       // real data behind them (see the render below).
       hasClarityData: Boolean(latestMeal) || waterCount > 0,
@@ -449,6 +475,61 @@ function getNextAction(storySteps, waterCount) {
       ? `You're at ${waterCount} of 4 glasses — one more keeps you on track.`
       : copy.why;
   return { ...copy, why, route };
+}
+
+// The week's one-line takeaway from the momentum rows: the biggest
+// mover vs last week, up or down, in plain counts. Null when every
+// row is unchanged with no data behind it.
+function getMomentumInsight(momentum) {
+  if (!momentum?.length) return null;
+  let best = null;
+  let bestDelta = 0;
+  momentum.forEach((item) => {
+    const delta = item.current - item.previous;
+    if (Math.abs(delta) > Math.abs(bestDelta)) {
+      best = item;
+      bestDelta = delta;
+    }
+  });
+  if (!best || bestDelta === 0) {
+    const anyData = momentum.some(
+      (item) => item.current > 0 || item.previous > 0
+    );
+    return anyData ? "Same as last week across the board." : null;
+  }
+  const direction = bestDelta > 0 ? "up" : "down";
+  return `${best.label} ${direction} ${Math.abs(bestDelta)} ${
+    best.unit
+  } vs last week.`;
+}
+
+// ─────────────────────────────────────────────
+// Today's suggestion — the next meal from the 7-day plan. The plan
+// rotates with the week (Monday is Day 1, Sunday is Day 7), and after
+// 8 PM the next meal is tomorrow's breakfast. Pure apart from the
+// clock, so the copy is always from the real plan, never invented.
+// ─────────────────────────────────────────────
+function getTodaysSuggestion(now = new Date()) {
+  const hour = now.getHours();
+  let day = now.getDay();
+  day = day === 0 ? 7 : day; // Monday = 1 .. Sunday = 7
+  let slot = hour < 11 ? "breakfast" : hour < 16 ? "lunch" : "dinner";
+  let label = "Suggested for today";
+  if (hour >= 20) {
+    day = day === 7 ? 1 : day + 1;
+    slot = "breakfast";
+    label = "Suggested for tomorrow";
+  }
+  const dayPlan = getDayPlan(day);
+  const meal = dayPlan?.meals?.find((m) => m.slot === slot) || null;
+  if (!meal) return null;
+  return {
+    label,
+    day,
+    dayTitle: dayPlan.title,
+    slot,
+    mealTitle: meal.title,
+  };
 }
 
 // ─────────────────────────────────────────────
@@ -786,6 +867,84 @@ function TodaysFocusCard({
   );
 }
 
+function TodaysSuggestion({ navigation }) {
+  const { colors } = useTheme();
+  const ts = makeTs(colors);
+  const suggestion = getTodaysSuggestion();
+  if (!suggestion) return null;
+  return (
+    <View style={ts.outer}>
+      <View style={ts.headerRow}>
+        <Ionicons name="restaurant-outline" size={18} color={colors.primary} />
+        <Text style={ts.overline}>{suggestion.label.toUpperCase()}</Text>
+      </View>
+      <Text style={ts.mealTitle}>{suggestion.mealTitle}</Text>
+      <Text style={ts.dayLine}>
+        Day {suggestion.day} · {suggestion.dayTitle} ·{" "}
+        {suggestion.slot.charAt(0).toUpperCase() + suggestion.slot.slice(1)}
+      </Text>
+      <PressScale
+        onPress={() => navigation?.navigate("Plan", { screen: "MealPlan" })}
+        style={ts.planButton}
+        accessibilityRole="button"
+        accessibilityLabel="See the full meal plan"
+      >
+        <Text style={ts.planButtonText}>See the full plan</Text>
+      </PressScale>
+    </View>
+  );
+}
+
+function makeTs(colors) {
+  return StyleSheet.create({
+    outer: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 20,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+    overline: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.primary,
+      letterSpacing: 0.6,
+      marginLeft: 8,
+    },
+    mealTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.text,
+      lineHeight: 26,
+      marginBottom: 6,
+    },
+    dayLine: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      color: colors.mutedForeground,
+      lineHeight: 19,
+      marginBottom: 12,
+    },
+    planButton: {
+      backgroundColor: colors.muted,
+      borderRadius: 14,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    planButtonText: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
+  });
+}
+
 function makeTf(colors) {
   return StyleSheet.create({
     outer: {
@@ -1084,7 +1243,7 @@ function makeRw(colors) {
 // Only ever rendered when there is data (HomeScreen gates it) —
 // there is no empty state here by design: the section appears
 // when this week or last week has logged activity.
-function WeeklyMomentum({ momentum }) {
+function WeeklyMomentum({ momentum, insight }) {
   const { colors } = useTheme();
   const wm = makeWm(colors);
   return (
@@ -1140,6 +1299,12 @@ function WeeklyMomentum({ momentum }) {
           </View>
         );
       })}
+      {insight ? (
+        <>
+          <View style={wm.insightDivider} />
+          <Text style={wm.insight}>{insight}</Text>
+        </>
+      ) : null}
     </View>
   );
 }
@@ -1211,14 +1376,28 @@ function makeWm(colors) {
       fontSize: 14,
       fontWeight: "700",
     },
+    insightDivider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginTop: 16,
+      marginBottom: 12,
+    },
+    insight: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
   });
 }
 
 // ─────────────────────────────────────────────
 // From the Food Guide — horizontal photo strip of guide foods that have
-// a real photo. Tapping a card opens that food in the Food Guide.
+// a real photo. Tapping a card opens that food in the Food Guide. The
+// "Logged often" row underneath is preference learning: the foods this
+// account actually logs most, counted from the meal logs.
 // ─────────────────────────────────────────────
-function FoodGuideStrip({ navigation }) {
+function FoodGuideStrip({ navigation, topFoods }) {
   const { colors } = useTheme();
   const fg = makeFg(colors);
   const foods = FOOD_PHOTO_STRIP_IDS.map((id) => getFoodById(id)).filter(
@@ -1285,6 +1464,20 @@ function FoodGuideStrip({ navigation }) {
           );
         })}
       </ScrollView>
+      {topFoods?.length > 0 ? (
+        <View style={fg.oftenRow}>
+          <Text style={fg.oftenLabel}>LOGGED OFTEN</Text>
+          <View style={fg.oftenChips}>
+            {topFoods.map((food) => (
+              <View key={food.name} style={fg.oftenChip}>
+                <Text style={fg.oftenChipText} numberOfLines={1}>
+                  {food.name} ×{food.count}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -1349,6 +1542,29 @@ function makeFg(colors) {
       fontSize: 11,
       fontWeight: "700",
     },
+    oftenRow: { paddingHorizontal: 22, marginTop: 16 },
+    oftenLabel: {
+      fontFamily: FONTS.body,
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.mutedForeground,
+      letterSpacing: 0.6,
+      marginBottom: 8,
+    },
+    oftenChips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    oftenChip: {
+      backgroundColor: colors.muted,
+      borderRadius: 999,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+      maxWidth: "100%",
+    },
+    oftenChipText: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.text,
+    },
   });
 }
 
@@ -1403,6 +1619,8 @@ export default function HomeScreen({ navigation }) {
     wins,
     clarity,
     momentum,
+    momentumInsight,
+    topFoods,
     hasClarityData,
     hasMomentumData,
     waterCount,
@@ -1530,6 +1748,11 @@ export default function HomeScreen({ navigation }) {
             plan={plan}
             onPress={() => navigation.navigate("Plan")}
           />
+        </FadeIn>
+
+        {/* ── Suggested for today ── */}
+        <FadeIn delay={30}>
+          <TodaysSuggestion navigation={navigation} />
         </FadeIn>
 
         {/* ── Quick tiles ── */}
@@ -1666,13 +1889,13 @@ export default function HomeScreen({ navigation }) {
         {hasMomentumData ? (
           <FadeIn delay={480}>
             <Text style={styles.sectionTitle}>Weekly Momentum</Text>
-            <WeeklyMomentum momentum={momentum} />
+            <WeeklyMomentum momentum={momentum} insight={momentumInsight} />
           </FadeIn>
         ) : null}
 
         {/* ── From the Food Guide ── */}
         <FadeIn delay={540}>
-          <FoodGuideStrip navigation={navigation} />
+          <FoodGuideStrip navigation={navigation} topFoods={topFoods} />
         </FadeIn>
       </ScrollView>
     </SafeAreaView>
