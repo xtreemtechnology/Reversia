@@ -11,14 +11,16 @@
 //   - "plan my week" → the Reversal Plan's current week, phase and milestone
 //   - water questions → today's logged water vs the 8-glass goal
 //
-// When EXPO_PUBLIC_OPENAI_API_KEY is set, the same questions are offered
-// to OpenAI (gpt-4o-mini, the old modal's model and system prompt) and the
-// local answer is the fallback if that call fails. No key is ever
-// hardcoded and no key is required.
+// When the guideChat Cloud Function is reachable, the same questions are
+// offered to it (OpenAI gpt-4o-mini; the prompt lives server-side in
+// functions/index.js) and the local answer is the fallback if that call
+// fails. No provider key is read in this file (fix brief 0.2).
 //
 // Pure helpers only (no navigation, no Firestore), so they are safe to
 // use in Jest tests.
 
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from "../../../config/firebase";
 import { FOOD_GUIDE } from "../../food-guide/data/foodGuideData";
 import { getFoodById } from "../../food-guide/services/foodGuideService";
 import { getDayPlan } from "../../meal-plan/services/mealPlanService";
@@ -31,9 +33,6 @@ import {
 } from "../../reversal/services/reversalService";
 import { toMgdl, toDate } from "../../insights/services/foodSugarService";
 import { classifyReading } from "../../../utils/glucose";
-
-export const GUIDE_SYSTEM_PROMPT =
-  "You are Reversia: provide concise, culturally-aware meal guidance for Nigerian foods. Keep answers short and actionable.";
 
 export const GUIDE_CHIPS = [
   "Is this food safe?",
@@ -329,48 +328,33 @@ export function answerLocally(question, context = {}) {
   return { text: `${text}\n\n${GUIDE_SAFETY_LINE}`, topic };
 }
 
+/**
+ * Ask the guideChat Cloud Function (OpenAI gpt-4o-mini, prompt server-side).
+ * Returns the model's reply text, or null when it has none.
+ */
 async function fetchOpenAIResponse(question) {
-  const key = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: GUIDE_SYSTEM_PROMPT },
-        { role: "user", content: question },
-      ],
-      max_tokens: 250,
-      temperature: 0.6,
-    }),
-  });
-  const json = await res.json();
-  return json?.choices?.[0]?.message?.content || null;
+  const fn = httpsCallable(getFunctions(app), "guideChat");
+  const result = await fn({ question });
+  return result.data?.text || null;
 }
 
 /**
- * Ask the Guide. Uses OpenAI when EXPO_PUBLIC_OPENAI_API_KEY is set and
- * the call succeeds; otherwise (and always, when no key is set) answers
- * from the app's own data. Returns { text, source, topic }.
+ * Ask the Guide. Uses the guideChat Cloud Function when it is reachable
+ * and returns an answer; otherwise (offline, not deployed, rate limited)
+ * answers from the app's own data. Returns { text, source, topic }.
  */
 export async function askGuide(question, context = {}) {
-  const key = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-  if (key) {
-    try {
-      const text = await fetchOpenAIResponse(question);
-      if (text) {
-        return {
-          text: `${text}\n\n${GUIDE_SAFETY_LINE}`,
-          source: "openai",
-          topic: "general",
-        };
-      }
-    } catch (err) {
-      console.warn("Guide OpenAI fetch failed, using local answers", err);
+  try {
+    const text = await fetchOpenAIResponse(question);
+    if (text) {
+      return {
+        text: `${text}\n\n${GUIDE_SAFETY_LINE}`,
+        source: "openai",
+        topic: "general",
+      };
     }
+  } catch (err) {
+    console.warn("Guide function call failed, using local answers", err);
   }
   return { ...answerLocally(question, context), source: "local" };
 }

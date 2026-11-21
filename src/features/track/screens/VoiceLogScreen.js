@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
@@ -144,29 +145,20 @@ export default function VoiceLogScreen({ navigation, route }) {
       const uri = recordingObj.getURI();
       setRecordingObj(null);
 
-      const isApiKeySet = Boolean(process.env.EXPO_PUBLIC_GEMINI_API_KEY);
-      if (isApiKeySet) {
-        const textResult = await transcribeAudio(uri);
-        setTranscript(textResult || "Nothing transcribed.");
-        setHasRecorded(true);
-      } else {
-        // Friendly key warning dialog
-        Alert.alert(
-          "Gemini API Key Missing",
-          "EXPO_PUBLIC_GEMINI_API_KEY is not set in your .env file. Showing a simulated transcript for testing.",
-          [{ text: "OK" }]
-        );
-        setTranscript(
-          EXAMPLE_PROMPTS[Math.floor(Math.random() * EXAMPLE_PROMPTS.length)]
-        );
-        setHasRecorded(true);
-      }
+      // Transcription runs in the transcribeAudio Cloud Function (fix
+      // brief 0.2) — no API key in the app. If it fails (offline, not
+      // deployed, rate limited), the user types the meal instead.
+      const textResult = await transcribeAudio(uri);
+      setTranscript(textResult || "Nothing transcribed.");
+      setHasRecorded(true);
     } catch (error) {
       console.error("Failed to stop/transcribe voice recording:", error);
       Alert.alert(
-        "Transcription Error",
-        "Could not transcribe audio. Please try again."
+        "Transcription unavailable",
+        "We couldn't transcribe that recording. Type what you ate below instead."
       );
+      setTranscript("");
+      setHasRecorded(true);
     } finally {
       setTranscribing(false);
     }
@@ -331,7 +323,16 @@ export default function VoiceLogScreen({ navigation, route }) {
                   <Text style={styles.clearText}>Clear</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.transcriptText}>{transcript}</Text>
+              {/* The transcript is editable: fix the transcription, or type
+                  the meal yourself when transcription is unavailable. */}
+              <TextInput
+                style={styles.transcriptText}
+                value={transcript}
+                onChangeText={setTranscript}
+                multiline
+                placeholder="What did you eat? Type it here."
+                placeholderTextColor={T.MUTED}
+              />
 
               <View style={styles.transcriptHint}>
                 <Ionicons

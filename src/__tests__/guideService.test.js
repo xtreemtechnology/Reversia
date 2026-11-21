@@ -10,6 +10,17 @@ import {
   GUIDE_SAFETY_LINE,
 } from "../features/guide/services/guideService";
 
+// The guideChat Cloud Function is not reachable in Jest — make its call
+// fail so askGuide falls back to local answers (no real network).
+jest.mock("firebase/functions", () => ({
+  getFunctions: jest.fn(() => ({})),
+  httpsCallable: jest.fn(() =>
+    jest.fn(async () => {
+      throw new Error("functions unavailable in tests");
+    })
+  ),
+}));
+
 const WEDNESDAY = new Date("2026-11-18T10:00:00Z"); // a Wednesday
 
 const LOGS = [
@@ -197,8 +208,7 @@ describe("answerLocally", () => {
 });
 
 describe("askGuide", () => {
-  it("answers locally when no OpenAI key is set", async () => {
-    delete process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+  it("answers locally when the guide function is unavailable", async () => {
     const result = await askGuide("Is beans safe?", {
       logs: LOGS,
       plan: PLAN,
