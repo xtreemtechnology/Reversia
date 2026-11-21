@@ -374,6 +374,84 @@ function companionMessage({ todayMood, storyCompleted, storyTotal }) {
 }
 
 // ─────────────────────────────────────────────
+// Up next — the daily loop's one clear action.
+// ─────────────────────────────────────────────
+// Copy for the next action, keyed by the story-step label. The title
+// is the short noun, the action is the instruction, the why is the
+// user-facing reason (never a medical claim), and the cta is the
+// button verb. The water reason names the count, so the helper builds
+// it instead of storing it here.
+const NEXT_ACTION_COPY = {
+  "Body Check": {
+    title: "Body check",
+    cta: "Check in",
+    action: "Take a quick moment to check in with your body.",
+    why: "A check-in shows how today is starting.",
+  },
+  Glucose: {
+    title: "Glucose",
+    cta: "Log a reading",
+    action: "Log a fasting sugar reading.",
+    why: "A reading now gives today a starting point to compare against.",
+  },
+  "Breakfast Logged": {
+    title: "Breakfast",
+    cta: "Log breakfast",
+    action: "Log what you ate this morning — it only takes a moment.",
+    why: "A morning meal gives the day a steady start.",
+  },
+  "Water Check-In": {
+    title: "Water",
+    cta: "Log a glass of water",
+    action: "Log a glass of water.",
+  },
+  Lunch: {
+    title: "Lunch",
+    cta: "Log lunch",
+    action: "Log what you ate for lunch.",
+    why: "A balanced lunch keeps the afternoon steady.",
+  },
+  "Evening Reflection": {
+    title: "Evening reflection",
+    cta: "Reflect on the day",
+    action: "Take a moment to reflect on how the day went.",
+    why: "A quick reflection closes the day out.",
+  },
+};
+
+// Steps that are only actionable at certain times of day. Evening
+// Reflection cannot complete before 6 PM; breakfast is a morning
+// step and lunch a midday one, so suggesting them late reads stale.
+function isActionableNow(label, hour) {
+  if (label === "Evening Reflection") return hour >= 18;
+  if (label === "Breakfast Logged") return hour < 12;
+  if (label === "Lunch") return hour < 18;
+  return true;
+}
+
+// The single next action: the first incomplete step that is
+// actionable now. If every incomplete step is out of its time
+// window, fall back to the first incomplete step — suggesting
+// something stale beats claiming the day is done when it is not.
+// Returns null only when every step is done.
+function getNextAction(storySteps, waterCount) {
+  const hour = new Date().getHours();
+  const firstIncomplete = storySteps.find((s) => !s.done) || null;
+  if (!firstIncomplete) return null;
+  const timely =
+    storySteps.find((s) => !s.done && isActionableNow(s.label, hour)) ||
+    firstIncomplete;
+  const copy = NEXT_ACTION_COPY[timely.label];
+  const route = TASK_ROUTES[timely.label];
+  if (!copy || !route) return null;
+  const why =
+    timely.label === "Water Check-In"
+      ? `You're at ${waterCount} of 4 glasses — one more keeps you on track.`
+      : copy.why;
+  return { ...copy, why, route };
+}
+
+// ─────────────────────────────────────────────
 // Today's Tasks — the day's remaining moments as a tappable list, built
 // from the same story steps the old ring hero used. Done rows show a
 // green check; open rows show where to go next.
@@ -629,90 +707,47 @@ function makeCc(colors) {
 // ─────────────────────────────────────────────
 // ④ Today's Focus Card
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Up next — the daily loop's one clear action. The card answers three
+// questions from real state: what now (the first incomplete step),
+// why today (a short user-facing reason), and what is the satisfying
+// result (the all-done state). The button takes the user straight to
+// the action. The latest meal already has its story told in the
+// Clarity card — this card is for what comes next.
+// ─────────────────────────────────────────────
 function TodaysFocusCard({
-  breakfastLogged,
-  latestMeal,
+  storySteps,
+  storyCompleted,
   waterCount,
-  bodyCheckToday,
+  navigation,
 }) {
   const { colors } = useTheme();
   const tf = makeTf(colors);
-  const latestMealLabel = latestMeal?.type || latestMeal?.name || "recent meal";
-  const latestMealType = latestMeal?.type?.toLowerCase();
-  const latestMealTime = toDate(latestMeal?.createdAt)?.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const nextAction = getNextAction(storySteps, waterCount);
 
-  let headline = "Try adding protein to your next meal today.";
-  let actionBody =
-    "Add eggs, greek yogurt, beans, or another protein source to keep the day more steady.";
-  let whyBody =
-    "A balanced meal gives the app a stronger signal for the rest of your day.";
-
-  if (latestMeal) {
-    if (latestMealType === "breakfast") {
-      headline = latestMealTime
-        ? `Breakfast logged at ${latestMealTime}`
-        : "Breakfast is already logged today";
-      actionBody = latestMeal?.notes
-        ? latestMeal.notes
-        : "You’ve got a clear morning anchor now. Keep lunch balanced so the day stays steady.";
-      whyBody =
-        "Breakfast is the best signal for the rest of today, so the app can now compare later meals against a real start.";
-    } else if (latestMealType === "lunch") {
-      headline = latestMealTime
-        ? `Lunch logged at ${latestMealTime}`
-        : "Lunch is already logged today";
-      actionBody = latestMeal?.notes
-        ? latestMeal.notes
-        : "Lunch is your strongest midday anchor. Keep hydration up and aim for a steadier dinner.";
-      whyBody =
-        "With lunch logged, the app can compare afternoon energy against a mid-day meal instead of a generic baseline.";
-    } else if (latestMealType === "dinner") {
-      headline = latestMealTime
-        ? `Dinner logged at ${latestMealTime}`
-        : "Dinner is already logged today";
-      actionBody = latestMeal?.notes
-        ? latestMeal.notes
-        : "Dinner closes the day’s pattern. Tomorrow morning will tell the app whether the trend holds.";
-      whyBody =
-        "Dinner gives the app a full-day anchor, which helps compare tomorrow’s energy against last night’s meal pattern.";
-    } else {
-      headline = latestMealTime
-        ? `${latestMealLabel} logged at ${latestMealTime}`
-        : `${latestMealLabel} is already shaping today`;
-      actionBody = latestMeal?.notes
-        ? latestMeal.notes
-        : `${latestMealLabel} is your latest meal anchor. Use the next meal to keep the pattern steady.`;
-      whyBody =
-        "The latest meal gives the app a live anchor point instead of a generic suggestion.";
-    }
-  } else if (breakfastLogged) {
-    headline = "Keep protein in your next meal today.";
-    actionBody =
-      "Your first meal is already in motion. Keep the rest of the day steady with another protein-forward meal.";
-    whyBody =
-      "When meals stay balanced, the app can track your energy patterns with more confidence across the rest of the day.";
-  }
-
-  if (waterCount > 0 && !latestMeal) {
-    actionBody = `You’ve logged ${waterCount} glass$
-{waterCount !== 1 ? "es" : ""} of water today. Pair the next meal with protein to keep momentum steady.`;
-  }
-
-  if (bodyCheckToday && !latestMeal) {
-    whyBody =
-      "Your body check-in is already in place, so adding the next meal helps complete the picture for today.";
+  if (!nextAction) {
+    return (
+      <View style={tf.outer}>
+        <View style={tf.headerRow}>
+          <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+          <Text style={tf.overline}>ALL DONE</Text>
+        </View>
+        <Text style={tf.headline}>You&apos;re done for today</Text>
+        <Text style={tf.doneBody}>
+          {storyCompleted} of {storySteps.length} moments captured — tomorrow
+          starts fresh.
+        </Text>
+      </View>
+    );
   }
 
   return (
     <View style={tf.outer}>
       <View style={tf.headerRow}>
         <SolarIcon name="sun-fog-bold" size={18} color={colors.primary} />
-        <Text style={tf.overline}>TODAY'S FOCUS</Text>
+        <Text style={tf.overline}>UP NEXT</Text>
       </View>
-      <Text style={tf.headline}>{headline}</Text>
+      <Text style={tf.headline}>{nextAction.title}</Text>
       <View style={tf.actionBox}>
         <View style={tf.actionLabelRow}>
           <Ionicons
@@ -723,7 +758,7 @@ function TodaysFocusCard({
           />
           <Text style={tf.actionLabel}>RECOMMENDED ACTION</Text>
         </View>
-        <Text style={tf.actionBody}>{actionBody}</Text>
+        <Text style={tf.actionBody}>{nextAction.action}</Text>
       </View>
       <View style={tf.whyBox}>
         <View style={tf.whyRow}>
@@ -735,10 +770,18 @@ function TodaysFocusCard({
           />
           <View style={tf.whyTextCol}>
             <Text style={tf.whyTitle}>Why this matters</Text>
-            <Text style={tf.whyBody}>{whyBody}</Text>
+            <Text style={tf.whyBody}>{nextAction.why}</Text>
           </View>
         </View>
       </View>
+      <PressScale
+        onPress={() => navigation?.navigate(nextAction.route)}
+        style={tf.ctaButton}
+        accessibilityRole="button"
+        accessibilityLabel={nextAction.cta}
+      >
+        <Text style={tf.ctaText}>{nextAction.cta}</Text>
+      </PressScale>
     </View>
   );
 }
@@ -821,6 +864,25 @@ function makeTf(colors) {
       fontSize: 13,
       color: colors.mutedForeground,
       lineHeight: 19,
+    },
+    doneBody: {
+      fontFamily: FONTS.body,
+      fontSize: 14,
+      color: colors.mutedForeground,
+      lineHeight: 21,
+    },
+    ctaButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    ctaText: {
+      fontFamily: FONTS.body,
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.primaryForeground,
     },
   });
 }
@@ -1343,8 +1405,6 @@ export default function HomeScreen({ navigation }) {
     momentum,
     hasClarityData,
     hasMomentumData,
-    breakfastLogged,
-    latestMeal,
     waterCount,
     bodyCheckToday,
     todayMood,
@@ -1583,13 +1643,13 @@ export default function HomeScreen({ navigation }) {
           </View>
         </FadeIn>
 
-        {/* ── Today's Focus ── */}
+        {/* ── Up next ── */}
         <FadeIn delay={360}>
           <TodaysFocusCard
-            breakfastLogged={breakfastLogged}
-            latestMeal={latestMeal}
+            storySteps={storySteps}
+            storyCompleted={storyCompleted}
             waterCount={waterCount}
-            bodyCheckToday={bodyCheckToday}
+            navigation={navigation}
           />
         </FadeIn>
 
