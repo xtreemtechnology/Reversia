@@ -7,8 +7,8 @@
 //
 // It genuinely answers: the local engine (guideService) reads the Food
 // Guide, the 7-day meal plan, the user's glucose logs and the Reversal
-// Plan — no API key needed. When EXPO_PUBLIC_OPENAI_API_KEY is set, the
-// same questions are offered to OpenAI first, with the local answer as
+// Plan — no API key needed. When the guideChat Cloud Function is reachable,
+// the same questions are offered to it first, with the local answer as
 // the fallback.
 
 import React, { useCallback, useEffect, useRef, useState } from "react";

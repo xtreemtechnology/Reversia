@@ -25,38 +25,6 @@ import FadeIn from "../../home/components/FadeIn";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
-const MOCK_ANALYSIS = {
-  name: "Jollof Rice with Fried Chicken",
-  items: [
-    {
-      name: "Jollof Rice",
-      amount: "1 cup",
-      cal: 340,
-      protein: "7g",
-      carbs: "62g",
-      fat: "7g",
-    },
-    {
-      name: "Fried Chicken",
-      amount: "1 piece",
-      cal: 290,
-      protein: "25g",
-      carbs: "8g",
-      fat: "18g",
-    },
-    {
-      name: "Fried Plantain",
-      amount: "3 slices",
-      cal: 120,
-      protein: "1g",
-      carbs: "27g",
-      fat: "3g",
-    },
-  ],
-  totalCal: 750,
-  confidence: 82,
-};
-
 function StepIndicator({ step }) {
   const steps = ["Photo", "Review", "Confirm"];
   return (
@@ -140,26 +108,31 @@ export default function PhotoLogScreen({ navigation, route }) {
     setAnalysing(true);
 
     try {
-      const isApiKeySet = Boolean(process.env.EXPO_PUBLIC_GEMINI_API_KEY);
-      if (isApiKeySet) {
-        const resultData = await analyzeMealImage(asset.uri, asset.base64);
-        setAnalysis(resultData);
-      } else {
-        // Warning + Fallback
-        Alert.alert(
-          "Gemini API Key Missing",
-          "EXPO_PUBLIC_GEMINI_API_KEY is not set in your .env file. Showing a simulated meal analysis for testing.",
-          [{ text: "OK" }]
-        );
-        setAnalysis(MOCK_ANALYSIS);
-      }
+      // Analysis runs in the analyzeMealImage Cloud Function (fix brief
+      // 0.2) — no API key in the app. If it fails (offline, not deployed,
+      // rate limited), the meal is logged manually instead of showing a
+      // made-up analysis.
+      const resultData = await analyzeMealImage(asset.uri, asset.base64);
+      setAnalysis(resultData);
     } catch (err) {
       console.error("AI Photo analysis failed:", err);
       Alert.alert(
-        "Analysis Error",
-        "Failed to analyze photo: " + (err.message || err)
+        "Analysis unavailable",
+        "We couldn't analyse that photo. Log the meal manually instead.",
+        [
+          {
+            text: "Log it manually",
+            onPress: () =>
+              navigation?.navigate("MealEntry", {
+                mealType,
+                mealName: "",
+                notes: "",
+                source: "photo_log",
+              }),
+          },
+          { text: "Retake", onPress: retake, style: "cancel" },
+        ]
       );
-      setAnalysis(MOCK_ANALYSIS);
     } finally {
       setAnalysing(false);
     }
