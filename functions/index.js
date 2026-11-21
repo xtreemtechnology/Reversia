@@ -15,6 +15,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
+const { geminiText, openaiText, validateMealAnalysis } = require("./parse");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -117,10 +118,7 @@ function requireBase64(value, field, allowedMime, mimeType) {
   }
 }
 
-/** The standard generateContent text extraction (brief 0.3). */
-function geminiText(json) {
-  return json?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
-}
+/** The standard generateContent text extraction (brief 0.3) — see parse.js. */
 
 async function callGemini(body) {
   const res = await fetch(`${GEMINI_API_URL}?key=${geminiKey.value()}`, {
@@ -258,12 +256,9 @@ exports.analyzeMealImage = onCall(
     } catch (_) {
       throw new HttpsError("internal", "Gemini did not return valid meal JSON.");
     }
-    if (
-      typeof parsed?.name !== "string" ||
-      !Array.isArray(parsed?.items) ||
-      typeof parsed?.totalCal !== "number"
-    ) {
-      throw new HttpsError("internal", "Gemini meal JSON is missing name, items, or totalCal.");
+    const shapeError = validateMealAnalysis(parsed);
+    if (shapeError) {
+      throw new HttpsError("internal", shapeError);
     }
     return parsed;
   }
@@ -354,6 +349,6 @@ exports.guideChat = onCall(
       throw new HttpsError("internal", `OpenAI error (${res.status}): ${text.slice(0, 200)}`);
     }
     const json = await res.json();
-    return { text: json?.choices?.[0]?.message?.content || null };
+    return { text: openaiText(json) };
   }
 );
